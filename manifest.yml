@@ -1,0 +1,15 @@
+---
+applications:
+- name: document-download-api
+
+  instances: 1
+  memory: 512M
+
+  buildpack: python_buildpack
+  command: gunicorn -w 4 -k gevent -b 0.0.0.0:$PORT application --worker-connections 1000
+
+  routes:
+    - route: document-download-api.cloudapps.digital
+
+  env:
+    FLASK_APP: application.py
