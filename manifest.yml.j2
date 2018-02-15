@@ -1,0 +1,21 @@
+---
+applications:
+- name: document-download-api
+
+  instances: 1
+  memory: 512M
+
+  buildpack: python_buildpack
+  command: gunicorn -w 4 -k eventlet -b 0.0.0.0:$PORT application --worker-connections 1000
+
+  routes:
+    - route: document-download-api-{{ environment }}.cloudapps.digital
+
+  env:
+    FLASK_APP: application.py
+    ENVIRONMENT: {{ environment }}
+
+    AUTH_TOKENS: {{ AUTH_TOKENS }}
+
+    AWS_ACCESS_KEY_ID: {{ AWS_ACCESS_KEY_ID }}
+    AWS_SECRET_ACCESS_KEY: {{ AWS_SECRET_ACCESS_KEY }}
