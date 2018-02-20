@@ -61,7 +61,6 @@ docker-build:
 		-t govuk/document-download-api:${GIT_COMMIT} \
 		.
 
-
 .PHONY: test-with-docker
 test-with-docker: docker-build
 	docker run --rm \
@@ -77,3 +76,16 @@ test-with-docker: docker-build
 		-e NO_PROXY="${NO_PROXY}" \
 		govuk/document-download-api:${GIT_COMMIT} \
 		make test
+
+.PHONY: build-paas-artifact
+build-paas-artifact:  ## Build the deploy artifact for PaaS
+	rm -rf target
+	mkdir -p target
+	git archive -o target/document-download-api.zip HEAD
+
+
+.PHONY: upload-paas-artifact ## Upload the deploy artifact for PaaS
+upload-paas-artifact:
+	$(if ${BUILD_NUMBER},,$(error Must specify BUILD_NUMBER))
+	$(if ${JENKINS_S3_BUCKET},,$(error Must specify JENKINS_S3_BUCKET))
+	aws s3 cp --region eu-west-1 --sse AES256 target/document-download-api.zip s3://${JENKINS_S3_BUCKET}/build/document-download-api/${BUILD_NUMBER}.zip
