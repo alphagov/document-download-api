@@ -1,0 +1,7 @@
+Flask==0.12.2
+Flask-Env==1.0.1
+
+boto3==1.5.22
+
+gunicorn==19.7.1
+eventlet==0.22
