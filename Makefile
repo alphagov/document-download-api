@@ -2,10 +2,10 @@ SHELL := /bin/bash
 
 GIT_COMMIT ?= $(shell git rev-parse HEAD)
 
+CF_API ?= api.cloud.service.gov.uk
 NOTIFY_CREDENTIALS ?= ~/.notify-credentials
 
 CF_APP = document-download-api
-
 
 .PHONY: run
 run:
