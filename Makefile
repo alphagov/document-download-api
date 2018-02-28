@@ -52,6 +52,22 @@ cf-deploy: ## Deploys the app to Cloud Foundry
 	[ $$(cf curl "/v2/events?q=type:app.crash&q=actee:$$(cf app --guid ${CF_APP})" | jq ".total_results") -eq 0 ]
 	cf delete -f ${CF_APP}-rollback
 
+.PHONY: cf-rollback
+cf-rollback: ## Rollbacks the app to the previous release
+	$(if ${CF_APP},,$(error Must specify CF_APP))
+	@cf app --guid ${CF_APP}-rollback || exit 1
+	@[ $$(cf curl /v2/apps/`cf app --guid ${CF_APP}-rollback` | jq -r ".entity.state") = "STARTED" ] || (echo "Error: rollback is not possible because ${CF_APP}-rollback is not in a started state" && exit 1)
+	cf delete -f ${CF_APP} || true
+	cf rename ${CF_APP}-rollback ${CF_APP}
+
+.PHONY: cf-login
+cf-login: ## Log in to Cloud Foundry
+	$(if ${CF_USERNAME},,$(error Must specify CF_USERNAME))
+	$(if ${CF_PASSWORD},,$(error Must specify CF_PASSWORD))
+	$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
+	@echo "Logging in to Cloud Foundry on ${CF_API}"
+	@cf login -a "${CF_API}" -u ${CF_USERNAME} -p "${CF_PASSWORD}" -o "${CF_ORG}" -s "${CF_SPACE}"
+
 .PHONY: docker-build
 docker-build:
 	docker build --pull \
