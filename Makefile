@@ -28,9 +28,9 @@ generate-manifest:
 	$(if $(shell which gpg2), $(eval export GPG=gpg2), $(eval export GPG=gpg))
 	$(if ${GPG_PASSPHRASE_TXT}, $(eval export DECRYPT_CMD=echo -n $$$${GPG_PASSPHRASE_TXT} | ${GPG} --quiet --batch --passphrase-fd 0 --pinentry-mode loopback -d), $(eval export DECRYPT_CMD=${GPG} --quiet --batch -d))
 
-	@./scripts/generate_manifest.py manifest.yml.j2 \
-	    <(${DECRYPT_CMD} ${NOTIFY_CREDENTIALS}/credentials/${CF_SPACE}/document-download/paas-environment.gpg) \
-	    <(echo environment: ${CF_SPACE})
+	@jinja2 --strict manifest.yml.j2 \
+	    -D environment=${CF_SPACE} --format=yaml \
+	    <(${DECRYPT_CMD} ${NOTIFY_CREDENTIALS}/credentials/${CF_SPACE}/document-download/paas-environment.gpg)
 
 .PHONY: cf-push
 cf-push:
