@@ -30,7 +30,7 @@ generate-manifest:
 
 	@jinja2 --strict manifest.yml.j2 \
 	    -D environment=${CF_SPACE} --format=yaml \
-	    <(${DECRYPT_CMD} ${NOTIFY_CREDENTIALS}/credentials/${CF_SPACE}/document-download/paas-environment.gpg)
+	    <(${DECRYPT_CMD} ${NOTIFY_CREDENTIALS}/credentials/${CF_SPACE}/document-download/paas-environment.gpg) 2>&1
 
 .PHONY: cf-push
 cf-push:
