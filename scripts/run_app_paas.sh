@@ -68,6 +68,11 @@ function start_aws_logs_agent {
   echo "AWS logs agent pid: ${AWSLOGS_AGENT_PID}"
 }
 
+function start_clamd {
+    freshclam -d &
+    /usr/sbin/clamd &
+}
+
 function run {
   while true; do
     kill -0 ${APP_PID} 2&>/dev/null || break
@@ -88,5 +93,7 @@ configure_aws_logs
 start_application "$@"
 
 start_aws_logs_agent
+
+start_clamd
 
 run
