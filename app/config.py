@@ -9,6 +9,11 @@ class Config(metaclass=MetaFlaskEnv):
 
     DOCUMENTS_BUCKET = None
 
+    PUBLIC_HOSTNAME = None
+
+    NOTIFY_APP_NAME = None
+    NOTIFY_LOG_PATH = None
+
 
 class Test(Config):
     DEBUG = True

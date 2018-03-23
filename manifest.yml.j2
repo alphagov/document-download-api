@@ -6,14 +6,25 @@ applications:
   memory: 512M
 
   buildpack: python_buildpack
-  command: gunicorn -w 4 -k eventlet -b 0.0.0.0:$PORT application --worker-connections 1000
+  command: scripts/run_app_paas.sh gunicorn -w 4 -k eventlet -b 0.0.0.0:$PORT application --worker-connections 1000 --error-logfile /home/vcap/logs/gunicorn_error.log
 
+  {% set hostname={
+    "preview": "download.notify.works",
+    "staging": "download.staging-notify.works",
+    "production": "download.notifications.service.gov.uk"
+  }[environment] %}
   routes:
     - route: document-download-api-{{ environment }}.cloudapps.digital
+    - route: {{ hostname }}
 
   env:
     FLASK_APP: application.py
     ENVIRONMENT: {{ environment }}
+
+    PUBLIC_HOSTNAME: {{ hostname }}
+
+    NOTIFY_APP_NAME: document-download-api
+    NOTIFY_LOG_PATH: /home/vcap/logs/app.log
 
     AUTH_TOKENS: {{ AUTH_TOKENS }}
 

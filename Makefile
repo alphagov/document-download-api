@@ -19,6 +19,19 @@ test:
 .PHONY: preview
 preview:
 	$(eval export CF_SPACE=preview)
+	$(eval export DNS_NAME=download.notify.works)
+	cf target -s ${CF_SPACE}
+
+.PHONY: staging
+staging:
+	$(eval export CF_SPACE=staging)
+	$(eval export DNS_NAME=download.staging-notify.works)
+	cf target -s ${CF_SPACE}
+
+.PHONY: production
+production:
+	$(eval export CF_SPACE=production)
+	$(eval export DNS_NAME=download.notifications.service.gov.uk)
 	cf target -s ${CF_SPACE}
 
 .PHONY: generate-manifest
@@ -30,7 +43,7 @@ generate-manifest:
 
 	@jinja2 --strict manifest.yml.j2 \
 	    -D environment=${CF_SPACE} --format=yaml \
-	    <(${DECRYPT_CMD} ${NOTIFY_CREDENTIALS}/credentials/${CF_SPACE}/document-download/paas-environment.gpg)
+	    <(${DECRYPT_CMD} ${NOTIFY_CREDENTIALS}/credentials/${CF_SPACE}/document-download/paas-environment.gpg) 2>&1
 
 .PHONY: cf-push
 cf-push:
@@ -59,6 +72,12 @@ cf-rollback: ## Rollbacks the app to the previous release
 	@[ $$(cf curl /v2/apps/`cf app --guid ${CF_APP}-rollback` | jq -r ".entity.state") = "STARTED" ] || (echo "Error: rollback is not possible because ${CF_APP}-rollback is not in a started state" && exit 1)
 	cf delete -f ${CF_APP} || true
 	cf rename ${CF_APP}-rollback ${CF_APP}
+
+.PHONY: cf-create-cdn-route
+cf-create-cdn-route:
+	$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
+	$(if ${DNS_NAME},,$(error Must specify DNS_NAME))
+	cf create-service cdn-route cdn-route document-download-cdn-route -c '{"domain": "${DNS_NAME}"}'
 
 .PHONY: cf-login
 cf-login: ## Log in to Cloud Foundry

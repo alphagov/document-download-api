@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, make_response, request, send_file
+from flask import Blueprint, current_app, jsonify, make_response, request, send_file
 
 from app import document_store
 
@@ -15,6 +15,13 @@ def download_document(service_id, document_id):
     try:
         document = document_store.get(service_id, document_id, request.args.get('key'))
     except DocumentStoreError as e:
+        current_app.logger.info(
+            'Failed to download document: {}'.format(e),
+            extra={
+                'service_id': service_id,
+                'document_id': document_id,
+            }
+        )
         return jsonify(error=str(e)), 400
 
     response = make_response(send_file(document['body'], mimetype=document['mimetype']))

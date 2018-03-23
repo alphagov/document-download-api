@@ -29,7 +29,8 @@ def test_document_download(client, store):
         'Cache-Control': mock.ANY,
         'Expires': mock.ANY,
         'Content-Length': '100',
-        'Content-Type': 'application/pdf'
+        'Content-Type': 'application/pdf',
+        'NotifyRequestID': mock.ANY,
     }
 
 
