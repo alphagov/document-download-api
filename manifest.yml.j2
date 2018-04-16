@@ -6,7 +6,7 @@ applications:
   memory: 512M
 
   buildpack: python_buildpack
-  command: scripts/run_app_paas.sh gunicorn -w 4 -k eventlet -b 0.0.0.0:$PORT application --worker-connections 1000 --error-logfile /home/vcap/logs/gunicorn_error.log
+  command: scripts/run_app_paas.sh gunicorn -c gunicorn_config.py application
 
   {% set hostname={
     "preview": "download.notify.works",
