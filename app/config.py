@@ -12,7 +12,7 @@ class Config(metaclass=MetaFlaskEnv):
     PUBLIC_HOSTNAME = None
 
     NOTIFY_APP_NAME = None
-    NOTIFY_LOG_PATH = None
+    NOTIFY_LOG_PATH = 'application.log'
 
 
 class Test(Config):
