@@ -48,30 +48,31 @@ generate-manifest:
 .PHONY: cf-push
 cf-push:
 	$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
-	cf push ${CF_APP} -f <(make -s generate-manifest)
+	cf push ${CF_APP}-${CF_SPACE} -f <(make -s generate-manifest)
 
 .PHONY: cf-deploy
 cf-deploy: ## Deploys the app to Cloud Foundry
 	$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
-	@cf app --guid ${CF_APP} || exit 1
-	cf rename ${CF_APP} ${CF_APP}-rollback
-	cf push ${CF_APP} -f <(make -s generate-manifest)
-	cf scale -i $$(cf curl /v2/apps/$$(cf app --guid ${CF_APP}-rollback) | jq -r ".entity.instances" 2>/dev/null || echo "1") ${CF_APP}
-	cf stop ${CF_APP}-rollback
+	@cf app --guid ${CF_APP}-${CF_SPACE} || exit 1
+	cf rename ${CF_APP}-${CF_SPACE} ${CF_APP}-${CF_SPACE}-rollback
+	cf push ${CF_APP}-${CF_SPACE} -f <(make -s generate-manifest)
+	cf scale -i $$(cf curl /v2/apps/$$(cf app --guid ${CF_APP}-${CF_SPACE}-rollback) | jq -r ".entity.instances" 2>/dev/null || echo "1") ${CF_APP}-${CF_SPACE}
+	cf stop ${CF_APP}-${CF_SPACE}-rollback
 	# sleep for 10 seconds to try and make sure that all worker threads (either web api or celery) have finished before we delete
 	sleep 10
 
 	# get the new GUID, and find all crash events for that. If there were any crashes we will abort the deploy.
-	[ $$(cf curl "/v2/events?q=type:app.crash&q=actee:$$(cf app --guid ${CF_APP})" | jq ".total_results") -eq 0 ]
-	cf delete -f ${CF_APP}-rollback
+	[ $$(cf curl "/v2/events?q=type:app.crash&q=actee:$$(cf app --guid ${CF_APP}-${CF_SPACE})" | jq ".total_results") -eq 0 ]
+	cf delete -f ${CF_APP}-${CF_SPACE}-rollback
 
 .PHONY: cf-rollback
 cf-rollback: ## Rollbacks the app to the previous release
 	$(if ${CF_APP},,$(error Must specify CF_APP))
-	@cf app --guid ${CF_APP}-rollback || exit 1
-	@[ $$(cf curl /v2/apps/`cf app --guid ${CF_APP}-rollback` | jq -r ".entity.state") = "STARTED" ] || (echo "Error: rollback is not possible because ${CF_APP}-rollback is not in a started state" && exit 1)
-	cf delete -f ${CF_APP} || true
-	cf rename ${CF_APP}-rollback ${CF_APP}
+	$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
+	@cf app --guid ${CF_APP}-${CF_SPACE}-rollback || exit 1
+	@[ $$(cf curl /v2/apps/`cf app --guid ${CF_APP}-${CF_SPACE}-rollback` | jq -r ".entity.state") = "STARTED" ] || (echo "Error: rollback is not possible because ${CF_APP}-${CF_SPACE}-rollback is not in a started state" && exit 1)
+	cf delete -f ${CF_APP}-${CF_SPACE} || true
+	cf rename ${CF_APP}-${CF_SPACE}-rollback ${CF_APP}-${CF_SPACE}
 
 .PHONY: cf-create-cdn-route
 cf-create-cdn-route:
