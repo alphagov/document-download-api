@@ -17,6 +17,9 @@ applications:
     - route: document-download-api-{{ environment }}.cloudapps.digital
     - route: {{ hostname }}
 
+  services:
+    - notify-prometheus
+
   env:
     FLASK_APP: application.py
     ENVIRONMENT: {{ environment }}
