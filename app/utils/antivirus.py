@@ -28,7 +28,7 @@ class AntivirusClient:
         self.api_host = app.config['ANTIVIRUS_API_HOST']
         self.auth_token = app.config['ANTIVIRUS_API_KEY']
 
-    def scan(self, document):
+    def scan(self, document_stream):
         try:
             response = requests.post(
                 "{}/scan".format(self.api_host),
@@ -36,7 +36,7 @@ class AntivirusClient:
                     'Authorization': "Bearer {}".format(self.auth_token),
                 },
                 files={
-                    'document': document
+                    'document': document_stream
                 }
             )
 
@@ -50,6 +50,6 @@ class AntivirusClient:
 
             raise error
         finally:
-            document.seek(0)
+            document_stream.seek(0)
 
         return response.json()['ok']
