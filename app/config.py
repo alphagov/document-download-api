@@ -14,6 +14,9 @@ class Config(metaclass=MetaFlaskEnv):
     NOTIFY_APP_NAME = None
     NOTIFY_LOG_PATH = 'application.log'
 
+    ANTIVIRUS_API_HOST = None
+    ANTIVIRUS_API_KEY = None
+
 
 class Test(Config):
     DEBUG = True
@@ -23,6 +26,9 @@ class Test(Config):
 
     DOCUMENTS_BUCKET = 'test-bucket'
 
+    ANTIVIRUS_API_HOST = 'https://test-antivirus'
+    ANTIVIRUS_API_KEY = 'test-antivirus-secret'
+
 
 class Development(Config):
     DEBUG = True
@@ -31,6 +37,9 @@ class Development(Config):
     AUTH_TOKENS = 'auth-token'
 
     DOCUMENTS_BUCKET = 'development-document-download'
+
+    ANTIVIRUS_API_HOST = 'http://localhost:6016'
+    ANTIVIRUS_API_KEY = 'test-key'
 
 
 class Preview(Config):

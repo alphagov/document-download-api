@@ -17,7 +17,7 @@ class DocumentStore:
     def init_app(self, app):
         self.bucket = app.config['DOCUMENTS_BUCKET']
 
-    def put(self, service_id, document, *, mimetype='application/pdf'):
+    def put(self, service_id, document_stream, *, mimetype='application/pdf'):
 
         encryption_key = self.generate_encryption_key()
         document_id = str(uuid.uuid4())
@@ -25,7 +25,7 @@ class DocumentStore:
         self.s3.put_object(
             Bucket=self.bucket,
             Key=self.get_document_key(service_id, document_id),
-            Body=document,
+            Body=document_stream,
             ContentType=mimetype,
             SSECustomerKey=encryption_key,
             SSECustomerAlgorithm='AES256'
