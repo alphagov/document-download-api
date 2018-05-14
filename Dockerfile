@@ -17,6 +17,7 @@ RUN \
 		git \
 		build-essential \
 		zip \
+		libmagic1 \
 	&& echo "Clean up" \
 	&& rm -rf /var/lib/apt/lists/* /tmp/*
 
