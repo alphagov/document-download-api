@@ -15,6 +15,7 @@ run:
 test:
 	py.test --cov=app --cov-report=term-missing tests/
 	if [[ ! -z $$COVERALLS_REPO_TOKEN ]]; then coveralls; fi
+	flake8 .
 
 .PHONY: preview
 preview:
