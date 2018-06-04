@@ -5,6 +5,7 @@ import pytest
 
 from app.utils.antivirus import AntivirusError
 
+
 @pytest.fixture
 def store(mocker):
     return mocker.patch('app.upload.views.document_store')
@@ -27,7 +28,7 @@ def test_document_upload(client, store, antivirus):
         '/services/12345678-1111-1111-1111-123456789012/documents',
         content_type='multipart/form-data',
         data={
-            'document': (io.BytesIO(b'pdf file contents'), 'file.pdf')
+            'document': (io.BytesIO(b'%PDF-1.4 file contents'), 'file.pdf')
         }
     )
 
@@ -52,7 +53,7 @@ def test_document_upload_virus_found(client, store, antivirus):
         '/services/12345678-1111-1111-1111-123456789012/documents',
         content_type='multipart/form-data',
         data={
-            'document': (io.BytesIO(b'pdf file contents'), 'file.pdf')
+            'document': (io.BytesIO(b'%PDF-1.4 file contents'), 'file.pdf')
         }
     )
 
@@ -69,7 +70,7 @@ def test_document_upload_virus_scan_error(client, store, antivirus):
         '/services/12345678-1111-1111-1111-123456789012/documents',
         content_type='multipart/form-data',
         data={
-            'document': (io.BytesIO(b'pdf file contents'), 'file.pdf')
+            'document': (io.BytesIO(b'%PDF-1.4 file contents'), 'file.pdf')
         }
     )
 
@@ -79,12 +80,27 @@ def test_document_upload_virus_scan_error(client, store, antivirus):
     }
 
 
+def test_document_upload_unknown_type(client):
+    response = client.post(
+        '/services/12345678-1111-1111-1111-123456789012/documents',
+        content_type='multipart/form-data',
+        data={
+            'document': (io.BytesIO(b'pdf file contents\n'), 'file.pdf')
+        }
+    )
+
+    assert response.status_code == 400
+    assert json.loads(response.get_data(as_text=True)) == {
+        'error': "Unsupported document type 'text/plain'. Supported types are: ['application/pdf']"
+    }
+
+
 def test_document_upload_no_document(client):
     response = client.post(
         '/services/12345678-1111-1111-1111-123456789012/documents',
         content_type='multipart/form-data',
         data={
-            'file': (io.BytesIO(b'pdf file contents'), 'file.pdf')
+            'file': (io.BytesIO(b'%PDF-1.4 file contents'), 'file.pdf')
         }
     )
 
@@ -96,7 +112,7 @@ def test_unauthorized_document_upload(client):
         '/services/12345678-1111-1111-1111-123456789012/documents',
         content_type='multipart/form-data',
         data={
-            'document': (io.BytesIO(b'pdf file contents'), 'file.pdf')
+            'document': (io.BytesIO(b'%PDF-1.4 file contents'), 'file.pdf')
         },
         headers={
             'Authorization': None,
