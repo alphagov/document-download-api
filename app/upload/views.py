@@ -1,6 +1,7 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, current_app, jsonify, request
 
 from app import document_store, antivirus_client
+from app.utils import get_mime_type
 from app.utils.antivirus import AntivirusError
 from app.utils.authentication import check_auth
 from app.utils.urls import get_document_download_url
@@ -14,6 +15,15 @@ def upload_document(service_id):
     if 'document' not in request.files:
         return jsonify(error='No document upload'), 400
 
+    mimetype = get_mime_type(request.files['document'])
+    if mimetype not in current_app.config['ALLOWED_MIME_TYPES']:
+        return jsonify(
+            error="Unsupported document type '{}'. Supported types are: {}".format(
+                mimetype,
+                current_app.config['ALLOWED_MIME_TYPES']
+            )
+        ), 400
+
     try:
         virus_free = antivirus_client.scan(request.files['document'])
     except AntivirusError:
@@ -22,7 +32,7 @@ def upload_document(service_id):
     if not virus_free:
         return jsonify(error="Document didn't pass the virus scan"), 400
 
-    document = document_store.put(service_id, request.files['document'])
+    document = document_store.put(service_id, request.files['document'], mimetype=mimetype)
 
     return jsonify(
         status='ok',
