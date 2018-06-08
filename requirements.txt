@@ -3,6 +3,8 @@ Flask-Env==1.0.1
 
 boto3==1.5.22
 
+python-magic==0.4.15
+
 git+https://github.com/alphagov/notifications-utils.git@26.3.0#egg=notifications-utils==26.3.0
 
 # PaaS

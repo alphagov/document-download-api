@@ -9,6 +9,10 @@ class Config(metaclass=MetaFlaskEnv):
 
     DOCUMENTS_BUCKET = None
 
+    ALLOWED_MIME_TYPES = [
+        'application/pdf',
+    ]
+
     PUBLIC_HOSTNAME = None
 
     NOTIFY_APP_NAME = None
