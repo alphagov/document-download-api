@@ -8,14 +8,8 @@ applications:
   buildpack: python_buildpack
   command: scripts/run_app_paas.sh gunicorn -c gunicorn_config.py application
 
-  {% set hostname={
-    "preview": "download.notify.works",
-    "staging": "download.staging-notify.works",
-    "production": "download.notifications.service.gov.uk"
-  }[environment] %}
   routes:
     - route: document-download-api-{{ environment }}.cloudapps.digital
-    - route: {{ hostname }}
 
   services:
     - notify-prometheus
