@@ -95,6 +95,21 @@ def test_document_upload_unknown_type(client):
     }
 
 
+def test_document_file_size_too_large(client):
+    response = client.post(
+        '/services/12345678-1111-1111-1111-123456789012/documents',
+        content_type='multipart/form-data',
+        data={
+            'document': (io.BytesIO(b'pdf' * 1024 * 1024), 'file.pdf')
+        }
+    )
+
+    assert response.status_code == 413
+    assert json.loads(response.get_data(as_text=True)) == {
+        'error': "Uploaded document exceeds file size limit"
+    }
+
+
 def test_document_upload_no_document(client):
     response = client.post(
         '/services/12345678-1111-1111-1111-123456789012/documents',
