@@ -19,7 +19,7 @@ def antivirus(mocker):
 def test_document_upload(client, store, antivirus):
     store.put.return_value = {
         'id': '12345678-2222-2222-2222-123456789012',
-        'encryption_key': '42',
+        'encryption_key': bytes(32),
     }
 
     antivirus.scan.return_value = True
@@ -37,9 +37,9 @@ def test_document_upload(client, store, antivirus):
         'document': {
             'id': '12345678-2222-2222-2222-123456789012',
             'url': ''.join([
-                'http://localhost',
+                'http://document-download-test',
                 '/services/12345678-1111-1111-1111-123456789012',
-                '/documents/12345678-2222-2222-2222-123456789012?key=42'
+                '/documents/12345678-2222-2222-2222-123456789012?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
             ])
         },
         'status': 'ok'

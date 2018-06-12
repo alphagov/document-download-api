@@ -1,5 +1,4 @@
 import uuid
-import string
 from unittest import mock
 
 import pytest
@@ -36,12 +35,11 @@ def test_document_key_with_uuid(store):
 def test_put_document(store):
     store.s3.put_object = mock.Mock()
 
-    assert store.put('service-id', mock.Mock()) == {
+    ret = store.put('service-id', mock.Mock())
+
+    assert ret == {
         'id': Matcher('UUID length match', lambda x: len(x) == 36),
-        'encryption_key': Matcher(
-            '64 character hex key',
-            lambda x: len(x) == 64 and all(c in string.hexdigits for c in x)
-        )
+        'encryption_key': Matcher('32 bytes', lambda x: len(x) == 32 and isinstance(x, bytes))
     }
 
     store.s3.put_object.assert_called_once_with(
@@ -49,7 +47,7 @@ def test_put_document(store):
         Bucket='test-bucket',
         ContentType='application/pdf',
         Key=Matcher('document key', lambda x: x.startswith('service-id/') and len(x) == 11 + 36),
-        SSECustomerKey=Matcher('256-bit binary key, guaranteed to be random', lambda x: len(x) == 32),
+        SSECustomerKey=ret['encryption_key'],
         SSECustomerAlgorithm='AES256'
     )
 
@@ -61,7 +59,7 @@ def test_get_document(store):
         'ContentLength': 100
     })
 
-    assert store.get('service-id', 'document-id', '42'*32) == {
+    assert store.get('service-id', 'document-id', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA') == {
         'body': mock.ANY,
         'mimetype': 'application/pdf',
         'size': 100,
@@ -71,7 +69,8 @@ def test_get_document(store):
         Bucket='test-bucket',
         Key='service-id/document-id',
         SSECustomerAlgorithm='AES256',
-        SSECustomerKey=b'B'*32,
+        # 32 null bytes
+        SSECustomerKey=bytes(32),
     )
 
 

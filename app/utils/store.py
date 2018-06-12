@@ -4,6 +4,8 @@ import uuid
 import boto3
 from botocore.exceptions import ClientError as BotoClientError
 
+from app.utils.urls import key_to_bytes
+
 
 class DocumentStoreError(Exception):
     pass
@@ -33,13 +35,13 @@ class DocumentStore:
 
         return {
             'id': document_id,
-            'encryption_key': encryption_key.hex()
+            'encryption_key': encryption_key
         }
 
     def get(self, service_id, document_id, decryption_key):
 
         try:
-            decryption_key = bytes.fromhex(decryption_key)
+            decryption_key = key_to_bytes(decryption_key)
         except ValueError:
             raise DocumentStoreError('Invalid decryption key')
 

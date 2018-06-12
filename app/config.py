@@ -27,6 +27,9 @@ class Config(metaclass=MetaFlaskEnv):
 class Test(Config):
     DEBUG = True
 
+    # used during tests as a domain name
+    SERVER_NAME = 'document-download-test'
+
     SECRET_KEY = 'test-secret'
     AUTH_TOKENS = 'test-token:test-token-2'
 
