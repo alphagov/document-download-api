@@ -14,7 +14,7 @@ SAMPLE_B64 = 'AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8'
 def test_download_url_returns_url_for(app):
     assert get_document_download_url(
         service_id=UUID(int=0), document_id=UUID(int=1), key=SAMPLE_KEY
-    ) == 'http://document-download-test/services/{}/documents/{}?key={}'.format(
+    ) == 'http://document-download-test/d/{}/{}?key={}'.format(
         'AAAAAAAAAAAAAAAAAAAAAA',
         'AAAAAAAAAAAAAAAAAAAAAQ',
         SAMPLE_B64

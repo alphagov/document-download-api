@@ -38,8 +38,8 @@ def test_document_upload(client, store, antivirus):
             'id': 'ffffffff-ffff-ffff-ffff-ffffffffffff',
             'url': ''.join([
                 'http://document-download-test',
-                '/services/AAAAAAAAAAAAAAAAAAAAAA',
-                '/documents/_____________________w',
+                '/d/AAAAAAAAAAAAAAAAAAAAAA',
+                '/_____________________w',
                 '?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
             ])
         },

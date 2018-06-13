@@ -1,4 +1,3 @@
-import binascii
 from base64 import urlsafe_b64encode, urlsafe_b64decode
 from urllib.parse import urlsplit, urlunsplit
 
@@ -25,11 +24,8 @@ def get_document_download_url(service_id, document_id, key):
 
 
 def base64_to_bytes(key):
-    try:
-        # keys are 32 bytes will always have one `=` of padding
-        return urlsafe_b64decode(key + '=')
-    except binascii.Error:
-        raise ValueError('Could not decode decryption key')
+    # keys are 32 bytes will always have one `=` of padding
+    return urlsafe_b64decode(key + '=')
 
 
 def bytes_to_base64(bytes):

@@ -21,7 +21,7 @@ def test_document_download(client, store):
     }
 
     response = client.get(
-        '/services/{}/documents/{}?key={}'.format(
+        '/d/{}/{}?key={}'.format(
             'AAAAAAAAAAAAAAAAAAAAAA',  # uuid all 0s
             '_____________________w',  # uuid all fs
             'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',  # 32 \x00 bytes
@@ -46,15 +46,20 @@ def test_document_download(client, store):
 
 def test_document_download_without_decryption_key(client, store):
     response = client.get(
-        '/services/AAAAAAAAAAAAAAAAAAAAAA/documents/AAAAAAAAAAAAAAAAAAAAAA',
+        '/d/AAAAAAAAAAAAAAAAAAAAAA/AAAAAAAAAAAAAAAAAAAAAA',
     )
 
     assert response.status_code == 400
 
 
-def test_document_download_with_invalid_decrpytion_key(client, store):
+@pytest.mark.parametrize('invalid_key', [
+    'not_long_enough',
+    '🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉?'
+    '🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉?'
+])
+def test_document_download_with_invalid_decryption_key(client, invalid_key):
     response = client.get(
-        '/services/AAAAAAAAAAAAAAAAAAAAAA/documents/AAAAAAAAAAAAAAAAAAAAAA?key=some-invalid-key',
+        '/d/AAAAAAAAAAAAAAAAAAAAAA/AAAAAAAAAAAAAAAAAAAAAA?key={}'.format(invalid_key),
     )
 
     assert response.status_code == 400
@@ -64,7 +69,7 @@ def test_document_download_with_invalid_decrpytion_key(client, store):
 def test_document_download_document_store_error(client, store):
     store.get.side_effect = DocumentStoreError('something went wrong')
     response = client.get(
-        '/services/{}/documents/{}?key={}'.format(
+        '/d/{}/{}?key={}'.format(
             'AAAAAAAAAAAAAAAAAAAAAA',
             '_____________________w',
             'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
@@ -77,12 +82,12 @@ def test_document_download_document_store_error(client, store):
 
 @pytest.mark.parametrize('url', [
     # a uuid instead of b64 string
-    '/services/00000000-0000-0000-0000-000000000000/documents/AAAAAAAAAAAAAAAAAAAAAA',
-    '/services/AAAAAAAAAAAAAAAAAAAAAA/documents/00000000-0000-0000-0000-000000000000',
+    '/d/00000000-0000-0000-0000-000000000000/AAAAAAAAAAAAAAAAAAAAAA',
+    '/d/AAAAAAAAAAAAAAAAAAAAAA/00000000-0000-0000-0000-000000000000',
     # too long to be a UUID
-    '/services/AAAAAAAAAAAAAAAAAAAAAAAA/documents/AAAAAAAAAAAAAAAAAAAAAA',
+    '/d/AAAAAAAAAAAAAAAAAAAAAAAA/AAAAAAAAAAAAAAAAAAAAAA',
     # characters that aren't in base64 encoding
-    '/services/🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉/documents/AAAAAAAAAAAAAAAAAAAAAA',
+    '/d/🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉/AAAAAAAAAAAAAAAAAAAAAA',
 ])
 def test_get_document_404s_with_invalid_IDs(client, url):
     response = client.get(

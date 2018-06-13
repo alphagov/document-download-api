@@ -9,7 +9,7 @@ from app.utils.store import DocumentStoreError
 download_blueprint = Blueprint('download', __name__, url_prefix='')
 
 
-@download_blueprint.route('/services/<base64_uuid:service_id>/documents/<base64_uuid:document_id>', methods=['GET'])
+@download_blueprint.route('/d/<base64_uuid:service_id>/<base64_uuid:document_id>', methods=['GET'])
 def download_document(service_id, document_id):
     assert isinstance(service_id, UUID)
     if 'key' not in request.args:
