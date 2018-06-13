@@ -4,8 +4,6 @@ import uuid
 import boto3
 from botocore.exceptions import ClientError as BotoClientError
 
-from app.utils.urls import key_to_bytes
-
 
 class DocumentStoreError(Exception):
     pass
@@ -20,6 +18,9 @@ class DocumentStore:
         self.bucket = app.config['DOCUMENTS_BUCKET']
 
     def put(self, service_id, document_stream, *, mimetype='application/pdf'):
+        """
+        returns dict {'id': 'some-uuid', 'encryption_key': b'32 byte encryption key'}
+        """
 
         encryption_key = self.generate_encryption_key()
         document_id = str(uuid.uuid4())
@@ -39,12 +40,9 @@ class DocumentStore:
         }
 
     def get(self, service_id, document_id, decryption_key):
-
-        try:
-            decryption_key = key_to_bytes(decryption_key)
-        except ValueError:
-            raise DocumentStoreError('Invalid decryption key')
-
+        """
+        decryption_key should be raw bytes
+        """
         try:
             document = self.s3.get_object(
                 Bucket=self.bucket,

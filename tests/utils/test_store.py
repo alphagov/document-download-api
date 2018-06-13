@@ -59,7 +59,7 @@ def test_get_document(store):
         'ContentLength': 100
     })
 
-    assert store.get('service-id', 'document-id', 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA') == {
+    assert store.get('service-id', 'document-id', bytes(32)) == {
         'body': mock.ANY,
         'mimetype': 'application/pdf',
         'size': 100,

@@ -11,7 +11,7 @@ def get_document_download_url(service_id, document_id, key):
         'download.download_document',
         service_id=service_id,
         document_id=document_id,
-        key=bytes_to_key(key),
+        key=bytes_to_base64(key),
         _external=True
     )
 
@@ -24,15 +24,14 @@ def get_document_download_url(service_id, document_id, key):
     return url
 
 
-def key_to_bytes(key):
+def base64_to_bytes(key):
     try:
-        # 32 bytes will always have one `=` of padding
+        # keys are 32 bytes will always have one `=` of padding
         return urlsafe_b64decode(key + '=')
     except binascii.Error:
         raise ValueError('Could not decode decryption key')
 
 
-def bytes_to_key(bytes):
-    # remove trailing = for beautification purposes. This is fine because we know that we're always dealing with
-    # 32 bytes, which will always give exactly one trailing slash.
+def bytes_to_base64(bytes):
+    # remove trailing = to save precious bytes
     return urlsafe_b64encode(bytes).decode('ascii').rstrip('=')

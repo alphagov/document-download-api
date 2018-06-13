@@ -18,14 +18,14 @@ def antivirus(mocker):
 
 def test_document_upload(client, store, antivirus):
     store.put.return_value = {
-        'id': '12345678-2222-2222-2222-123456789012',
+        'id': 'ffffffff-ffff-ffff-ffff-ffffffffffff',
         'encryption_key': bytes(32),
     }
 
     antivirus.scan.return_value = True
 
     response = client.post(
-        '/services/12345678-1111-1111-1111-123456789012/documents',
+        '/services/00000000-0000-0000-0000-000000000000/documents',
         content_type='multipart/form-data',
         data={
             'document': (io.BytesIO(b'%PDF-1.4 file contents'), 'file.pdf')
@@ -35,11 +35,12 @@ def test_document_upload(client, store, antivirus):
     assert response.status_code == 201
     assert json.loads(response.get_data(as_text=True)) == {
         'document': {
-            'id': '12345678-2222-2222-2222-123456789012',
+            'id': 'ffffffff-ffff-ffff-ffff-ffffffffffff',
             'url': ''.join([
                 'http://document-download-test',
-                '/services/12345678-1111-1111-1111-123456789012',
-                '/documents/12345678-2222-2222-2222-123456789012?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+                '/services/AAAAAAAAAAAAAAAAAAAAAA',
+                '/documents/_____________________w',
+                '?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
             ])
         },
         'status': 'ok'
