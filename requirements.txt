@@ -5,7 +5,7 @@ boto3==1.7.40
 
 python-magic==0.4.15
 
-git+https://github.com/alphagov/notifications-utils.git@26.3.0#egg=notifications-utils==26.3.0
+git+https://github.com/alphagov/notifications-utils.git@29.2.0#egg=notifications-utils==29.2.0
 
 # PaaS
 

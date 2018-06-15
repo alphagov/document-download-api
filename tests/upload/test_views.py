@@ -16,7 +16,7 @@ def antivirus(mocker):
     return mocker.patch('app.upload.views.antivirus_client')
 
 
-def test_document_upload(client, store, antivirus):
+def test_document_upload_returns_link_to_frontend(client, store, antivirus):
     store.put.return_value = {
         'id': 'ffffffff-ffff-ffff-ffff-ffffffffffff',
         'encryption_key': bytes(32),
@@ -37,7 +37,7 @@ def test_document_upload(client, store, antivirus):
         'document': {
             'id': 'ffffffff-ffff-ffff-ffff-ffffffffffff',
             'url': ''.join([
-                'http://document-download-test',
+                'https://document-download-frontend-test',
                 '/d/AAAAAAAAAAAAAAAAAAAAAA',
                 '/_____________________w',
                 '?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'

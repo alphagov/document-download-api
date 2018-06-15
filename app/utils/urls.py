@@ -1,33 +1,13 @@
-from base64 import urlsafe_b64encode, urlsafe_b64decode
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import urlunsplit, urlencode
 
-from flask import current_app, url_for
+from flask import current_app
+from notifications_utils.base64_uuid import bytes_to_base64, uuid_to_base64
 
 
 def get_document_download_url(service_id, document_id, key):
-    # key should be the raw bytes
-    url = url_for(
-        'download.download_document',
-        service_id=service_id,
-        document_id=document_id,
-        key=bytes_to_base64(key),
-        _external=True
-    )
+    scheme = current_app.config['HTTP_SCHEME']
+    netloc = current_app.config['FRONTEND_HOSTNAME']
+    path = 'd/{}/{}'.format(uuid_to_base64(service_id), uuid_to_base64(document_id))
+    query = urlencode({'key': bytes_to_base64(key)})
 
-    if current_app.config['PUBLIC_HOSTNAME']:
-        url = urlunsplit(urlsplit(url)._replace(
-            scheme="https",
-            netloc=current_app.config['PUBLIC_HOSTNAME']
-        ))
-
-    return url
-
-
-def base64_to_bytes(key):
-    # keys are 32 bytes will always have one `=` of padding
-    return urlsafe_b64decode(key + '=')
-
-
-def bytes_to_base64(bytes):
-    # remove trailing = to save precious bytes
-    return urlsafe_b64encode(bytes).decode('ascii').rstrip('=')
+    return urlunsplit([scheme, netloc, path, query, None])

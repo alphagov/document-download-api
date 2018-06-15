@@ -15,7 +15,7 @@ class Config(metaclass=MetaFlaskEnv):
 
     MAX_CONTENT_LENGTH = 2 * 1024 * 1024
 
-    PUBLIC_HOSTNAME = None
+    FRONTEND_HOSTNAME = None
 
     NOTIFY_APP_NAME = None
     NOTIFY_LOG_PATH = 'application.log'
@@ -23,12 +23,15 @@ class Config(metaclass=MetaFlaskEnv):
     ANTIVIRUS_API_HOST = None
     ANTIVIRUS_API_KEY = None
 
+    HTTP_SCHEME = 'https'
+    FRONTEND_HOSTNAME = None
+
 
 class Test(Config):
     DEBUG = True
 
     # used during tests as a domain name
-    SERVER_NAME = 'document-download-test'
+    SERVER_NAME = 'document-download.test'
 
     SECRET_KEY = 'test-secret'
     AUTH_TOKENS = 'test-token:test-token-2'
@@ -37,6 +40,8 @@ class Test(Config):
 
     ANTIVIRUS_API_HOST = 'https://test-antivirus'
     ANTIVIRUS_API_KEY = 'test-antivirus-secret'
+
+    FRONTEND_HOSTNAME = 'document-download-frontend-test'
 
 
 class Development(Config):
@@ -49,6 +54,9 @@ class Development(Config):
 
     ANTIVIRUS_API_HOST = 'http://localhost:6016'
     ANTIVIRUS_API_KEY = 'test-key'
+
+    HTTP_SCHEME = 'http'
+    FRONTEND_HOSTNAME = 'localhost:7001'
 
 
 class Preview(Config):
