@@ -1,7 +1,7 @@
-Flask==0.12.2
+Flask==1.0.2
 Flask-Env==1.0.1
 
-boto3==1.5.22
+boto3==1.7.40
 
 python-magic==0.4.15
 
@@ -9,8 +9,8 @@ git+https://github.com/alphagov/notifications-utils.git@26.3.0#egg=notifications
 
 # PaaS
 
-gunicorn==19.7.1
-eventlet==0.22
+gunicorn==19.8.1
+eventlet==0.23.0
 
 awscli-cwlogs>=1.4,<1.5
 
