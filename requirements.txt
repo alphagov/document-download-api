@@ -1,7 +1,7 @@
 Flask==1.0.2
 Flask-Env==1.0.1
 
-boto3==1.5.22
+boto3==1.7.40
 
 python-magic==0.4.15
 
