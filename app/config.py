@@ -13,6 +13,8 @@ class Config(metaclass=MetaFlaskEnv):
         'application/pdf',
     ]
 
+    MAX_CONTENT_LENGTH = 2 * 1024 * 1024
+
     PUBLIC_HOSTNAME = None
 
     NOTIFY_APP_NAME = None
