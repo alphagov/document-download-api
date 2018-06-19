@@ -8,7 +8,7 @@ from app import create_app
 
 @pytest.fixture(scope='session')
 def app():
-    app = create_app('test')
+    app = create_app()
 
     class TestClient(FlaskClient):
         def open(self, *args, **kwargs):
