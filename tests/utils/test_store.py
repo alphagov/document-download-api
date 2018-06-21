@@ -10,8 +10,15 @@ from app.utils.store import DocumentStore, DocumentStoreError
 
 
 @pytest.fixture
-def store():
-    return DocumentStore(bucket='test-bucket')
+def store(mocker):
+    store = DocumentStore(bucket='test-bucket')
+    mocker.patch.object(store.s3, 'get_object', return_value={
+        'Body': mock.Mock(),
+        'ContentType': 'application/pdf',
+        'ContentLength': 100
+    })
+    mocker.patch.object(store.s3, 'put_object')
+    return store
 
 
 def test_document_store_init_app(app, store):
@@ -33,8 +40,6 @@ def test_document_key_with_uuid(store):
 
 
 def test_put_document(store):
-    store.s3.put_object = mock.Mock()
-
     ret = store.put('service-id', mock.Mock())
 
     assert ret == {
@@ -53,12 +58,6 @@ def test_put_document(store):
 
 
 def test_get_document(store):
-    store.s3.get_object = mock.Mock(return_value={
-        'Body': mock.Mock(),
-        'ContentType': 'application/pdf',
-        'ContentLength': 100
-    })
-
     assert store.get('service-id', 'document-id', bytes(32)) == {
         'body': mock.ANY,
         'mimetype': 'application/pdf',
@@ -72,11 +71,6 @@ def test_get_document(store):
         # 32 null bytes
         SSECustomerKey=bytes(32),
     )
-
-
-def test_get_document_with_non_hex_key(store):
-    with pytest.raises(DocumentStoreError):
-        store.get('service-id', 'document-id', 'invalid')
 
 
 def test_get_document_with_boto_error(store):
