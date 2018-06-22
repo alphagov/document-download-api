@@ -1,5 +1,4 @@
 from flask import Flask
-
 from notifications_utils import logging, request_helper
 from gds_metrics import GDSMetrics
 

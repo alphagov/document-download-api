@@ -1,7 +1,8 @@
 import io
-import json
+from uuid import UUID
 from unittest import mock
 
+from flask import url_for
 import pytest
 
 from app.utils.store import DocumentStoreError
@@ -20,7 +21,12 @@ def test_document_download(client, store):
     }
 
     response = client.get(
-        '/services/12345678-1111-1111-1111-123456789012/documents/12345678-2222-2222-2222-123456789012?key=4242',
+        url_for(
+            'download.download_document',
+            service_id='00000000-0000-0000-0000-000000000000',
+            document_id='ffffffff-ffff-ffff-ffff-ffffffffffff',
+            key='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',  # 32 \x00 bytes
+        )
     )
 
     assert response.status_code == 200
@@ -32,22 +38,50 @@ def test_document_download(client, store):
         'Content-Type': 'application/pdf',
         'NotifyRequestID': mock.ANY,
     }
+    store.get.assert_called_once_with(
+        UUID('00000000-0000-0000-0000-000000000000'),
+        UUID('ffffffff-ffff-ffff-ffff-ffffffffffff'),
+        bytes(32)
+    )
 
 
 def test_document_download_without_decryption_key(client, store):
     response = client.get(
-        '/services/12345678-1111-1111-1111-123456789012/documents/12345678-2222-2222-2222-123456789012',
+        url_for(
+            'download.download_document',
+            service_id='00000000-0000-0000-0000-000000000000',
+            document_id='ffffffff-ffff-ffff-ffff-ffffffffffff',
+        )
     )
 
     assert response.status_code == 400
+    assert response.json == {'error': 'Missing decryption key'}
+
+
+def test_document_download_with_invalid_decryption_key(client):
+    response = client.get(
+        url_for(
+            'download.download_document',
+            service_id='00000000-0000-0000-0000-000000000000',
+            document_id='ffffffff-ffff-ffff-ffff-ffffffffffff',
+            key='🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉?'
+        )
+    )
+
+    assert response.status_code == 400
+    assert response.json == {'error': 'Invalid decryption key'}
 
 
 def test_document_download_document_store_error(client, store):
-    store.get.side_effect = DocumentStoreError('Invalid key')
-
+    store.get.side_effect = DocumentStoreError('something went wrong')
     response = client.get(
-        '/services/12345678-1111-1111-1111-123456789012/documents/12345678-2222-2222-2222-123456789012?key=4242',
+        url_for(
+            'download.download_document',
+            service_id='00000000-0000-0000-0000-000000000000',
+            document_id='ffffffff-ffff-ffff-ffff-ffffffffffff',
+            key='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+        )
     )
 
     assert response.status_code == 400
-    assert json.loads(response.get_data(as_text=True)) == {'error': 'Invalid key'}
+    assert response.json == {'error': 'something went wrong'}

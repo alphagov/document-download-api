@@ -1,5 +1,4 @@
 import io
-import json
 
 import pytest
 
@@ -16,16 +15,16 @@ def antivirus(mocker):
     return mocker.patch('app.upload.views.antivirus_client')
 
 
-def test_document_upload(client, store, antivirus):
+def test_document_upload_returns_link_to_frontend(client, store, antivirus):
     store.put.return_value = {
-        'id': '12345678-2222-2222-2222-123456789012',
-        'encryption_key': '42',
+        'id': 'ffffffff-ffff-ffff-ffff-ffffffffffff',
+        'encryption_key': bytes(32),
     }
 
     antivirus.scan.return_value = True
 
     response = client.post(
-        '/services/12345678-1111-1111-1111-123456789012/documents',
+        '/services/00000000-0000-0000-0000-000000000000/documents',
         content_type='multipart/form-data',
         data={
             'document': (io.BytesIO(b'%PDF-1.4 file contents'), 'file.pdf')
@@ -33,14 +32,21 @@ def test_document_upload(client, store, antivirus):
     )
 
     assert response.status_code == 201
-    assert json.loads(response.get_data(as_text=True)) == {
+    assert response.json == {
         'document': {
-            'id': '12345678-2222-2222-2222-123456789012',
+            'id': 'ffffffff-ffff-ffff-ffff-ffffffffffff',
             'url': ''.join([
-                'http://localhost',
-                '/services/12345678-1111-1111-1111-123456789012',
-                '/documents/12345678-2222-2222-2222-123456789012?key=42'
-            ])
+                'https://document-download-frontend-test',
+                '/d/AAAAAAAAAAAAAAAAAAAAAA',
+                '/_____________________w',
+                '?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            ]),
+            'direct_file_url': ''.join([
+                'http://document-download.test',
+                '/services/00000000-0000-0000-0000-000000000000',
+                '/documents/ffffffff-ffff-ffff-ffff-ffffffffffff',
+                '?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            ]),
         },
         'status': 'ok'
     }
@@ -58,7 +64,7 @@ def test_document_upload_virus_found(client, store, antivirus):
     )
 
     assert response.status_code == 400
-    assert json.loads(response.get_data(as_text=True)) == {
+    assert response.json == {
         'error': "Document didn't pass the virus scan"
     }
 
@@ -75,7 +81,7 @@ def test_document_upload_virus_scan_error(client, store, antivirus):
     )
 
     assert response.status_code == 503
-    assert json.loads(response.get_data(as_text=True)) == {
+    assert response.json == {
         'error': "Antivirus API error"
     }
 
@@ -90,7 +96,7 @@ def test_document_upload_unknown_type(client):
     )
 
     assert response.status_code == 400
-    assert json.loads(response.get_data(as_text=True)) == {
+    assert response.json == {
         'error': "Unsupported document type 'text/plain'. Supported types are: ['application/pdf']"
     }
 
@@ -105,7 +111,7 @@ def test_document_file_size_too_large(client):
     )
 
     assert response.status_code == 413
-    assert json.loads(response.get_data(as_text=True)) == {
+    assert response.json == {
         'error': "Uploaded document exceeds file size limit"
     }
 

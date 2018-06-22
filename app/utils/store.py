@@ -18,6 +18,9 @@ class DocumentStore:
         self.bucket = app.config['DOCUMENTS_BUCKET']
 
     def put(self, service_id, document_stream, *, mimetype='application/pdf'):
+        """
+        returns dict {'id': 'some-uuid', 'encryption_key': b'32 byte encryption key'}
+        """
 
         encryption_key = self.generate_encryption_key()
         document_id = str(uuid.uuid4())
@@ -33,16 +36,13 @@ class DocumentStore:
 
         return {
             'id': document_id,
-            'encryption_key': encryption_key.hex()
+            'encryption_key': encryption_key
         }
 
     def get(self, service_id, document_id, decryption_key):
-
-        try:
-            decryption_key = bytes.fromhex(decryption_key)
-        except ValueError:
-            raise DocumentStoreError('Invalid decryption key')
-
+        """
+        decryption_key should be raw bytes
+        """
         try:
             document = self.s3.get_object(
                 Bucket=self.bucket,
