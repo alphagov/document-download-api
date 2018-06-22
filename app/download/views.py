@@ -14,8 +14,6 @@ def download_document(service_id, document_id):
 
     try:
         key = base64_to_bytes(request.args['key'])
-        if len(key) != 32:
-            raise ValueError
     except ValueError:
         return jsonify(error='Invalid decryption key'), 400
 

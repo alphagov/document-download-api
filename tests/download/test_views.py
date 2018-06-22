@@ -59,17 +59,13 @@ def test_document_download_without_decryption_key(client, store):
     assert json.loads(response.get_data(as_text=True)) == {'error': 'Missing decryption key'}
 
 
-@pytest.mark.parametrize('invalid_key', [
-    'not_long_enough',
-    '🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉?'
-])
-def test_document_download_with_invalid_decryption_key(client, invalid_key):
+def test_document_download_with_invalid_decryption_key(client):
     response = client.get(
         url_for(
             'download.download_document',
             service_id='00000000-0000-0000-0000-000000000000',
             document_id='ffffffff-ffff-ffff-ffff-ffffffffffff',
-            key=invalid_key
+            key='🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉?'
         )
     )
 
