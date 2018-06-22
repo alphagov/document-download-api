@@ -41,7 +41,13 @@ def test_document_upload_returns_link_to_frontend(client, store, antivirus):
                 '/d/AAAAAAAAAAAAAAAAAAAAAA',
                 '/_____________________w',
                 '?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
-            ])
+            ]),
+            'direct_file_url': ''.join([
+                'http://document-download.test',
+                '/services/00000000-0000-0000-0000-000000000000',
+                '/documents/ffffffff-ffff-ffff-ffff-ffffffffffff',
+                '?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            ]),
         },
         'status': 'ok'
     }

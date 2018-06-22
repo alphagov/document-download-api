@@ -4,7 +4,7 @@ from app import document_store, antivirus_client
 from app.utils import get_mime_type
 from app.utils.antivirus import AntivirusError
 from app.utils.authentication import check_auth
-from app.utils.urls import get_document_download_url
+from app.utils.urls import get_direct_file_url, get_frontend_download_url
 
 upload_blueprint = Blueprint('upload', __name__, url_prefix='')
 upload_blueprint.before_request(check_auth)
@@ -38,7 +38,12 @@ def upload_document(service_id):
         status='ok',
         document={
             'id': document['id'],
-            'url': get_document_download_url(
+            'direct_file_url': get_direct_file_url(
+                service_id=service_id,
+                document_id=document['id'],
+                key=document['encryption_key'],
+            ),
+            'url': get_frontend_download_url(
                 service_id=service_id,
                 document_id=document['id'],
                 key=document['encryption_key'],
