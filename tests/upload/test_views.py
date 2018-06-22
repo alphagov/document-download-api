@@ -1,5 +1,4 @@
 import io
-import json
 
 import pytest
 
@@ -33,7 +32,7 @@ def test_document_upload_returns_link_to_frontend(client, store, antivirus):
     )
 
     assert response.status_code == 201
-    assert json.loads(response.get_data(as_text=True)) == {
+    assert response.json == {
         'document': {
             'id': 'ffffffff-ffff-ffff-ffff-ffffffffffff',
             'url': ''.join([
@@ -65,7 +64,7 @@ def test_document_upload_virus_found(client, store, antivirus):
     )
 
     assert response.status_code == 400
-    assert json.loads(response.get_data(as_text=True)) == {
+    assert response.json == {
         'error': "Document didn't pass the virus scan"
     }
 
@@ -82,7 +81,7 @@ def test_document_upload_virus_scan_error(client, store, antivirus):
     )
 
     assert response.status_code == 503
-    assert json.loads(response.get_data(as_text=True)) == {
+    assert response.json == {
         'error': "Antivirus API error"
     }
 
@@ -97,7 +96,7 @@ def test_document_upload_unknown_type(client):
     )
 
     assert response.status_code == 400
-    assert json.loads(response.get_data(as_text=True)) == {
+    assert response.json == {
         'error': "Unsupported document type 'text/plain'. Supported types are: ['application/pdf']"
     }
 
@@ -112,7 +111,7 @@ def test_document_file_size_too_large(client):
     )
 
     assert response.status_code == 413
-    assert json.loads(response.get_data(as_text=True)) == {
+    assert response.json == {
         'error': "Uploaded document exceeds file size limit"
     }
 

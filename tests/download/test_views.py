@@ -1,5 +1,4 @@
 import io
-import json
 from uuid import UUID
 from unittest import mock
 
@@ -56,7 +55,7 @@ def test_document_download_without_decryption_key(client, store):
     )
 
     assert response.status_code == 400
-    assert json.loads(response.get_data(as_text=True)) == {'error': 'Missing decryption key'}
+    assert response.json == {'error': 'Missing decryption key'}
 
 
 def test_document_download_with_invalid_decryption_key(client):
@@ -70,7 +69,7 @@ def test_document_download_with_invalid_decryption_key(client):
     )
 
     assert response.status_code == 400
-    assert json.loads(response.get_data(as_text=True)) == {'error': 'Invalid decryption key'}
+    assert response.json == {'error': 'Invalid decryption key'}
 
 
 def test_document_download_document_store_error(client, store):
@@ -85,4 +84,4 @@ def test_document_download_document_store_error(client, store):
     )
 
     assert response.status_code == 400
-    assert json.loads(response.get_data(as_text=True)) == {'error': 'something went wrong'}
+    assert response.json == {'error': 'something went wrong'}
