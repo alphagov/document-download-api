@@ -11,13 +11,13 @@ from app.utils.store import DocumentStore, DocumentStoreError
 
 @pytest.fixture
 def store(mocker):
-    store = DocumentStore(bucket='test-bucket')
-    mocker.patch.object(store.s3, 'get_object', return_value={
+    mock_boto = mocker.patch('app.utils.store.boto3')
+    mock_boto.client.return_value.get_object.return_value = {
         'Body': mock.Mock(),
         'ContentType': 'application/pdf',
         'ContentLength': 100
-    })
-    mocker.patch.object(store.s3, 'put_object')
+    }
+    store = DocumentStore(bucket='test-bucket')
     return store
 
 
