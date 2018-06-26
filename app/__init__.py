@@ -14,9 +14,9 @@ from .download.views import download_blueprint
 from .upload.views import upload_blueprint
 
 
-def create_app(environment):
+def create_app():
     application = Flask('app')
-    application.config.from_object(configs[environment])
+    application.config.from_object(configs[application.env])
 
     request_helper.init_app(application)
     logging.init_app(application)
