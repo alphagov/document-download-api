@@ -9,9 +9,9 @@ applications:
   command: scripts/run_app_paas.sh gunicorn -c gunicorn_config.py application
 
   {% set hostname={
-    "preview": "download.notify.works",
-    "staging": "download.staging-notify.works",
-    "production": "download.notifications.service.gov.uk"
+    "preview": "documents.notify.works",
+    "staging": "documents.staging-notify.works",
+    "production": "documents.service.gov.uk"
   }[environment] %}
 
   routes:

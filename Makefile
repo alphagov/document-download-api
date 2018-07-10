@@ -20,19 +20,19 @@ test:
 .PHONY: preview
 preview:
 	$(eval export CF_SPACE=preview)
-	$(eval export DNS_NAME=download.notify.works)
+	$(eval export DNS_NAME=documents.notify.works)
 	cf target -s ${CF_SPACE}
 
 .PHONY: staging
 staging:
 	$(eval export CF_SPACE=staging)
-	$(eval export DNS_NAME=download.staging-notify.works)
+	$(eval export DNS_NAME=documents.staging-notify.works)
 	cf target -s ${CF_SPACE}
 
 .PHONY: production
 production:
 	$(eval export CF_SPACE=production)
-	$(eval export DNS_NAME=download.notifications.service.gov.uk)
+	$(eval export DNS_NAME=documents.service.gov.uk)
 	cf target -s ${CF_SPACE}
 
 .PHONY: generate-manifest
@@ -79,7 +79,7 @@ cf-rollback: ## Rollbacks the app to the previous release
 cf-create-cdn-route:
 	$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
 	$(if ${DNS_NAME},,$(error Must specify DNS_NAME))
-	cf create-service cdn-route cdn-route document-download-cdn-route -c '{"domain": "${DNS_NAME}"}'
+	cf create-service cdn-route cdn-route documents-cdn-route -c '{"domain": "${DNS_NAME}"}'
 
 .PHONY: cf-login
 cf-login: ## Log in to Cloud Foundry
