@@ -31,5 +31,6 @@ def download_document(service_id, document_id):
 
     response = make_response(send_file(document['body'], mimetype=document['mimetype']))
     response.headers['Content-Length'] = document['size']
+    response.headers['X-Robots-Tag'] = 'noindex, nofollow'
 
     return response

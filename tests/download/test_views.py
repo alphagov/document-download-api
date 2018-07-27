@@ -37,6 +37,7 @@ def test_document_download(client, store):
         'Content-Length': '100',
         'Content-Type': 'application/pdf',
         'NotifyRequestID': mock.ANY,
+        'X-Robots-Tag': 'noindex, nofollow'
     }
     store.get.assert_called_once_with(
         UUID('00000000-0000-0000-0000-000000000000'),
