@@ -91,13 +91,13 @@ def test_document_upload_unknown_type(client):
         '/services/12345678-1111-1111-1111-123456789012/documents',
         content_type='multipart/form-data',
         data={
-            'document': (io.BytesIO(b'pdf file contents\n'), 'file.pdf')
+            'document': (io.BytesIO(b'\x00pdf file contents\n'), 'file.pdf')
         }
     )
 
     assert response.status_code == 400
     assert response.json == {
-        'error': "Unsupported document type 'text/plain'. Supported types are: ['application/pdf']"
+        'error': "Unsupported document type 'application/octet-stream'. Supported types are: ['application/pdf', 'text/csv', 'text/plain']" # noqa
     }
 
 

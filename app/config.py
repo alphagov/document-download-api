@@ -11,6 +11,8 @@ class Config(metaclass=MetaFlaskEnv):
 
     ALLOWED_MIME_TYPES = [
         'application/pdf',
+        'text/csv',
+        'text/plain',
     ]
 
     MAX_CONTENT_LENGTH = 2 * 1024 * 1024
