@@ -1,6 +1,6 @@
 ---
 applications:
-- name: document-download-api-{{environment}}
+- name: document-download-api
 
   instances: 1
   memory: 512M
@@ -9,9 +9,9 @@ applications:
   command: unset GUNICORN_CMD_ARGS; scripts/run_app_paas.sh gunicorn -c gunicorn_config.py application
 
   {% set hostname={
-    "preview": "download.notify.works",
-    "staging": "download.staging-notify.works",
-    "production": "download.notifications.service.gov.uk"
+    "preview": "documents.notify.works",
+    "staging": "documents.staging-notify.works",
+    "production": "documents.service.gov.uk"
   }[environment] %}
 
   routes:
