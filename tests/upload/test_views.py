@@ -101,6 +101,25 @@ def test_document_upload_unknown_type(client):
     }
 
 
+def test_document_file_size_just_right(client, store, antivirus):
+    store.put.return_value = {
+        'id': 'ffffffff-ffff-ffff-ffff-ffffffffffff',
+        'encryption_key': bytes(32),
+    }
+
+    antivirus.scan.return_value = True
+
+    response = client.post(
+        '/services/12345678-1111-1111-1111-123456789012/documents',
+        content_type='multipart/form-data',
+        data={
+            'document': (io.BytesIO(b'%PDF-1.5 ' + b'a' * (2 * 1024 * 1024 - 8)), 'file.pdf')
+        }
+    )
+
+    assert response.status_code == 201
+
+
 def test_document_file_size_too_large(client):
     response = client.post(
         '/services/12345678-1111-1111-1111-123456789012/documents',
