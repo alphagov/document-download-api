@@ -15,7 +15,7 @@ class Config(metaclass=MetaFlaskEnv):
         'text/plain',
     ]
 
-    MAX_CONTENT_LENGTH = 2 * 1024 * 1024
+    MAX_CONTENT_LENGTH = 2 * 1024 * 1024 + 1024
 
     FRONTEND_HOSTNAME = None
 
