@@ -36,7 +36,8 @@ def test_document_download(client, store):
         'Expires': mock.ANY,
         'Content-Length': '100',
         'Content-Type': 'application/pdf',
-        'NotifyRequestID': mock.ANY,
+        'X-B3-SpanId': 'None',
+        'X-B3-TraceId': 'None',
         'X-Robots-Tag': 'noindex, nofollow'
     }
     store.get.assert_called_once_with(
