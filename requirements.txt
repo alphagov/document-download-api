@@ -39,7 +39,7 @@ itsdangerous==1.1.0
 Jinja2==2.10
 jmespath==0.9.3
 MarkupSafe==1.1.0
-mistune==0.8.3
+mistune==0.8.4
 monotonic==1.5
 orderedset==2.0.1
 phonenumbers==8.9.4
