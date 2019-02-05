@@ -5,7 +5,7 @@ flake8==3.7.5
 pytest==4.2.0
 pytest-env==0.6.2
 pytest-mock==1.10.1
-pytest-cov==2.6.0
+pytest-cov==2.6.1
 
 requests-mock==1.5.2
 
