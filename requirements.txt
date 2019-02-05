@@ -42,7 +42,7 @@ mistune==0.8.4
 monotonic==1.5
 orderedset==2.0.1
 phonenumbers==8.10.4
-prometheus-client==0.2.0
+prometheus-client==0.5.0
 pyasn1==0.4.5
 PyPDF2==1.26.0
 python-dateutil==2.7.5
