@@ -77,7 +77,7 @@ cf-deploy: ## Deploys the app to Cloud Foundry
 	@${CF} app --guid ${CF_APP} || exit 1
 
 	# cancel any existing deploys to ensure we can apply manifest (if a deploy is in progress you'll see ScaleDisabledDuringDeployment)
-	${CF} v3-cancel-zdt-push || true
+	${CF} v3-cancel-zdt-push ${CF_APP} || true
 
 	${CF} v3-apply-manifest ${CF_APP} -f <(make -s generate-manifest)
 	${CF} v3-zdt-push ${CF_APP} --wait-for-deploy-complete
