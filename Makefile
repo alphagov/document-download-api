@@ -7,7 +7,6 @@ NOTIFY_CREDENTIALS ?= ~/.notify-credentials
 
 CF_APP = document-download-api
 
-CF = $(if $(shell which cf-cli-6.43), cf-cli-6.43, cf)
 
 .PHONY: run
 run:
@@ -41,19 +40,19 @@ test-requirements:
 preview:
 	$(eval export CF_SPACE=preview)
 	$(eval export DNS_NAME=documents.notify.works)
-	${CF} target -s ${CF_SPACE}
+	cf target -s ${CF_SPACE}
 
 .PHONY: staging
 staging:
 	$(eval export CF_SPACE=staging)
 	$(eval export DNS_NAME=documents.staging-notify.works)
-	${CF} target -s ${CF_SPACE}
+	cf target -s ${CF_SPACE}
 
 .PHONY: production
 production:
 	$(eval export CF_SPACE=production)
 	$(eval export DNS_NAME=documents.service.gov.uk)
-	${CF} target -s ${CF_SPACE}
+	cf target -s ${CF_SPACE}
 
 .PHONY: generate-manifest
 generate-manifest:
@@ -69,18 +68,18 @@ generate-manifest:
 .PHONY: cf-push
 cf-push:
 	$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
-	${CF} push ${CF_APP} -f <(make -s generate-manifest)
+	cf push ${CF_APP} -f <(make -s generate-manifest)
 
 .PHONY: cf-deploy
 cf-deploy: ## Deploys the app to Cloud Foundry
 	$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
-	@${CF} app --guid ${CF_APP} || exit 1
+	@cf app --guid ${CF_APP} || exit 1
 
 	# cancel any existing deploys to ensure we can apply manifest (if a deploy is in progress you'll see ScaleDisabledDuringDeployment)
-	${CF} v3-cancel-zdt-push ${CF_APP} || true
+	cf v3-cancel-zdt-push ${CF_APP} || true
 
-	${CF} v3-apply-manifest ${CF_APP} -f <(make -s generate-manifest)
-	${CF} v3-zdt-push ${CF_APP} --wait-for-deploy-complete
+	cf v3-apply-manifest ${CF_APP} -f <(make -s generate-manifest)
+	cf v3-zdt-push ${CF_APP} --wait-for-deploy-complete
 
 .PHONY: cf-rollback
 cf-rollback: ## Rollbacks the app to the previous release
@@ -90,7 +89,7 @@ cf-rollback: ## Rollbacks the app to the previous release
 cf-create-cdn-route:
 	$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
 	$(if ${DNS_NAME},,$(error Must specify DNS_NAME))
-	${CF} create-service cdn-route cdn-route documents-cdn-route -c '{"domain": "${DNS_NAME}"}'
+	cf create-service cdn-route cdn-route documents-cdn-route -c '{"domain": "${DNS_NAME}"}'
 
 .PHONY: cf-login
 cf-login: ## Log in to Cloud Foundry
@@ -98,7 +97,7 @@ cf-login: ## Log in to Cloud Foundry
 	$(if ${CF_PASSWORD},,$(error Must specify CF_PASSWORD))
 	$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
 	@echo "Logging in to Cloud Foundry on ${CF_API}"
-	@${CF} login -a "${CF_API}" -u ${CF_USERNAME} -p "${CF_PASSWORD}" -o "${CF_ORG}" -s "${CF_SPACE}"
+	@cf login -a "${CF_API}" -u ${CF_USERNAME} -p "${CF_PASSWORD}" -o "${CF_ORG}" -s "${CF_SPACE}"
 
 .PHONY: docker-build
 docker-build:
