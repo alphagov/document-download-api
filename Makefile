@@ -83,7 +83,7 @@ cf-deploy: ## Deploys the app to Cloud Foundry
 
 .PHONY: cf-rollback
 cf-rollback: ## Rollbacks the app to the previous release
-	# No action here - if we fail, we can just push a new build over the top.
+	cf v3-cancel-zdt-push ${CF_APP}
 
 .PHONY: cf-create-cdn-route
 cf-create-cdn-route:
