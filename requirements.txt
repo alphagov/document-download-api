@@ -25,7 +25,7 @@ awscli==1.16.148
 bleach==3.1.0
 blinker==1.4
 botocore==1.12.138
-certifi==2018.11.29
+certifi==2019.3.9
 chardet==3.0.4
 Click==7.0
 colorama==0.3.9
