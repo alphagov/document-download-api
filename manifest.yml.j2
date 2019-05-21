@@ -2,11 +2,10 @@
 applications:
 - name: document-download-api
 
-  instances: 1
   memory: 512M
 
-  buildpack: python_buildpack
-  command: unset GUNICORN_CMD_ARGS; scripts/run_app_paas.sh gunicorn -c gunicorn_config.py application
+  buildpacks:
+    - python_buildpack
 
   {% set hostname={
     "preview": "documents.notify.works",

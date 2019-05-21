@@ -7,6 +7,7 @@ NOTIFY_CREDENTIALS ?= ~/.notify-credentials
 
 CF_APP = document-download-api
 
+
 .PHONY: run
 run:
 	FLASK_APP=application.py FLASK_ENV=development flask run -p 7000
@@ -73,25 +74,16 @@ cf-push:
 cf-deploy: ## Deploys the app to Cloud Foundry
 	$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
 	@cf app --guid ${CF_APP} || exit 1
-	cf rename ${CF_APP} ${CF_APP}-rollback
-	cf push ${CF_APP} -f <(make -s generate-manifest)
-	cf scale -i $$(cf curl /v2/apps/$$(cf app --guid ${CF_APP}-rollback) | jq -r ".entity.instances" 2>/dev/null || echo "1") ${CF_APP}
-	cf stop ${CF_APP}-rollback
-	# sleep for 10 seconds to try and make sure that all worker threads (either web api or celery) have finished before we delete
-	sleep 10
 
-	# get the new GUID, and find all crash events for that. If there were any crashes we will abort the deploy.
-	[ $$(cf curl "/v2/events?q=type:app.crash&q=actee:$$(cf app --guid ${CF_APP})" | jq ".total_results") -eq 0 ]
-	cf delete -f ${CF_APP}-rollback
+	# cancel any existing deploys to ensure we can apply manifest (if a deploy is in progress you'll see ScaleDisabledDuringDeployment)
+	cf v3-cancel-zdt-push ${CF_APP} || true
+
+	cf v3-apply-manifest ${CF_APP} -f <(make -s generate-manifest)
+	cf v3-zdt-push ${CF_APP} --wait-for-deploy-complete
 
 .PHONY: cf-rollback
 cf-rollback: ## Rollbacks the app to the previous release
-	$(if ${CF_APP},,$(error Must specify CF_APP))
-	$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
-	@cf app --guid ${CF_APP}-rollback || exit 1
-	@[ $$(cf curl /v2/apps/`cf app --guid ${CF_APP}-rollback` | jq -r ".entity.state") = "STARTED" ] || (echo "Error: rollback is not possible because ${CF_APP}-rollback is not in a started state" && exit 1)
-	cf delete -f ${CF_APP} || true
-	cf rename ${CF_APP}-rollback ${CF_APP}
+	cf v3-cancel-zdt-push ${CF_APP}
 
 .PHONY: cf-create-cdn-route
 cf-create-cdn-route:
