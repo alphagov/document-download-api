@@ -1,7 +1,7 @@
 # Run `make freeze-requirements` to update requirements.txt
 # with package version changes made in requirements-app.txt
 
-Flask==1.0.2
+Flask==1.0.3
 Flask-Env==2.0.0
 
 boto3==1.9.64
@@ -17,4 +17,4 @@ awscli-cwlogs>=1.4,<1.5
 
 gds-metrics==0.2.0
 
-git+https://github.com/alphagov/notifications-utils.git@30.7.5#egg=notifications-utils==30.7.5
+git+https://github.com/alphagov/notifications-utils.git@32.0.1#egg=notifications-utils==32.0.1
