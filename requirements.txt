@@ -2,7 +2,7 @@
 # Run `make freeze-requirements` to update requirements.txt
 # with package version changes made in requirements-app.txt
 
-Flask==1.0.3
+Flask==1.1.1
 Flask-Env==2.0.0
 
 boto3==1.9.64
