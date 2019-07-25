@@ -24,6 +24,7 @@ class Config(metaclass=MetaFlaskEnv):
 
     ANTIVIRUS_API_HOST = None
     ANTIVIRUS_API_KEY = None
+    ANTIVIRUS_ENABLED = True
 
     HTTP_SCHEME = 'https'
     FRONTEND_HOSTNAME = None
@@ -56,6 +57,7 @@ class Development(Config):
 
     ANTIVIRUS_API_HOST = 'http://localhost:6016'
     ANTIVIRUS_API_KEY = 'test-key'
+    ANTIVIRUS_ENABLED = False
 
     HTTP_SCHEME = 'http'
     FRONTEND_HOSTNAME = 'localhost:7001'

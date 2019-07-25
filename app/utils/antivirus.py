@@ -27,8 +27,11 @@ class AntivirusClient:
     def init_app(self, app):
         self.api_host = app.config['ANTIVIRUS_API_HOST']
         self.auth_token = app.config['ANTIVIRUS_API_KEY']
+        self.enabled = app.config['ANTIVIRUS_ENABLED']
 
     def scan(self, document_stream):
+        if not self.enabled:
+            return True
         try:
             response = requests.post(
                 "{}/scan".format(self.api_host),

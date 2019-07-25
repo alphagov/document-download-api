@@ -30,3 +30,9 @@ make freeze-requirements
 ```
 
 `requirements.txt` should be committed alongside `requirements-app.txt` changes.
+
+## antivirus
+
+document download calls the antivirus app on upload. This is enabled by default on
+all environments (including unit tests) except for local development. If you wish
+to run with antivirus locally set `ANTIVIRUS_ENABLED=1` in your environment.
