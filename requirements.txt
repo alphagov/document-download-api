@@ -43,7 +43,7 @@ monotonic==1.5
 orderedset==2.0.1
 phonenumbers==8.10.20
 prometheus-client==0.7.1
-pyasn1==0.4.5
+pyasn1==0.4.7
 PyPDF2==1.26.0
 python-dateutil==2.8.0
 python-json-logger==0.1.11
