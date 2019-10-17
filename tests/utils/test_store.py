@@ -42,6 +42,7 @@ def test_document_key_with_uuid(store):
 def test_put_document(store):
     ret = store.put('service-id', mock.Mock())
 
+    assert False
     assert ret == {
         'id': Matcher('UUID length match', lambda x: len(x) == 36),
         'encryption_key': Matcher('32 bytes', lambda x: len(x) == 32 and isinstance(x, bytes))
