@@ -21,10 +21,10 @@ gds-metrics==0.2.0
 git+https://github.com/alphagov/notifications-utils.git@33.0.0#egg=notifications-utils==33.0.0
 
 ## The following requirements were added by pip freeze:
-awscli==1.16.259
+awscli==1.16.262
 bleach==3.1.0
 blinker==1.4
-botocore==1.12.249
+botocore==1.12.252
 certifi==2019.9.11
 chardet==3.0.4
 Click==7.0
@@ -41,17 +41,17 @@ MarkupSafe==1.1.1
 mistune==0.8.4
 monotonic==1.5
 orderedset==2.0.1
-phonenumbers==8.10.20
-prometheus-client==0.7.1
+phonenumbers==8.10.13
+prometheus-client==0.2.0
 pyasn1==0.4.7
 PyPDF2==1.26.0
 python-dateutil==2.8.0
 python-json-logger==0.1.11
-pytz==2019.3
-PyYAML==5.1.2
+pytz==2018.9
+PyYAML==4.2b1
 redis==3.3.11
-requests==2.22.0
-rsa==4.0
+requests==2.21.0
+rsa==3.4.2
 s3transfer==0.2.1
 six==1.12.0
 smartypants==2.0.1
