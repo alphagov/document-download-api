@@ -15,7 +15,6 @@ run:
 .PHONY: test
 test: test-requirements
 	py.test --cov=app --cov-report=term-missing tests/
-	if [[ ! -z $$COVERALLS_REPO_TOKEN ]]; then coveralls; fi
 	flake8 .
 
 .PHONY: freeze-requirements
@@ -111,7 +110,6 @@ docker-build:
 .PHONY: test-with-docker
 test-with-docker: docker-build
 	docker run --rm \
-		-e COVERALLS_REPO_TOKEN=${COVERALLS_REPO_TOKEN} \
 		-e CIRCLECI=1 \
 		-e CI_BUILD_NUMBER=${BUILD_NUMBER} \
 		-e CI_BUILD_URL=${BUILD_URL} \
