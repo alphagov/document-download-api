@@ -96,9 +96,7 @@ def test_document_upload_unknown_type(client):
     )
 
     assert response.status_code == 400
-    assert response.json == {
-        'error': "Unsupported document type 'application/octet-stream'. Supported types are: ['application/pdf', 'text/csv', 'text/plain']" # noqa
-    }
+    assert "Unsupported document type 'application/octet-stream'" in response.json['error']
 
 
 def test_document_file_size_just_right(client, store, antivirus):

@@ -13,6 +13,8 @@ class Config(metaclass=MetaFlaskEnv):
         'application/pdf',
         'text/csv',
         'text/plain',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     ]
 
     MAX_CONTENT_LENGTH = 2 * 1024 * 1024 + 1024
