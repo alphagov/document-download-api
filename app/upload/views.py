@@ -16,13 +16,9 @@ def upload_document(service_id):
         return jsonify(error='No document upload'), 400
 
     mimetype = get_mime_type(request.files['document'])
-    if mimetype not in current_app.config['ALLOWED_MIME_TYPES']:
-        return jsonify(
-            error="Unsupported file type '{}'. Supported types are: {}".format(
-                mimetype,
-                current_app.config['ALLOWED_MIME_TYPES']
-            )
-        ), 400
+    if mimetype not in current_app.config['ALLOWED_FILE_TYPES'].values():
+        allowed_file_types = ', '.join(sorted(f"'.{x}'" for x in current_app.config['ALLOWED_FILE_TYPES'].keys()))
+        return jsonify(error=f"Unsupported file type '{mimetype}'. Supported types are: {allowed_file_types}"), 400
 
     if current_app.config['ANTIVIRUS_ENABLED']:
         try:

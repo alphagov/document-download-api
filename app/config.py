@@ -9,13 +9,14 @@ class Config(metaclass=MetaFlaskEnv):
 
     DOCUMENTS_BUCKET = None
 
-    ALLOWED_MIME_TYPES = [
-        'application/pdf',
-        'text/csv',
-        'text/plain',
-        'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    ]
+    # map of file extension to MIME TYPE.
+    ALLOWED_FILE_TYPES = {
+        'pdf': 'application/pdf',
+        'csv': 'text/csv',
+        'txt': 'text/plain',
+        'doc': 'application/msword',
+        'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    }
 
     MAX_CONTENT_LENGTH = 2 * 1024 * 1024 + 1024
 
