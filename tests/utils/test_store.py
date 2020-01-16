@@ -40,7 +40,7 @@ def test_document_key_with_uuid(store):
 
 
 def test_put_document(store):
-    ret = store.put('service-id', mock.Mock())
+    ret = store.put('service-id', mock.Mock(), mimetype='application/pdf')
 
     assert ret == {
         'id': Matcher('UUID length match', lambda x: len(x) == 36),

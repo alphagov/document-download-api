@@ -6,3 +6,6 @@ __pycache__
 
 target/
 environment.sh
+.envrc
+
+application.log.json

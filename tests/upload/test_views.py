@@ -65,7 +65,7 @@ def test_document_upload_virus_found(client, store, antivirus):
 
     assert response.status_code == 400
     assert response.json == {
-        'error': "Document didn't pass the virus scan"
+        'error': "File didn't pass the virus scan"
     }
 
 
@@ -96,9 +96,9 @@ def test_document_upload_unknown_type(client):
     )
 
     assert response.status_code == 400
-    assert response.json == {
-        'error': "Unsupported document type 'application/octet-stream'. Supported types are: ['application/pdf', 'text/csv', 'text/plain']" # noqa
-    }
+    assert response.json['error'] == (
+        "Unsupported file type 'application/octet-stream'. Supported types are: '.csv', '.doc', '.docx', '.pdf', '.txt'"
+    )
 
 
 def test_document_file_size_just_right(client, store, antivirus):
@@ -131,7 +131,7 @@ def test_document_file_size_too_large(client):
 
     assert response.status_code == 413
     assert response.json == {
-        'error': "Uploaded document exceeds file size limit"
+        'error': "Uploaded file exceeds file size limit"
     }
 
 

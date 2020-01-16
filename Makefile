@@ -14,7 +14,7 @@ run:
 
 .PHONY: test
 test: test-requirements
-	py.test --cov=app --cov-report=term-missing tests/
+	py.test tests/
 	flake8 .
 
 .PHONY: freeze-requirements

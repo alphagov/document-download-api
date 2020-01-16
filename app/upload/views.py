@@ -16,21 +16,18 @@ def upload_document(service_id):
         return jsonify(error='No document upload'), 400
 
     mimetype = get_mime_type(request.files['document'])
-    if mimetype not in current_app.config['ALLOWED_MIME_TYPES']:
-        return jsonify(
-            error="Unsupported document type '{}'. Supported types are: {}".format(
-                mimetype,
-                current_app.config['ALLOWED_MIME_TYPES']
-            )
-        ), 400
+    if mimetype not in current_app.config['ALLOWED_FILE_TYPES'].values():
+        allowed_file_types = ', '.join(sorted(f"'.{x}'" for x in current_app.config['ALLOWED_FILE_TYPES'].keys()))
+        return jsonify(error=f"Unsupported file type '{mimetype}'. Supported types are: {allowed_file_types}"), 400
 
-    try:
-        virus_free = antivirus_client.scan(request.files['document'])
-    except AntivirusError:
-        return jsonify(error='Antivirus API error'), 503
+    if current_app.config['ANTIVIRUS_ENABLED']:
+        try:
+            virus_free = antivirus_client.scan(request.files['document'])
+        except AntivirusError:
+            return jsonify(error='Antivirus API error'), 503
 
-    if not virus_free:
-        return jsonify(error="Document didn't pass the virus scan"), 400
+        if not virus_free:
+            return jsonify(error="File didn't pass the virus scan"), 400
 
     document = document_store.put(service_id, request.files['document'], mimetype=mimetype)
 

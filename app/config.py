@@ -9,11 +9,14 @@ class Config(metaclass=MetaFlaskEnv):
 
     DOCUMENTS_BUCKET = None
 
-    ALLOWED_MIME_TYPES = [
-        'application/pdf',
-        'text/csv',
-        'text/plain',
-    ]
+    # map of file extension to MIME TYPE.
+    ALLOWED_FILE_TYPES = {
+        'pdf': 'application/pdf',
+        'csv': 'text/csv',
+        'txt': 'text/plain',
+        'doc': 'application/msword',
+        'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    }
 
     MAX_CONTENT_LENGTH = 2 * 1024 * 1024 + 1024
 
@@ -24,6 +27,8 @@ class Config(metaclass=MetaFlaskEnv):
 
     ANTIVIRUS_API_HOST = None
     ANTIVIRUS_API_KEY = None
+
+    ANTIVIRUS_ENABLED = True
 
     HTTP_SCHEME = 'https'
     FRONTEND_HOSTNAME = None
@@ -56,6 +61,7 @@ class Development(Config):
 
     ANTIVIRUS_API_HOST = 'http://localhost:6016'
     ANTIVIRUS_API_KEY = 'test-key'
+    ANTIVIRUS_ENABLED = False
 
     HTTP_SCHEME = 'http'
     FRONTEND_HOSTNAME = 'localhost:7001'
