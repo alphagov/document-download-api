@@ -27,7 +27,7 @@ def upload_document(service_id):
             return jsonify(error='Antivirus API error'), 503
 
         if not virus_free:
-            return jsonify(error="File didn't pass the virus scan"), 400
+            return jsonify(error="File did not pass the virus scan"), 400
 
     document = document_store.put(service_id, request.files['document'], mimetype=mimetype)
 

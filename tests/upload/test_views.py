@@ -65,7 +65,7 @@ def test_document_upload_virus_found(client, store, antivirus):
 
     assert response.status_code == 400
     assert response.json == {
-        'error': "File didn't pass the virus scan"
+        'error': "File did not pass the virus scan"
     }
 
 
