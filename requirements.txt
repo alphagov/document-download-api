@@ -30,7 +30,7 @@ chardet==3.0.4
 Click==7.0
 colorama==0.4.3
 dnspython==1.16.0
-docutils==0.15.2
+docutils==0.16
 flask-redis==0.4.0
 greenlet==0.4.15
 idna==2.8
