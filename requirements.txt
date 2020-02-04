@@ -58,4 +58,4 @@ smartypants==2.0.1
 statsd==3.3.0
 urllib3==1.25.8
 webencodings==0.5.1
-Werkzeug==0.16.0
+Werkzeug==0.16.1
