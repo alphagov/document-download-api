@@ -5,7 +5,7 @@
 Flask==1.1.1
 Flask-Env==2.0.0
 
-boto3==1.12.12
+boto3==1.12.17
 
 python-magic==0.4.15
 
@@ -21,13 +21,13 @@ gds-metrics==0.2.0
 git+https://github.com/alphagov/notifications-utils.git@36.6.1#egg=notifications-utils==36.6.1
 
 ## The following requirements were added by pip freeze:
-awscli==1.18.12
+awscli==1.18.17
 bleach==3.1.1
 blinker==1.4
-botocore==1.15.12
+botocore==1.15.17
 certifi==2019.11.28
 chardet==3.0.4
-Click==7.0
+click==7.1.1
 colorama==0.4.3
 dnspython==1.16.0
 docutils==0.15.2
