@@ -11,6 +11,7 @@ from app.utils import get_mime_type
     ('test.csv', 'text/plain'),
     ('test.doc', 'application/msword'),
     ('test.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
+    ('test.odt', 'application/vnd.oasis.opendocument.text'),
     # not supported by doc dl
     ('test.pptx', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'),
     ('test.zip', 'application/zip'),
