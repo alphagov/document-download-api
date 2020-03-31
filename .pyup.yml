@@ -6,3 +6,5 @@ search: False
 requirements:
   - requirements-app.txt
   - requirements-dev.txt
+  - requirements.txt:
+      update: False
