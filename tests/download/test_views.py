@@ -87,3 +87,77 @@ def test_document_download_document_store_error(client, store):
 
     assert response.status_code == 400
     assert response.json == {'error': 'something went wrong'}
+
+
+def test_check_document_exists_without_decryption_key(client, store):
+    response = client.get(
+        url_for(
+            'download.check_document_exists',
+            service_id='00000000-0000-0000-0000-000000000000',
+            document_id='ffffffff-ffff-ffff-ffff-ffffffffffff',
+        )
+    )
+
+    assert response.status_code == 400
+    assert response.json == {'error': 'Missing decryption key'}
+
+
+def test_check_document_exists_with_invalid_decryption_key(client):
+    response = client.get(
+        url_for(
+            'download.check_document_exists',
+            service_id='00000000-0000-0000-0000-000000000000',
+            document_id='ffffffff-ffff-ffff-ffff-ffffffffffff',
+            key='🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉?'
+        )
+    )
+
+    assert response.status_code == 400
+    assert response.json == {'error': 'Invalid decryption key'}
+
+
+def test_check_document_exists_document_store_error(client, store):
+    store.check_document_exists.side_effect = DocumentStoreError('something went wrong')
+    response = client.get(
+        url_for(
+            'download.check_document_exists',
+            service_id='00000000-0000-0000-0000-000000000000',
+            document_id='ffffffff-ffff-ffff-ffff-ffffffffffff',
+            key='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+        )
+    )
+
+    assert response.status_code == 400
+    assert response.json == {'error': 'something went wrong'}
+
+
+def test_check_document_exists_when_document_is_in_s3(client, store):
+    store.check_document_exists.return_value = True
+    response = client.get(
+        url_for(
+            'download.check_document_exists',
+            service_id='00000000-0000-0000-0000-000000000000',
+            document_id='ffffffff-ffff-ffff-ffff-ffffffffffff',
+            key='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+        )
+    )
+
+    assert response.status_code == 200
+    assert response.json == {'file_exists': 'True'}
+    assert response.headers['X-Robots-Tag'] == 'noindex, nofollow'
+
+
+def test_check_document_exists_when_document_is_not_in_s3(client, store):
+    store.check_document_exists.return_value = False
+    response = client.get(
+        url_for(
+            'download.check_document_exists',
+            service_id='00000000-0000-0000-0000-000000000000',
+            document_id='ffffffff-ffff-ffff-ffff-ffffffffffff',
+            key='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+        )
+    )
+
+    assert response.status_code == 200
+    assert response.json == {'file_exists': 'False'}
+    assert response.headers['X-Robots-Tag'] == 'noindex, nofollow'
