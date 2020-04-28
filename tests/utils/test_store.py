@@ -17,6 +17,11 @@ def store(mocker):
         'ContentType': 'application/pdf',
         'ContentLength': 100
     }
+    mock_boto.client.return_value.head_object.return_value = {
+        'ResponseMetadata': {'RequestId': 'ABCD'},
+        'Expiration': 'expiry-date="Fri, 01 May 2020 00:00:00 GMT"',
+        'ContentType': 'text/plain'
+    }
     store = DocumentStore(bucket='test-bucket')
     return store
 
@@ -83,3 +88,30 @@ def test_get_document_with_boto_error(store):
 
     with pytest.raises(DocumentStoreError):
         store.get('service-id', 'document-id', '0f0f0f')
+
+
+def test_check_document_exists_when_document_is_in_s3(store):
+    assert store.check_document_exists('service-id', 'document-id', '0f0f0f') is True
+
+
+def test_check_document_exists_when_document_is_not_in_s3(store):
+    store.s3.head_object = mock.Mock(side_effect=BotoClientError({
+        'Error': {
+            'Code': '404',
+            'Message': 'Not Found'
+        }
+    }, 'HeadObject'))
+
+    assert store.check_document_exists('service-id', 'document-id', '0f0f0f') is False
+
+
+def test_check_document_exists_with_unexpected_boto_error(store):
+    store.s3.head_object = mock.Mock(side_effect=BotoClientError({
+        'Error': {
+            'Code': 'code',
+            'Message': 'Unhandled Exception'
+        }
+    }, 'HeadObject'))
+
+    with pytest.raises(DocumentStoreError):
+        store.check_document_exists('service-id', 'document-id', '0f0f0f')

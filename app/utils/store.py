@@ -60,6 +60,24 @@ class DocumentStore:
             'size': document['ContentLength']
         }
 
+    def check_document_exists(self, service_id, document_id, decryption_key):
+        """
+        decryption_key should be raw bytes
+        """
+
+        try:
+            self.s3.head_object(
+                Bucket=self.bucket,
+                Key=self.get_document_key(service_id, document_id),
+                SSECustomerKey=decryption_key,
+                SSECustomerAlgorithm='AES256'
+            )
+            return True
+        except BotoClientError as e:
+            if e.response['Error']['Code'] == '404':
+                return False
+            raise DocumentStoreError(e.response['Error'])
+
     def generate_encryption_key(self):
         return os.urandom(32)
 
