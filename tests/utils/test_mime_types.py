@@ -18,5 +18,5 @@ from app.utils import get_mime_type
     ('corrupted.zip', 'application/octet-stream'),
 ])
 def test_get_mime_type(filename, expected_mime_type):
-    with open(Path(__file__).parent / 'sample_files' / filename, 'rb') as f:
+    with open(Path(__file__).parent.parent / 'sample_files' / filename, 'rb') as f:
         assert get_mime_type(f) == expected_mime_type
