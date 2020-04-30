@@ -15,10 +15,21 @@ def upload_document(service_id):
     if 'document' not in request.files:
         return jsonify(error='No document upload'), 400
 
+    is_csv = False
+    if 'is_csv' in request.form:
+        if request.form['is_csv'] not in ('True', 'False'):
+            return jsonify(error='Value for is_csv must be "True" or "False"'), 400
+        is_csv = request.form['is_csv'] == 'True'
+
     mimetype = get_mime_type(request.files['document'])
     if mimetype not in current_app.config['ALLOWED_FILE_TYPES'].values():
         allowed_file_types = ', '.join(sorted(f"'.{x}'" for x in current_app.config['ALLOWED_FILE_TYPES'].keys()))
         return jsonify(error=f"Unsupported file type '{mimetype}'. Supported types are: {allowed_file_types}"), 400
+
+    # Our mimetype auto-detection resolves CSV content as text/plain, so we use
+    # an explicit POST body parameter `is_csv` from the caller to resolve it as text/csv
+    if is_csv and mimetype == 'text/plain':
+        mimetype = 'text/csv'
 
     if current_app.config['ANTIVIRUS_ENABLED']:
         try:
@@ -44,6 +55,7 @@ def upload_document(service_id):
                 service_id=service_id,
                 document_id=document['id'],
                 key=document['encryption_key'],
-            )
+            ),
+            'mimetype': mimetype,
         }
     ), 201

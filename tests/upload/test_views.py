@@ -1,4 +1,5 @@
 import io
+from pathlib import Path
 
 import pytest
 
@@ -47,6 +48,7 @@ def test_document_upload_returns_link_to_frontend(client, store, antivirus):
                 '/documents/ffffffff-ffff-ffff-ffff-ffffffffffff',
                 '?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
             ]),
+            'mimetype': 'application/pdf',
         },
         'status': 'ok'
     }
@@ -160,3 +162,119 @@ def test_unauthorized_document_upload(client):
     )
 
     assert response.status_code == 401
+
+
+@pytest.mark.parametrize(
+    'file_name,extra_form_data,expected_mimetype',
+    (
+        (
+            'test.csv',
+            {'is_csv': 'True'},
+            'text/csv',
+        ),
+        (
+            'test.csv',
+            {'is_csv': 'False'},
+            'text/plain',
+        ),
+        (
+            'test.csv',
+            {},
+            'text/plain',
+        ),
+        (
+            'test.txt',
+            {'is_csv': 'True'},
+            'text/csv',
+        ),
+        (
+            'test.txt',
+            {'is_csv': 'False'},
+            'text/plain',
+        ),
+        (
+            'test.txt',
+            {},
+            'text/plain',
+        ),
+        (
+            'test.pdf',
+            {'is_csv': 'True'},
+            'application/pdf',
+        ),
+        (
+            'test.pdf',
+            {'is_csv': 'False'},
+            'application/pdf',
+        ),
+        (
+            'test.pdf',
+            {},
+            'application/pdf',
+        ),
+    )
+)
+def test_document_upload_csv_handling(
+    client,
+    store,
+    antivirus,
+    file_name,
+    extra_form_data,
+    expected_mimetype
+):
+
+    store.put.return_value = {
+        'id': 'ffffffff-ffff-ffff-ffff-ffffffffffff',
+        'encryption_key': bytes(32),
+    }
+
+    antivirus.scan.return_value = True
+
+    with open(Path(__file__).parent.parent / 'sample_files' / file_name, 'rb') as f:
+        response = client.post(
+            f'/services/00000000-0000-0000-0000-000000000000/documents',
+            content_type='multipart/form-data',
+            data={
+                'document': (f, file_name),
+                **extra_form_data,
+            }
+        )
+
+    assert response.status_code == 201
+    assert response.json == {
+        'document': {
+            'id': 'ffffffff-ffff-ffff-ffff-ffffffffffff',
+            'url': ''.join([
+                'https://document-download-frontend-test',
+                '/d/AAAAAAAAAAAAAAAAAAAAAA',
+                '/_____________________w',
+                '?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            ]),
+            'mimetype': expected_mimetype,
+            'direct_file_url': ''.join([
+                'http://document-download.test',
+                '/services/00000000-0000-0000-0000-000000000000',
+                '/documents/ffffffff-ffff-ffff-ffff-ffffffffffff',
+                '?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
+            ]),
+        },
+        'status': 'ok'
+    }
+
+
+def test_document_upload_bad_is_csv_value(client):
+
+    with open(Path(__file__).parent.parent / 'sample_files' / 'test.csv', 'rb') as f:
+        response = client.post(
+            f'/services/00000000-0000-0000-0000-000000000000/documents',
+            content_type='multipart/form-data',
+            data={
+                'document': (f, 'test.csv'),
+                'is_csv': 'Foobar',
+            }
+        )
+
+    assert response.status_code == 400
+    assert response.json == {
+        'error': 'Value for is_csv must be "True" or "False"'
+    }
