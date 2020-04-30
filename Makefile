@@ -15,16 +15,16 @@ help:
 	@cat $(MAKEFILE_LIST) | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: run
-run:
+run: ## Run the app locally
 	FLASK_APP=application.py FLASK_ENV=development flask run -p 7000
 
 .PHONY: test
-test: test-requirements
+test: test-requirements ## Run all tests
 	py.test tests/
 	flake8 .
 
 .PHONY: freeze-requirements
-freeze-requirements:
+freeze-requirements: ## Pin dependencies
 	rm -rf venv-freeze
 	virtualenv -p python3 venv-freeze
 	$$(pwd)/venv-freeze/bin/pip install -r requirements-app.txt
@@ -42,7 +42,7 @@ test-requirements:
 || { echo "requirements.txt is up to date"; exit 0; }
 
 .PHONY: docker-build
-docker-build:
+docker-build: ## Build with docker
 	docker build --pull \
 		--build-arg HTTP_PROXY="${HTTP_PROXY}" \
 		--build-arg HTTPS_PROXY="${HTTP_PROXY}" \
@@ -51,7 +51,7 @@ docker-build:
 		.
 
 .PHONY: test-with-docker
-test-with-docker: docker-build
+test-with-docker: docker-build ## Run all tests with docker
 	docker run --rm \
 		-e CIRCLECI=1 \
 		-e CI_BUILD_NUMBER=${BUILD_NUMBER} \
@@ -87,7 +87,7 @@ production:
 	cf target -s ${CF_SPACE}
 
 .PHONY: generate-manifest
-generate-manifest:
+generate-manifest: ## Generate manifest for the app
 	$(if ${CF_SPACE},,$(error Must specify CF_SPACE))
 
 	$(if $(shell which gpg2), $(eval export GPG=gpg2), $(eval export GPG=gpg))
