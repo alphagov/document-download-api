@@ -1,4 +1,8 @@
-from flask import Blueprint, current_app, jsonify, request
+from io import BytesIO
+from base64 import b64decode
+
+from flask import abort, Blueprint, current_app, jsonify, request
+from werkzeug.datastructures import FileStorage
 
 from app import document_store, antivirus_client
 from app.utils import get_mime_type
@@ -12,16 +16,26 @@ upload_blueprint.before_request(check_auth)
 
 @upload_blueprint.route('/services/<uuid:service_id>/documents', methods=['POST'])
 def upload_document(service_id):
-    if 'document' not in request.files:
-        return jsonify(error='No document upload'), 400
+    no_document_error = jsonify(error='No document upload'), 400
 
-    is_csv = False
-    if 'is_csv' in request.form:
-        if request.form['is_csv'] not in ('True', 'False'):
-            return jsonify(error='Value for is_csv must be "True" or "False"'), 400
-        is_csv = request.form['is_csv'] == 'True'
+    if request.is_json:
+        if 'document' not in request.json:
+            return no_document_error
+        raw_content = b64decode(request.json['document'])
+        if len(raw_content) > current_app.config['MAX_CONTENT_LENGTH']:
+            abort(413)
+        file_data = FileStorage(BytesIO(raw_content))
+        is_csv = request.json.get('is_csv', False)
+    else:
+        if 'document' not in request.files:
+            return no_document_error
+        file_data = request.files['document']
+        is_csv = False
 
-    mimetype = get_mime_type(request.files['document'])
+    if not isinstance(is_csv, bool):
+        return jsonify(error='Value for is_csv must be a boolean'), 400
+
+    mimetype = get_mime_type(file_data)
     if mimetype not in current_app.config['ALLOWED_FILE_TYPES'].values():
         allowed_file_types = ', '.join(sorted(f"'.{x}'" for x in current_app.config['ALLOWED_FILE_TYPES'].keys()))
         return jsonify(error=f"Unsupported file type '{mimetype}'. Supported types are: {allowed_file_types}"), 400
@@ -33,14 +47,14 @@ def upload_document(service_id):
 
     if current_app.config['ANTIVIRUS_ENABLED']:
         try:
-            virus_free = antivirus_client.scan(request.files['document'])
+            virus_free = antivirus_client.scan(file_data)
         except AntivirusError:
             return jsonify(error='Antivirus API error'), 503
 
         if not virus_free:
             return jsonify(error="File did not pass the virus scan"), 400
 
-    document = document_store.put(service_id, request.files['document'], mimetype=mimetype)
+    document = document_store.put(service_id, file_data, mimetype=mimetype)
 
     return jsonify(
         status='ok',
