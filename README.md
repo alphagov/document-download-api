@@ -6,8 +6,8 @@ Document Download API
 
 ### the docker way
 ```bash
-make build-with-docker
-docker run make run
+make docker-build
+docker run govuk/document-download-api:<GIT_COMMIT> make run
 ```
 
 ### the local way
