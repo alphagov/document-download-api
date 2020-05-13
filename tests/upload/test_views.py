@@ -300,7 +300,7 @@ def test_document_upload_csv_handling(
 
     with open(Path(__file__).parent.parent / 'sample_files' / file_name, 'rb') as f:
         response = client.post(
-            f'/services/00000000-0000-0000-0000-000000000000/documents',
+            '/services/00000000-0000-0000-0000-000000000000/documents',
             json={
                 'document': base64.b64encode(f.read()).decode('utf-8'),
                 **extra_form_data,
@@ -332,7 +332,7 @@ def test_document_upload_csv_handling(
 def test_document_upload_bad_is_csv_value(client):
     with open(Path(__file__).parent.parent / 'sample_files' / 'test.csv', 'rb') as f:
         response = client.post(
-            f'/services/00000000-0000-0000-0000-000000000000/documents',
+            '/services/00000000-0000-0000-0000-000000000000/documents',
             json={
                 'document': base64.b64encode(f.read()).decode('utf-8'),
                 'is_csv': 'Foobar',

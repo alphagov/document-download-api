@@ -10,8 +10,8 @@ document_store = DocumentStore() # noqa, has to be imported before views
 antivirus_client = AntivirusClient() # noqa
 metrics = GDSMetrics() # noqa
 
-from .download.views import download_blueprint
-from .upload.views import upload_blueprint
+from .download.views import download_blueprint # noqa
+from .upload.views import upload_blueprint # noqa
 
 
 def create_app():
