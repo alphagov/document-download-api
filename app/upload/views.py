@@ -2,7 +2,6 @@ from io import BytesIO
 from base64 import b64decode
 
 from flask import abort, Blueprint, current_app, jsonify, request
-from werkzeug.datastructures import FileStorage
 
 from app import document_store, antivirus_client
 from app.utils import get_mime_type
@@ -24,7 +23,7 @@ def upload_document(service_id):
         raw_content = b64decode(request.json['document'])
         if len(raw_content) > current_app.config['MAX_CONTENT_LENGTH']:
             abort(413)
-        file_data = FileStorage(BytesIO(raw_content))
+        file_data = BytesIO(raw_content)
         is_csv = request.json.get('is_csv', False)
     else:
         if 'document' not in request.files:
