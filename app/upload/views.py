@@ -2,7 +2,6 @@ from io import BytesIO
 from base64 import b64decode
 
 from flask import abort, Blueprint, current_app, jsonify, request
-from werkzeug.datastructures import FileStorage
 
 from app import document_store, antivirus_client
 from app.utils import get_mime_type
