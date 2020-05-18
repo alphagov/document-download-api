@@ -48,6 +48,10 @@ def test_document_download(client, store):
 
 
 def test_csv_document_download(client, store):
+    """
+    Test that CSV file responses have the expected Content-Type/Content-Disposition
+    required for browsers to download files in a way that is useful for users.
+    """
     store.get.return_value = {
         'body': io.BytesIO(b'a,b,c'),
         'mimetype': 'text/csv',
