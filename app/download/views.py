@@ -29,7 +29,23 @@ def download_document(service_id, document_id):
         )
         return jsonify(error=str(e)), 400
 
-    response = make_response(send_file(document['body'], mimetype=document['mimetype']))
+    send_file_kwargs = {
+        'mimetype': document['mimetype'],
+    }
+    if document['mimetype'] == 'text/csv':
+        send_file_kwargs.update(
+            {
+                'attachment_filename': f'{document_id}.csv',
+                'as_attachment': True,
+            }
+        )
+
+    response = make_response(
+        send_file(
+            document['body'],
+            **send_file_kwargs,
+        )
+    )
     response.headers['Content-Length'] = document['size']
     response.headers['X-Robots-Tag'] = 'noindex, nofollow'
 
