@@ -1,6 +1,6 @@
 # see https://pyup.io/docs/configuration/ for all available options
 
-schedule: "every week on tuesday"
+schedule: "every two weeks on tuesday"
 
 search: False
 requirements:
