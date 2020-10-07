@@ -136,7 +136,8 @@ def test_document_upload_unknown_type(client, content_type):
 
     assert response.status_code == 400
     assert response.json['error'] == (
-        "Unsupported file type 'application/octet-stream'. Supported types are: '.csv', '.doc', '.docx', '.odt', '.pdf', '.txt'"  # noqa
+        "Unsupported file type 'application/octet-stream'. "
+        "Supported types are: '.csv', '.doc', '.docx', '.odt', '.pdf', '.rtf', '.txt'"
     )
 
 
