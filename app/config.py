@@ -11,12 +11,13 @@ class Config(metaclass=MetaFlaskEnv):
 
     # map of file extension to MIME TYPE.
     ALLOWED_FILE_TYPES = {
-        'pdf': 'application/pdf',
-        'csv': 'text/csv',
-        'txt': 'text/plain',
-        'doc': 'application/msword',
-        'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'odt': 'application/vnd.oasis.opendocument.text',
+        'pdf': ['application/pdf'],
+        'csv': ['text/csv'],
+        'txt': ['text/plain'],
+        'doc': ['application/msword'],
+        'docx': ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+        'odt': ['application/vnd.oasis.opendocument.text'],
+        'rtf': ['application/rtf', 'text/rtf'],
     }
 
     MAX_CONTENT_LENGTH = 2 * 1024 * 1024 + 1024
