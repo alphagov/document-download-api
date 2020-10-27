@@ -33,12 +33,20 @@ def download_document(service_id, document_id):
         'mimetype': document['mimetype'],
     }
     if document['mimetype'] == 'text/csv':
-        # Force browsers to download CSV files with a specified filename; this
-        # is because many browsers do not add a .csv file extension to downloaded
-        # files - so we need to be more explicit.
+        # Give CSV files the 'Content-Disposition' header to ensure they are downloaded
+        # rather than shown as raw text in the users browser
         send_file_kwargs.update(
             {
                 'attachment_filename': f'{document_id}.csv',
+                'as_attachment': True,
+            }
+        )
+    elif document['mimetype'] in current_app.config['ALLOWED_FILE_TYPES']['rtf']:
+        # Give RTF files the 'Content-Disposition' header to ensure they are downloaded
+        # rather than shown as raw text in the users browser
+        send_file_kwargs.update(
+            {
+                'attachment_filename': f'{document_id}.rtf',
                 'as_attachment': True,
             }
         )
