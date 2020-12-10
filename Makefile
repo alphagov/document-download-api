@@ -6,6 +6,7 @@ CF_API ?= api.cloud.service.gov.uk
 NOTIFY_CREDENTIALS ?= ~/.notify-credentials
 
 CF_APP = document-download-api
+CF_MANIFEST_PATH ?= /tmp/manifest.yml
 
 
 ## DEVELOPMENT
@@ -111,14 +112,18 @@ cf-deploy: ## Deploys the app to Cloud Foundry
 	@cf app --guid ${CF_APP} || exit 1
 
 	# cancel any existing deploys to ensure we can apply manifest (if a deploy is in progress you'll see ScaleDisabledDuringDeployment)
-	cf v3-cancel-zdt-push ${CF_APP} || true
-
-	cf v3-apply-manifest ${CF_APP} -f <(make -s generate-manifest)
-	cf v3-zdt-push ${CF_APP} --wait-for-deploy-complete
+	cf cancel-deployment ${CF_APP} || true
+	# generate manifest (including secrets) and write it to CF_MANIFEST_PATH (in /tmp/)
+	make -s CF_APP=${CF_APP} generate-manifest > ${CF_MANIFEST_PATH}
+	# reads manifest from CF_MANIFEST_PATH
+	cf push ${CF_APP} --strategy=rolling -f ${CF_MANIFEST_PATH}
+	# delete old manifest file
+	rm ${CF_MANIFEST_PATH}
 
 .PHONY: cf-rollback
 cf-rollback: ## Rollbacks the app to the previous release
-	cf v3-cancel-zdt-push ${CF_APP}
+	cf cancel-deployment ${CF_APP}
+	rm -f ${CF_MANIFEST_PATH}
 
 .PHONY: cf-create-cdn-route
 cf-create-cdn-route:
