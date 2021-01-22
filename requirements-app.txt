@@ -4,9 +4,9 @@
 Flask==1.1.2
 Flask-Env==2.0.0
 
-boto3==1.16.48
+boto3==1.16.56
 
-python-magic==0.4.18
+python-magic==0.4.20
 rsa>=4.3
 
 # PaaS
