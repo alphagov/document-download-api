@@ -5,7 +5,7 @@
 Flask==1.1.2
 Flask-Env==2.0.0
 
-boto3==1.16.56
+boto3==1.16.63
 
 python-magic==0.4.20
 rsa>=4.3
@@ -22,11 +22,11 @@ gds-metrics==0.2.4
 git+https://github.com/alphagov/notifications-utils.git@43.5.4#egg=notifications-utils==43.5.4
 
 ## The following requirements were added by pip freeze:
-awscli==1.18.217
-bleach==3.2.2
+awscli==1.18.223
+bleach==3.3.0
 blinker==1.4
-botocore==1.19.57
-cachetools==4.2.0
+botocore==1.19.63
+cachetools==4.2.1
 certifi==2020.12.5
 chardet==4.0.0
 click==7.1.2
@@ -39,21 +39,21 @@ govuk-bank-holidays==0.8
 greenlet==1.0.0
 idna==2.10
 itsdangerous==1.1.0
-Jinja2==2.11.2
+Jinja2==2.11.3
 jmespath==0.10.0
 MarkupSafe==1.1.1
 mistune==0.8.4
 monotonic==1.5
 orderedset==2.0.3
-packaging==20.8
-phonenumbers==8.12.16
+packaging==20.9
+phonenumbers==8.12.17
 prometheus-client==0.9.0
 pyasn1==0.4.8
 pyparsing==2.4.7
 PyPDF2==1.26.0
 python-dateutil==2.8.1
 python-json-logger==2.0.1
-pytz==2020.5
+pytz==2021.1
 PyYAML==5.3.1
 redis==3.5.3
 requests==2.25.1
@@ -61,6 +61,6 @@ s3transfer==0.3.4
 six==1.15.0
 smartypants==2.0.1
 statsd==3.3.0
-urllib3==1.26.2
+urllib3==1.26.3
 webencodings==0.5.1
 Werkzeug==1.0.1
