@@ -4,13 +4,6 @@ Document Download API
 
 # install steps:
 
-### the docker way
-```bash
-make docker-build
-docker run govuk/document-download-api:<GIT_COMMIT> make run
-```
-
-### the local way
 ```bash
 mkvirtualenv -p python3 document-download-api
 brew install libmagic
