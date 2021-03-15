@@ -5,7 +5,6 @@ Document Download API
 # install steps:
 
 ```bash
-mkvirtualenv -p python3 document-download-api
 brew install libmagic
 pip install -r requirements-dev.txt
 make run-flask
