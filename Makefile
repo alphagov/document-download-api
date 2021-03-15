@@ -22,6 +22,7 @@ run-flask: ## Run the app locally
 .PHONY: test
 test: test-requirements ## Run all tests
 	py.test tests/
+	isort --check-only app tests
 	flake8 .
 
 .PHONY: freeze-requirements

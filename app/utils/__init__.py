@@ -1,5 +1,5 @@
-from zipfile import ZipFile, BadZipFile
 from io import BytesIO
+from zipfile import BadZipFile, ZipFile
 
 import magic
 
