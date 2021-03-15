@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 CF_API ?= api.cloud.service.gov.uk
 NOTIFY_CREDENTIALS ?= ~/.notify-credentials
 
