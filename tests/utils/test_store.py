@@ -4,9 +4,8 @@ from unittest import mock
 import pytest
 from botocore.exceptions import ClientError as BotoClientError
 
-from tests.conftest import set_config, Matcher
-
 from app.utils.store import DocumentStore, DocumentStoreError
+from tests.conftest import Matcher, set_config
 
 
 @pytest.fixture

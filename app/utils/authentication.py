@@ -1,4 +1,4 @@
-from flask import current_app, abort, request
+from flask import abort, current_app, request
 
 
 def requires_auth(fn):

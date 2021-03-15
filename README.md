@@ -1,21 +1,35 @@
 # document-download-api
-Document Download API
 
+## Setting up
 
-# install steps:
+### Python version
 
-### the docker way
-```bash
-make docker-build
-docker run govuk/document-download-api:<GIT_COMMIT> make run
+Check the version is [runtime.txt](runtime.txt)
+
+### libmagic
+
+This is a library we use to detect file types.
+
+```
+brew install libmagic
 ```
 
-### the local way
+## To run the application
+
 ```bash
-mkvirtualenv -p python3 document-download-api
-brew install libmagic
-pip install -r requirements-dev.txt
-make run
+# install dependencies, etc.
+make bootstrap
+
+make run-flask
+```
+
+## To test the application
+
+```bash
+# install dependencies, etc.
+make bootstrap
+
+make test
 ```
 
 ## Updating application dependencies

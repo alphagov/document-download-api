@@ -1,10 +1,10 @@
+from base64 import b64decode
 from io import BytesIO
 from itertools import chain
-from base64 import b64decode
 
-from flask import abort, Blueprint, current_app, jsonify, request
+from flask import Blueprint, abort, current_app, jsonify, request
 
-from app import document_store, antivirus_client
+from app import antivirus_client, document_store
 from app.utils import get_mime_type
 from app.utils.antivirus import AntivirusError
 from app.utils.authentication import check_auth

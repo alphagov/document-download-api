@@ -1,17 +1,17 @@
 from flask import Flask
-from notifications_utils import logging, request_helper
 from gds_metrics import GDSMetrics
+from notifications_utils import logging, request_helper
 
 from app.config import configs
-from app.utils.store import DocumentStore
 from app.utils.antivirus import AntivirusClient
+from app.utils.store import DocumentStore
 
 document_store = DocumentStore() # noqa, has to be imported before views
 antivirus_client = AntivirusClient() # noqa
 metrics = GDSMetrics() # noqa
 
-from .download.views import download_blueprint # noqa
-from .upload.views import upload_blueprint # noqa
+from .download.views import download_blueprint  # noqa
+from .upload.views import upload_blueprint  # noqa
 
 
 def create_app():

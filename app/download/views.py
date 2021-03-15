@@ -1,4 +1,11 @@
-from flask import Blueprint, current_app, jsonify, make_response, request, send_file
+from flask import (
+    Blueprint,
+    current_app,
+    jsonify,
+    make_response,
+    request,
+    send_file,
+)
 from notifications_utils.base64_uuid import base64_to_bytes
 
 from app import document_store

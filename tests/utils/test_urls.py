@@ -1,7 +1,6 @@
 from uuid import UUID
 
-from app.utils.urls import get_frontend_download_url, get_direct_file_url
-
+from app.utils.urls import get_direct_file_url, get_frontend_download_url
 
 SAMPLE_KEY = bytes(range(32))
 # the b64 has one trailing =, that we strip.

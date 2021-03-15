@@ -1,9 +1,9 @@
 import io
-from uuid import UUID
 from unittest import mock
+from uuid import UUID
 
-from flask import url_for
 import pytest
+from flask import url_for
 
 from app.utils.store import DocumentStoreError
 

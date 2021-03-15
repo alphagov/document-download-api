@@ -1,7 +1,3 @@
-SHELL := /bin/bash
-
-GIT_COMMIT ?= $(shell git rev-parse HEAD)
-
 CF_API ?= api.cloud.service.gov.uk
 NOTIFY_CREDENTIALS ?= ~/.notify-credentials
 
@@ -15,13 +11,18 @@ CF_MANIFEST_PATH ?= /tmp/manifest.yml
 help:
 	@cat $(MAKEFILE_LIST) | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
+.PHONY: bootstrap
+bootstrap: ## install app dependencies
+	pip install -r requirements-dev.txt
+
 .PHONY: run
-run: ## Run the app locally
+run-flask: ## Run the app locally
 	FLASK_APP=application.py FLASK_ENV=development flask run -p 7000
 
 .PHONY: test
 test: test-requirements ## Run all tests
 	py.test tests/
+	isort --check-only app tests
 	flake8 .
 
 .PHONY: freeze-requirements
@@ -41,30 +42,6 @@ test-requirements:
 	    && { echo "requirements.txt doesn't match requirements-app.txt."; \
 	         echo "Run 'make freeze-requirements' to update."; exit 1; } \
 || { echo "requirements.txt is up to date"; exit 0; }
-
-.PHONY: docker-build
-docker-build: ## Build with docker
-	docker build --pull \
-		--build-arg HTTP_PROXY="${HTTP_PROXY}" \
-		--build-arg HTTPS_PROXY="${HTTP_PROXY}" \
-		--build-arg NO_PROXY="${NO_PROXY}" \
-		-t govuk/document-download-api:${GIT_COMMIT} \
-		.
-
-.PHONY: test-with-docker
-test-with-docker: docker-build ## Run all tests with docker
-	docker run --rm \
-		-e CIRCLECI=1 \
-		-e CI_BUILD_NUMBER=${BUILD_NUMBER} \
-		-e CI_BUILD_URL=${BUILD_URL} \
-		-e CI_NAME=${CI_NAME} \
-		-e CI_BRANCH=${GIT_BRANCH} \
-		-e CI_PULL_REQUEST=${CI_PULL_REQUEST} \
-		-e http_proxy="${http_proxy}" \
-		-e https_proxy="${https_proxy}" \
-		-e NO_PROXY="${NO_PROXY}" \
-		govuk/document-download-api:${GIT_COMMIT} \
-		make test
 
 
 ## DEPLOYMENT

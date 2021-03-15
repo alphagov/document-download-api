@@ -1,8 +1,8 @@
 import io
 
+import pytest
 import requests
 import requests_mock
-import pytest
 
 from app.utils.antivirus import AntivirusClient, AntivirusError
 
