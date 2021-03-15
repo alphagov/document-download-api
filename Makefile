@@ -12,7 +12,7 @@ help:
 	@cat $(MAKEFILE_LIST) | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: run
-run: ## Run the app locally
+run-flask: ## Run the app locally
 	FLASK_APP=application.py FLASK_ENV=development flask run -p 7000
 
 .PHONY: test

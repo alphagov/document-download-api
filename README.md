@@ -8,7 +8,7 @@ Document Download API
 mkvirtualenv -p python3 document-download-api
 brew install libmagic
 pip install -r requirements-dev.txt
-make run
+make run-flask
 ```
 
 ## Updating application dependencies
