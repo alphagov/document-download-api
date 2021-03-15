@@ -1,13 +1,35 @@
 # document-download-api
-Document Download API
 
+## Setting up
 
-# install steps:
+### Python version
+
+Check the version is [runtime.txt](runtime.txt)
+
+### libmagic
+
+This is a library we use to detect file types.
+
+```
+brew install libmagic
+```
+
+## To run the application
 
 ```bash
-brew install libmagic
-pip install -r requirements-dev.txt
+# install dependencies, etc.
+make bootstrap
+
 make run-flask
+```
+
+## To test the application
+
+```bash
+# install dependencies, etc.
+make bootstrap
+
+make test
 ```
 
 ## Updating application dependencies
