@@ -18,6 +18,7 @@ class Config(metaclass=MetaFlaskEnv):
         'docx': ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
         'odt': ['application/vnd.oasis.opendocument.text'],
         'rtf': ['application/rtf', 'text/rtf'],
+        'xlsx': ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
     }
 
     MAX_CONTENT_LENGTH = 2 * 1024 * 1024 + 1024
