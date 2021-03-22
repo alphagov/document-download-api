@@ -13,6 +13,7 @@ from app.utils import get_mime_type
     ('test.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
     ('test.odt', 'application/vnd.oasis.opendocument.text'),
     ('test.rtf', 'text/rtf'),
+    ('test.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
     # not supported by doc dl
     ('test.pptx', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'),
     ('test.zip', 'application/zip'),
