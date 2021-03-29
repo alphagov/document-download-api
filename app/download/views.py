@@ -44,11 +44,9 @@ def download_document(service_id, document_id):
         'attachment_filename': f'{document_id}.{extension}',
         'as_attachment': True,
     }
-    if document['mimetype'] == 'application/pdf':
-        # Open PDFs in the browser
-        send_file_kwargs.update({'as_attachment': False})
-    elif document['mimetype'] == 'text/plain':
-        # Open raw text files in the browser
+
+    if extension in ('pdf', 'txt'):
+        # in-browser preview is widely supported, so don't force a download
         send_file_kwargs.update({'as_attachment': False})
 
     response = make_response(
