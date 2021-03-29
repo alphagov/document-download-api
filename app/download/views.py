@@ -36,14 +36,11 @@ def download_document(service_id, document_id):
         )
         return jsonify(error=str(e)), 400
 
-    extension = None
-    for ext, mimetypes in current_app.config['ALLOWED_FILE_TYPES'].items():
-        if document['mimetype'] in mimetypes:
-            extension = ext
-            break
+    mimetype = document['mimetype']
+    extension = current_app.config['ALLOWED_FILE_TYPES'][mimetype]
 
     send_file_kwargs = {
-        'mimetype': document['mimetype'],
+        'mimetype': mimetype,
         'attachment_filename': f'{document_id}.{extension}',
         'as_attachment': True,
     }
