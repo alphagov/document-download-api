@@ -36,27 +36,23 @@ def download_document(service_id, document_id):
         )
         return jsonify(error=str(e)), 400
 
+    extension = None
+    for ext, mimetypes in current_app.config['ALLOWED_FILE_TYPES'].items():
+        if document['mimetype'] in mimetypes:
+            extension = ext
+            break
+
     send_file_kwargs = {
         'mimetype': document['mimetype'],
+        'attachment_filename': f'{document_id}.{extension}',
+        'as_attachment': True,
     }
-    if document['mimetype'] == 'text/csv':
-        # Give CSV files the 'Content-Disposition' header to ensure they are downloaded
-        # rather than shown as raw text in the users browser
-        send_file_kwargs.update(
-            {
-                'attachment_filename': f'{document_id}.csv',
-                'as_attachment': True,
-            }
-        )
-    elif document['mimetype'] in current_app.config['ALLOWED_FILE_TYPES']['rtf']:
-        # Give RTF files the 'Content-Disposition' header to ensure they are downloaded
-        # rather than shown as raw text in the users browser
-        send_file_kwargs.update(
-            {
-                'attachment_filename': f'{document_id}.rtf',
-                'as_attachment': True,
-            }
-        )
+    if document['mimetype'] == 'application/pdf':
+        # Open PDFs in the browser
+        send_file_kwargs.update({'as_attachment': False})
+    elif document['mimetype'] == 'text/plain':
+        # Open raw text files in the browser
+        send_file_kwargs.update({'as_attachment': False})
 
     response = make_response(
         send_file(
