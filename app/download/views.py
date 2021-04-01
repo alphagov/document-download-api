@@ -84,7 +84,7 @@ def check_document_exists(service_id, document_id):
         return jsonify(error='Invalid decryption key'), 400
 
     try:
-        document_exists = document_store.check_document_exists(service_id, document_id, key)
+        metadata = document_store.get_document_metadata(service_id, document_id, key)
     except DocumentStoreError as e:
         current_app.logger.warning(
             'Failed to check if document exists: {}'.format(e),
@@ -95,7 +95,9 @@ def check_document_exists(service_id, document_id):
         )
         return jsonify(error=str(e)), 400
 
-    response = make_response({'file_exists': str(document_exists)})
-    response.headers['X-Robots-Tag'] = 'noindex, nofollow'
+    response = make_response({
+        'file_exists': str(bool(metadata)),
+    })
 
+    response.headers['X-Robots-Tag'] = 'noindex, nofollow'
     return response

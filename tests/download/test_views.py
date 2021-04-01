@@ -233,7 +233,7 @@ def test_check_document_exists_with_invalid_decryption_key(client):
 
 
 def test_check_document_exists_document_store_error(client, store):
-    store.check_document_exists.side_effect = DocumentStoreError('something went wrong')
+    store.get_document_metadata.side_effect = DocumentStoreError('something went wrong')
     response = client.get(
         url_for(
             'download.check_document_exists',
@@ -248,7 +248,7 @@ def test_check_document_exists_document_store_error(client, store):
 
 
 def test_check_document_exists_when_document_is_in_s3(client, store):
-    store.check_document_exists.return_value = True
+    store.get_document_metadata.return_value = {'mimetype': 'text/plain'}
     response = client.get(
         url_for(
             'download.check_document_exists',
@@ -264,7 +264,7 @@ def test_check_document_exists_when_document_is_in_s3(client, store):
 
 
 def test_check_document_exists_when_document_is_not_in_s3(client, store):
-    store.check_document_exists.return_value = False
+    store.get_document_metadata.return_value = None
     response = client.get(
         url_for(
             'download.check_document_exists',
