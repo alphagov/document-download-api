@@ -10,6 +10,7 @@ from notifications_utils.base64_uuid import base64_to_bytes
 
 from app import document_store
 from app.utils.store import DocumentStoreError
+from app.utils.urls import get_direct_file_url
 
 download_blueprint = Blueprint('download', __name__, url_prefix='')
 
@@ -74,7 +75,7 @@ def download_document(service_id, document_id, extension=None):
 
 
 @download_blueprint.route('/services/<uuid:service_id>/documents/<uuid:document_id>/check', methods=['GET'])
-def check_document_exists(service_id, document_id):
+def get_document_metadata(service_id, document_id):
     if 'key' not in request.args:
         return jsonify(error='Missing decryption key'), 400
 
@@ -87,7 +88,7 @@ def check_document_exists(service_id, document_id):
         metadata = document_store.get_document_metadata(service_id, document_id, key)
     except DocumentStoreError as e:
         current_app.logger.warning(
-            'Failed to check if document exists: {}'.format(e),
+            'Failed to get document metadata: {}'.format(e),
             extra={
                 'service_id': service_id,
                 'document_id': document_id,
@@ -95,8 +96,21 @@ def check_document_exists(service_id, document_id):
         )
         return jsonify(error=str(e)), 400
 
+    if metadata:
+        document = {
+            'direct_file_url': get_direct_file_url(
+                service_id=service_id,
+                document_id=document_id,
+                key=key,
+                mimetype=metadata['mimetype'],
+            )
+        }
+    else:
+        document = None
+
     response = make_response({
         'file_exists': str(bool(metadata)),
+        'document': document,
     })
 
     response.headers['X-Robots-Tag'] = 'noindex, nofollow'
