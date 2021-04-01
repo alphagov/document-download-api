@@ -133,6 +133,36 @@ def test_rtf_document_download(client, store, rtf_mimetype, expected_content_typ
     )
 
 
+def test_document_download_with_extension(client, store):
+    store.get.return_value = {
+        'body': io.BytesIO(b'a,b,c'),
+        'mimetype': 'application/pdf',
+        'size': 100
+    }
+
+    response = client.get(
+        url_for(
+            'download.download_document',
+            service_id='00000000-0000-0000-0000-000000000000',
+            document_id='ffffffff-ffff-ffff-ffff-ffffffffffff',
+            key='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',  # 32 \x00 bytes
+            extension='.pdf',
+        )
+    )
+
+    assert response.status_code == 200
+    assert response.get_data() == b'a,b,c'
+    assert dict(response.headers) == {
+        'Cache-Control': mock.ANY,
+        'Expires': mock.ANY,
+        'Content-Length': '100',
+        'Content-Type': 'application/pdf',
+        'X-B3-SpanId': 'None',
+        'X-B3-TraceId': 'None',
+        'X-Robots-Tag': 'noindex, nofollow'
+    }
+
+
 def test_document_download_without_decryption_key(client, store):
     response = client.get(
         url_for(
