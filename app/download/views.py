@@ -39,10 +39,10 @@ def download_document(service_id, document_id, extension=None):
         )
         return jsonify(error=str(e)), 400
 
-    send_file_kwargs = {
-        'mimetype': document['mimetype'],
-    }
-    if document['mimetype'] == 'text/csv':
+    mimetype = document['mimetype']
+    send_file_kwargs = {'mimetype': mimetype}
+
+    if mimetype == 'text/csv':
         # Give CSV files the 'Content-Disposition' header to ensure they are downloaded
         # rather than shown as raw text in the users browser
         send_file_kwargs.update(
@@ -51,7 +51,7 @@ def download_document(service_id, document_id, extension=None):
                 'as_attachment': True,
             }
         )
-    elif document['mimetype'] in current_app.config['ALLOWED_FILE_TYPES']['rtf']:
+    elif current_app.config['ALLOWED_FILE_TYPES'][mimetype] == 'rtf':
         # Give RTF files the 'Content-Disposition' header to ensure they are downloaded
         # rather than shown as raw text in the users browser
         send_file_kwargs.update(
