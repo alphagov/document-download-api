@@ -89,11 +89,12 @@ def test_get_document_with_boto_error(store):
         store.get('service-id', 'document-id', '0f0f0f')
 
 
-def test_check_document_exists_when_document_is_in_s3(store):
-    assert store.check_document_exists('service-id', 'document-id', '0f0f0f') is True
+def test_get_document_metadata_when_document_is_in_s3(store):
+    metadata = store.get_document_metadata('service-id', 'document-id', '0f0f0f')
+    assert metadata == {'mimetype': 'text/plain'}
 
 
-def test_check_document_exists_when_document_is_not_in_s3(store):
+def test_get_document_metadata_when_document_is_not_in_s3(store):
     store.s3.head_object = mock.Mock(side_effect=BotoClientError({
         'Error': {
             'Code': '404',
@@ -101,10 +102,10 @@ def test_check_document_exists_when_document_is_not_in_s3(store):
         }
     }, 'HeadObject'))
 
-    assert store.check_document_exists('service-id', 'document-id', '0f0f0f') is False
+    assert store.get_document_metadata('service-id', 'document-id', '0f0f0f') is None
 
 
-def test_check_document_exists_with_unexpected_boto_error(store):
+def test_get_document_metadata_with_unexpected_boto_error(store):
     store.s3.head_object = mock.Mock(side_effect=BotoClientError({
         'Error': {
             'Code': 'code',
@@ -113,4 +114,4 @@ def test_check_document_exists_with_unexpected_boto_error(store):
     }, 'HeadObject'))
 
     with pytest.raises(DocumentStoreError):
-        store.check_document_exists('service-id', 'document-id', '0f0f0f')
+        store.get_document_metadata('service-id', 'document-id', '0f0f0f')
