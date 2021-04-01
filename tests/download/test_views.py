@@ -175,10 +175,10 @@ def test_document_download_document_store_error(client, store):
     assert response.json == {'error': 'something went wrong'}
 
 
-def test_check_document_exists_without_decryption_key(client, store):
+def test_get_document_metadata_without_decryption_key(client, store):
     response = client.get(
         url_for(
-            'download.check_document_exists',
+            'download.get_document_metadata',
             service_id='00000000-0000-0000-0000-000000000000',
             document_id='ffffffff-ffff-ffff-ffff-ffffffffffff',
         )
@@ -188,10 +188,10 @@ def test_check_document_exists_without_decryption_key(client, store):
     assert response.json == {'error': 'Missing decryption key'}
 
 
-def test_check_document_exists_with_invalid_decryption_key(client):
+def test_get_document_metadata_with_invalid_decryption_key(client):
     response = client.get(
         url_for(
-            'download.check_document_exists',
+            'download.get_document_metadata',
             service_id='00000000-0000-0000-0000-000000000000',
             document_id='ffffffff-ffff-ffff-ffff-ffffffffffff',
             key='🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉🐦⁉?'
@@ -202,11 +202,11 @@ def test_check_document_exists_with_invalid_decryption_key(client):
     assert response.json == {'error': 'Invalid decryption key'}
 
 
-def test_check_document_exists_document_store_error(client, store):
+def test_get_document_metadata_document_store_error(client, store):
     store.get_document_metadata.side_effect = DocumentStoreError('something went wrong')
     response = client.get(
         url_for(
-            'download.check_document_exists',
+            'download.get_document_metadata',
             service_id='00000000-0000-0000-0000-000000000000',
             document_id='ffffffff-ffff-ffff-ffff-ffffffffffff',
             key='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
@@ -217,11 +217,11 @@ def test_check_document_exists_document_store_error(client, store):
     assert response.json == {'error': 'something went wrong'}
 
 
-def test_check_document_exists_when_document_is_in_s3(client, store):
+def test_get_document_metadata_when_document_is_in_s3(client, store):
     store.get_document_metadata.return_value = {'mimetype': 'text/plain'}
     response = client.get(
         url_for(
-            'download.check_document_exists',
+            'download.get_document_metadata',
             service_id='00000000-0000-0000-0000-000000000000',
             document_id='ffffffff-ffff-ffff-ffff-ffffffffffff',
             key='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
@@ -229,15 +229,15 @@ def test_check_document_exists_when_document_is_in_s3(client, store):
     )
 
     assert response.status_code == 200
-    assert response.json == {'file_exists': 'True'}
+    assert response.json == {'file_exists': 'True', 'mimetype': 'text/plain'}
     assert response.headers['X-Robots-Tag'] == 'noindex, nofollow'
 
 
-def test_check_document_exists_when_document_is_not_in_s3(client, store):
+def test_get_document_metadata_when_document_is_not_in_s3(client, store):
     store.get_document_metadata.return_value = None
     response = client.get(
         url_for(
-            'download.check_document_exists',
+            'download.get_document_metadata',
             service_id='00000000-0000-0000-0000-000000000000',
             document_id='ffffffff-ffff-ffff-ffff-ffffffffffff',
             key='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
@@ -245,5 +245,5 @@ def test_check_document_exists_when_document_is_not_in_s3(client, store):
     )
 
     assert response.status_code == 200
-    assert response.json == {'file_exists': 'False'}
+    assert response.json == {'file_exists': 'False', 'mimetype': None}
     assert response.headers['X-Robots-Tag'] == 'noindex, nofollow'

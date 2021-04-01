@@ -71,7 +71,7 @@ def download_document(service_id, document_id):
 
 
 @download_blueprint.route('/services/<uuid:service_id>/documents/<uuid:document_id>/check', methods=['GET'])
-def check_document_exists(service_id, document_id):
+def get_document_metadata(service_id, document_id):
     if 'key' not in request.args:
         return jsonify(error='Missing decryption key'), 400
 
@@ -84,7 +84,7 @@ def check_document_exists(service_id, document_id):
         metadata = document_store.get_document_metadata(service_id, document_id, key)
     except DocumentStoreError as e:
         current_app.logger.warning(
-            'Failed to check if document exists: {}'.format(e),
+            'Failed to get document metadata: {}'.format(e),
             extra={
                 'service_id': service_id,
                 'document_id': document_id,
@@ -94,6 +94,7 @@ def check_document_exists(service_id, document_id):
 
     response = make_response({
         'file_exists': str(bool(metadata)),
+        'mimetype': metadata['mimetype'] if metadata else None,
     })
 
     response.headers['X-Robots-Tag'] = 'noindex, nofollow'
