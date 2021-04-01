@@ -64,6 +64,7 @@ def upload_document(service_id):
                 service_id=service_id,
                 document_id=document['id'],
                 key=document['encryption_key'],
+                mimetype=mimetype,
             ),
             'url': get_frontend_download_url(
                 service_id=service_id,

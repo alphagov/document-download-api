@@ -73,7 +73,7 @@ def test_document_upload_returns_link_to_frontend(client, store, antivirus, cont
             'direct_file_url': ''.join([
                 'http://document-download.test',
                 '/services/00000000-0000-0000-0000-000000000000',
-                '/documents/ffffffff-ffff-ffff-ffff-ffffffffffff',
+                '/documents/ffffffff-ffff-ffff-ffff-ffffffffffff.pdf',
                 '?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
             ]),
             'mimetype': 'application/pdf',
@@ -234,52 +234,61 @@ def test_unauthorized_document_upload_json(client):
 
 
 @pytest.mark.parametrize(
-    'file_name,extra_form_data,expected_mimetype',
+    'file_name,extra_form_data,expected_mimetype,expected_extension',
     (
         (
             'test.csv',
             {'is_csv': True},
             'text/csv',
+            'csv',
         ),
         (
             'test.csv',
             {'is_csv': False},
             'text/plain',
+            'txt',
         ),
         (
             'test.csv',
             {},
             'text/plain',
+            'txt',
         ),
         (
             'test.txt',
             {'is_csv': True},
             'text/csv',
+            'csv',
         ),
         (
             'test.txt',
             {'is_csv': False},
             'text/plain',
+            'txt',
         ),
         (
             'test.txt',
             {},
             'text/plain',
+            'txt',
         ),
         (
             'test.pdf',
             {'is_csv': True},
             'application/pdf',
+            'pdf',
         ),
         (
             'test.pdf',
             {'is_csv': False},
             'application/pdf',
+            'pdf',
         ),
         (
             'test.pdf',
             {},
             'application/pdf',
+            'pdf',
         ),
     )
 )
@@ -289,7 +298,8 @@ def test_document_upload_csv_handling(
     antivirus,
     file_name,
     extra_form_data,
-    expected_mimetype
+    expected_mimetype,
+    expected_extension
 ):
 
     store.put.return_value = {
@@ -323,6 +333,7 @@ def test_document_upload_csv_handling(
                 'http://document-download.test',
                 '/services/00000000-0000-0000-0000-000000000000',
                 '/documents/ffffffff-ffff-ffff-ffff-ffffffffffff',
+                f'.{expected_extension}',
                 '?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
             ]),
         },
