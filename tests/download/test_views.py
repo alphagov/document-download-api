@@ -47,60 +47,25 @@ def test_document_download(client, store):
     )
 
 
-def test_csv_document_download(client, store):
+@pytest.mark.parametrize("mimetype, expected_extension, expected_content_type_header", [
+    ('text/csv', 'csv', 'text/csv; charset=utf-8'),
+    ('text/rtf', 'rtf', 'text/rtf; charset=utf-8'),
+    ('application/rtf', 'rtf', 'application/rtf'),
+])
+def test_force_document_download(
+    client,
+    store,
+    mimetype,
+    expected_extension,
+    expected_content_type_header
+):
     """
-    Test that CSV file responses have the expected Content-Type/Content-Disposition
+    Test that file responses have the expected Content-Type/Content-Disposition
     required for browsers to download files in a way that is useful for users.
     """
     store.get.return_value = {
         'body': io.BytesIO(b'a,b,c'),
-        'mimetype': 'text/csv',
-        'size': 100
-    }
-
-    document_id = 'ffffffff-ffff-ffff-ffff-ffffffffffff'
-    response = client.get(
-        url_for(
-            'download.download_document',
-            service_id='00000000-0000-0000-0000-000000000000',
-            document_id=document_id,
-            key='AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',  # 32 \x00 bytes
-        )
-    )
-
-    assert response.status_code == 200
-    assert response.get_data() == b'a,b,c'
-    assert dict(response.headers) == {
-        'Cache-Control': mock.ANY,
-        'Expires': mock.ANY,
-        'Content-Length': '100',
-        'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': f'attachment; filename={document_id}.csv',
-        'X-B3-SpanId': 'None',
-        'X-B3-TraceId': 'None',
-        'X-Robots-Tag': 'noindex, nofollow'
-    }
-    store.get.assert_called_once_with(
-        UUID('00000000-0000-0000-0000-000000000000'),
-        UUID('ffffffff-ffff-ffff-ffff-ffffffffffff'),
-        bytes(32)
-    )
-
-
-@pytest.mark.parametrize(
-    "rtf_mimetype, expected_content_type_header", [
-        ('text/rtf', 'text/rtf; charset=utf-8'),
-        ('application/rtf', 'application/rtf'),
-    ]
-)
-def test_rtf_document_download(client, store, rtf_mimetype, expected_content_type_header):
-    """
-    Test that RTF file responses have the expected Content-Type/Content-Disposition
-    required for browsers to download files in a way that is useful for users.
-    """
-    store.get.return_value = {
-        'body': io.BytesIO(b'a,b,c'),
-        'mimetype': rtf_mimetype,
+        'mimetype': mimetype,
         'size': 100
     }
 
@@ -121,7 +86,7 @@ def test_rtf_document_download(client, store, rtf_mimetype, expected_content_typ
         'Expires': mock.ANY,
         'Content-Length': '100',
         'Content-Type': expected_content_type_header,
-        'Content-Disposition': f'attachment; filename={document_id}.rtf',
+        'Content-Disposition': f'attachment; filename={document_id}.{expected_extension}',
         'X-B3-SpanId': 'None',
         'X-B3-TraceId': 'None',
         'X-Robots-Tag': 'noindex, nofollow'
