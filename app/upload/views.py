@@ -1,6 +1,5 @@
 from base64 import b64decode
 from io import BytesIO
-from itertools import chain
 
 from flask import Blueprint, abort, current_app, jsonify, request
 
@@ -36,8 +35,8 @@ def upload_document(service_id):
         return jsonify(error='Value for is_csv must be a boolean'), 400
 
     mimetype = get_mime_type(file_data)
-    if mimetype not in chain(*current_app.config['ALLOWED_FILE_TYPES'].values()):
-        allowed_file_types = ', '.join(sorted(f"'.{x}'" for x in current_app.config['ALLOWED_FILE_TYPES'].keys()))
+    if mimetype not in current_app.config['ALLOWED_FILE_TYPES']:
+        allowed_file_types = ', '.join(sorted({f"'.{x}'" for x in current_app.config['ALLOWED_FILE_TYPES'].values()}))
         return jsonify(error=f"Unsupported file type '{mimetype}'. Supported types are: {allowed_file_types}"), 400
 
     # Our mimetype auto-detection resolves CSV content as text/plain, so we use
@@ -64,6 +63,7 @@ def upload_document(service_id):
                 service_id=service_id,
                 document_id=document['id'],
                 key=document['encryption_key'],
+                mimetype=mimetype,
             ),
             'url': get_frontend_download_url(
                 service_id=service_id,

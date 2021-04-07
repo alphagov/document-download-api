@@ -60,22 +60,25 @@ class DocumentStore:
             'size': document['ContentLength']
         }
 
-    def check_document_exists(self, service_id, document_id, decryption_key):
+    def get_document_metadata(self, service_id, document_id, decryption_key):
         """
         decryption_key should be raw bytes
         """
 
         try:
-            self.s3.head_object(
+            metadata = self.s3.head_object(
                 Bucket=self.bucket,
                 Key=self.get_document_key(service_id, document_id),
                 SSECustomerKey=decryption_key,
                 SSECustomerAlgorithm='AES256'
             )
-            return True
+
+            return {
+                'mimetype': metadata['ContentType']
+            }
         except BotoClientError as e:
             if e.response['Error']['Code'] == '404':
-                return False
+                return None
             raise DocumentStoreError(e.response['Error'])
 
     def generate_encryption_key(self):

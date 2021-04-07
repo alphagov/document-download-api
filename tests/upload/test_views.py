@@ -73,7 +73,7 @@ def test_document_upload_returns_link_to_frontend(client, store, antivirus, cont
             'direct_file_url': ''.join([
                 'http://document-download.test',
                 '/services/00000000-0000-0000-0000-000000000000',
-                '/documents/ffffffff-ffff-ffff-ffff-ffffffffffff',
+                '/documents/ffffffff-ffff-ffff-ffff-ffffffffffff.pdf',
                 '?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
             ]),
             'mimetype': 'application/pdf',
@@ -284,12 +284,13 @@ def test_unauthorized_document_upload_json(client):
     )
 )
 def test_document_upload_csv_handling(
+    app,
     client,
     store,
     antivirus,
     file_name,
     extra_form_data,
-    expected_mimetype
+    expected_mimetype,
 ):
 
     store.put.return_value = {
@@ -323,6 +324,7 @@ def test_document_upload_csv_handling(
                 'http://document-download.test',
                 '/services/00000000-0000-0000-0000-000000000000',
                 '/documents/ffffffff-ffff-ffff-ffff-ffffffffffff',
+                f'.{app.config["ALLOWED_FILE_TYPES"][expected_mimetype]}',
                 '?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
             ]),
         },
