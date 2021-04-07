@@ -226,7 +226,6 @@ def test_get_document_metadata_when_document_is_in_s3(client, store):
     assert response.status_code == 200
     assert response.headers['X-Robots-Tag'] == 'noindex, nofollow'
     assert response.json == {
-        'file_exists': 'True',
         'document': {
             'direct_file_url': ''.join([
                 'http://document-download.test',
@@ -250,5 +249,5 @@ def test_get_document_metadata_when_document_is_not_in_s3(client, store):
     )
 
     assert response.status_code == 200
-    assert response.json == {'file_exists': 'False', 'document': None}
+    assert response.json == {'document': None}
     assert response.headers['X-Robots-Tag'] == 'noindex, nofollow'
