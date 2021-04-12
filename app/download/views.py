@@ -102,10 +102,6 @@ def get_document_metadata(service_id, document_id):
     else:
         document = None
 
-    response = make_response({
-        'file_exists': str(bool(metadata)),
-        'document': document,
-    })
-
+    response = make_response({'document': document})
     response.headers['X-Robots-Tag'] = 'noindex, nofollow'
     return response
