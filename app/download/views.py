@@ -19,6 +19,9 @@ FILE_TYPES_TO_FORCE_DOWNLOAD_FOR = ['csv', 'rtf']
 
 # Some browsers - Firefox, IE11 - use the final part of the URL as the filename when downloading a file. While we
 # don't use the extension, having it in the URL ensures the downloaded file can be opened correctly on Windows.
+#
+# The duplicate route - without the extension - is still used by some users, probably because they've bookmarked
+# the direct URL to the file. We should be able to delete this once all the old documents have expired (18 months).
 @download_blueprint.route('/services/<uuid:service_id>/documents/<uuid:document_id>.<extension>', methods=['GET'])
 @download_blueprint.route('/services/<uuid:service_id>/documents/<uuid:document_id>', methods=['GET'])
 def download_document(service_id, document_id, extension=None):
