@@ -1,6 +1,6 @@
 -r requirements.txt
 
-flake8==3.9.1
+flake8==3.9.2
 isort==5.8.0
 
 pytest==6.2.3
