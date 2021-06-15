@@ -34,10 +34,7 @@ make test
 
 ## Updating application dependencies
 
-`requirements.txt` file is generated from the `requirements-app.txt` in order to pin
-versions of all nested dependencies. If `requirements-app.txt` has been changed (or
-we want to update the unpinned nested dependencies) `requirements.txt` should be
-regenerated with
+`requirements.txt` file is generated from the `requirements-app.txt` in order to pin versions of all nested dependencies. If `requirements-app.txt` has been changed (or we want to update the unpinned nested dependencies) `requirements.txt` should be regenerated with
 
 ```
 make freeze-requirements
