@@ -16,6 +16,7 @@ class Config(metaclass=MetaFlaskEnv):
         'text/plain': 'txt',
         'application/msword': 'doc',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
         'application/vnd.oasis.opendocument.text': 'odt',
         'application/rtf': 'rtf',
         'text/rtf': 'rtf',
