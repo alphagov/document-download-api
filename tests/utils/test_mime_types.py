@@ -27,6 +27,7 @@ def test_get_mime_type(filename, expected_mime_type):
 
 
 @pytest.mark.parametrize(['filename', 'expected_mime_type'], [
+    ('test.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
     ('test.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
 ])
 def test_get_mime_type_zip_xml(
