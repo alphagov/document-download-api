@@ -4,6 +4,8 @@
 Flask==1.1.2
 Flask-Env==2.0.0
 
+Werkzeug==1.0.1
+
 boto3==1.17.63
 
 python-magic==0.4.22

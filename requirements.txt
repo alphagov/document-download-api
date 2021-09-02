@@ -5,6 +5,8 @@
 Flask==1.1.2
 Flask-Env==2.0.0
 
+Werkzeug==1.0.1
+
 boto3==1.17.63
 
 python-magic==0.4.22
@@ -63,4 +65,3 @@ smartypants==2.0.1
 statsd==3.3.0
 urllib3==1.26.6
 webencodings==0.5.1
-Werkzeug==2.0.1
