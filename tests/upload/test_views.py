@@ -122,6 +122,20 @@ def test_document_upload_virus_scan_error(client, store, antivirus, content_type
     }
 
 
+def test_document_upload_invalid_encoding(client):
+    response = client.post(
+        '/services/12345678-1111-1111-1111-123456789012/documents',
+        json={
+            'document': 'foo'
+        }
+    )
+
+    assert response.status_code == 400
+    assert response.json == {
+        'error': "Document is not base64 encoded"
+    }
+
+
 @pytest.mark.parametrize(
     'content_type',
     (

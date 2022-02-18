@@ -1,4 +1,4 @@
-from base64 import b64decode
+from base64 import b64decode, binascii
 from io import BytesIO
 
 from flask import Blueprint, abort, current_app, jsonify, request
@@ -20,7 +20,12 @@ def upload_document(service_id):
     if request.is_json:
         if 'document' not in request.json:
             return no_document_error
-        raw_content = b64decode(request.json['document'])
+
+        try:
+            raw_content = b64decode(request.json['document'])
+        except binascii.Error:
+            return jsonify(error='Document is not base64 encoded'), 400
+
         if len(raw_content) > current_app.config['MAX_CONTENT_LENGTH']:
             abort(413)
         file_data = BytesIO(raw_content)
