@@ -10,7 +10,7 @@ awscli==1.19.64
     #   notifications-utils
 awscli-cwlogs==1.4.6
     # via -r requirements.in
-bleach==3.3.0
+bleach==4.1.0
     # via notifications-utils
 blinker==1.4
     # via gds-metrics
@@ -26,7 +26,9 @@ botocore==1.20.64
 cachetools==4.2.2
     # via notifications-utils
 certifi==2020.12.5
-    # via requests
+    # via
+    #   pyproj
+    #   requests
 chardet==4.0.0
     # via requests
 click==7.1.2
@@ -53,7 +55,7 @@ gds-metrics==0.2.4
     # via -r requirements.in
 geojson==2.5.0
     # via notifications-utils
-govuk-bank-holidays==0.8
+govuk-bank-holidays==0.11
     # via notifications-utils
 greenlet==1.0.0
     # via eventlet
@@ -77,7 +79,7 @@ markupsafe==1.1.1
     # via jinja2
 mistune==0.8.4
     # via notifications-utils
-notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@44.2.0
+notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@55.1.1
     # via -r requirements.in
 orderedset==2.0.3
     # via notifications-utils
@@ -92,6 +94,8 @@ pyasn1==0.4.8
 pyparsing==2.4.7
     # via packaging
 pypdf2==1.26.0
+    # via notifications-utils
+pyproj==3.2.1
     # via notifications-utils
 python-dateutil==2.8.1
     # via
@@ -122,14 +126,13 @@ s3transfer==0.4.2
     # via
     #   awscli
     #   boto3
-shapely==1.7.1
+shapely==1.8.1.post1
     # via notifications-utils
 six==1.15.0
     # via
     #   awscli-cwlogs
     #   bleach
     #   eventlet
-    #   govuk-bank-holidays
     #   python-dateutil
 smartypants==2.0.1
     # via notifications-utils
