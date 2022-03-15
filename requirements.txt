@@ -99,7 +99,7 @@ python-dateutil==2.8.1
     #   botocore
 python-json-logger==2.0.1
     # via notifications-utils
-python-magic==0.4.22
+python-magic==0.4.25
     # via -r requirements.in
 pytz==2021.1
     # via notifications-utils
