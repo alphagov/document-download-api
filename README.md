@@ -26,7 +26,7 @@ make run-flask
 ## To test the application
 
 ```bash
-# install dependencies, etc.
+# install dependencies, etcg
 make bootstrap
 
 make test
