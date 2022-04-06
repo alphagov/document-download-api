@@ -33,7 +33,7 @@ def test_document_download(client, store):
     assert response.get_data() == b'PDF document contents'
     assert dict(response.headers) == {
         'Cache-Control': mock.ANY,
-        'Expires': mock.ANY,
+        'Date': mock.ANY,
         'Content-Length': '100',
         'Content-Type': 'application/pdf',
         'X-B3-SpanId': 'None',
@@ -83,7 +83,7 @@ def test_force_document_download(
     assert response.get_data() == b'a,b,c'
     assert dict(response.headers) == {
         'Cache-Control': mock.ANY,
-        'Expires': mock.ANY,
+        'Date': mock.ANY,
         'Content-Length': '100',
         'Content-Type': expected_content_type_header,
         'Content-Disposition': f'attachment; filename={document_id}.{expected_extension}',
@@ -119,7 +119,7 @@ def test_document_download_with_extension(client, store):
     assert response.get_data() == b'a,b,c'
     assert dict(response.headers) == {
         'Cache-Control': mock.ANY,
-        'Expires': mock.ANY,
+        'Date': mock.ANY,
         'Content-Length': '100',
         'Content-Type': 'application/pdf',
         'X-B3-SpanId': 'None',

@@ -54,7 +54,7 @@ def download_document(service_id, document_id, extension=None):
         # rather than shown as raw text in the users browser
         send_file_kwargs.update(
             {
-                'attachment_filename': f'{document_id}.{extension}',
+                'download_name': f'{document_id}.{extension}',
                 'as_attachment': True,
             }
         )
