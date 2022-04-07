@@ -31,7 +31,7 @@ certifi==2020.12.5
     #   requests
 chardet==4.0.0
     # via requests
-click==7.1.2
+click==8.1.2
     # via flask
 colorama==0.4.3
     # via awscli
@@ -41,7 +41,7 @@ docutils==0.15.2
     # via awscli
 eventlet==0.30.2
     # via -r requirements.in
-flask==1.1.2
+flask==2.1.1
     # via
     #   -r requirements.in
     #   flask-redis
@@ -63,11 +63,13 @@ gunicorn==20.1.0
     # via -r requirements.in
 idna==2.10
     # via requests
-itsdangerous==1.1.0
+importlib-metadata==4.11.3
+    # via flask
+itsdangerous==2.1.2
     # via
     #   flask
     #   notifications-utils
-jinja2==2.11.3
+jinja2==3.1.1
     # via
     #   flask
     #   notifications-utils
@@ -75,7 +77,7 @@ jmespath==0.10.0
     # via
     #   boto3
     #   botocore
-markupsafe==1.1.1
+markupsafe==2.1.1
     # via jinja2
 mistune==0.8.4
     # via notifications-utils
@@ -144,8 +146,10 @@ urllib3==1.26.4
     #   requests
 webencodings==0.5.1
     # via bleach
-werkzeug==1.0.1
+werkzeug==2.1.1
     # via flask
+zipp==3.8.0
+    # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
