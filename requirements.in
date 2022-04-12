@@ -4,8 +4,6 @@
 Flask==2.1.1
 Flask-Env==2.0.0
 
-boto3==1.17.63
-
 python-magic==0.4.25
 rsa>=4.3
 
@@ -18,4 +16,4 @@ awscli-cwlogs>=1.4,<1.5
 
 gds-metrics==0.2.4
 
-git+https://github.com/alphagov/notifications-utils.git@55.1.1#egg=notifications-utils==55.1.1
+git+https://github.com/alphagov/notifications-utils.git@55.1.4
