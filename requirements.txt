@@ -4,21 +4,17 @@
 #
 #    pip-compile requirements.in
 #
-awscli==1.19.64
-    # via
-    #   awscli-cwlogs
-    #   notifications-utils
+awscli==1.22.93
+    # via awscli-cwlogs
 awscli-cwlogs==1.4.6
     # via -r requirements.in
 bleach==4.1.0
     # via notifications-utils
 blinker==1.4
     # via gds-metrics
-boto3==1.17.63
-    # via
-    #   -r requirements.in
-    #   notifications-utils
-botocore==1.20.64
+boto3==1.21.38
+    # via notifications-utils
+botocore==1.24.38
     # via
     #   awscli
     #   boto3
@@ -81,7 +77,7 @@ markupsafe==2.1.1
     # via jinja2
 mistune==0.8.4
     # via notifications-utils
-notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@55.1.1
+notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@55.1.4
     # via -r requirements.in
 orderedset==2.0.3
     # via notifications-utils
@@ -124,7 +120,7 @@ rsa==4.7.2
     # via
     #   -r requirements.in
     #   awscli
-s3transfer==0.4.2
+s3transfer==0.5.2
     # via
     #   awscli
     #   boto3
