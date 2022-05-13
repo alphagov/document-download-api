@@ -77,7 +77,7 @@ markupsafe==2.1.1
     # via jinja2
 mistune==0.8.4
     # via notifications-utils
-notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@55.1.4
+notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@55.1.6
     # via -r requirements.in
 orderedset==2.0.3
     # via notifications-utils
@@ -91,7 +91,7 @@ pyasn1==0.4.8
     # via rsa
 pyparsing==2.4.7
     # via packaging
-pypdf2==1.26.0
+pypdf2==1.27.12
     # via notifications-utils
 pyproj==3.2.1
     # via notifications-utils
