@@ -67,6 +67,7 @@ def download_document(service_id, document_id, extension=None):
     )
     response.headers['Content-Length'] = document['size']
     response.headers['X-Robots-Tag'] = 'noindex, nofollow'
+    response.headers['Referrer-Policy'] = 'no-referrer'
 
     return response
 
@@ -107,4 +108,5 @@ def get_document_metadata(service_id, document_id):
 
     response = make_response({'document': document})
     response.headers['X-Robots-Tag'] = 'noindex, nofollow'
+    response.headers['Referrer-Policy'] = 'no-referrer'
     return response
