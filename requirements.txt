@@ -136,7 +136,7 @@ smartypants==2.0.1
     # via notifications-utils
 statsd==3.3.0
     # via notifications-utils
-urllib3==1.26.4
+urllib3==1.26.7
     # via
     #   botocore
     #   requests
