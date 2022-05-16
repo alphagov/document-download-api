@@ -36,6 +36,7 @@ def test_document_download(client, store):
         'Date': mock.ANY,
         'Content-Length': '100',
         'Content-Type': 'application/pdf',
+        'Referrer-Policy': 'no-referrer',
         'X-B3-SpanId': 'None',
         'X-B3-TraceId': 'None',
         'X-Robots-Tag': 'noindex, nofollow'
@@ -87,6 +88,7 @@ def test_force_document_download(
         'Content-Length': '100',
         'Content-Type': expected_content_type_header,
         'Content-Disposition': f'attachment; filename={document_id}.{expected_extension}',
+        'Referrer-Policy': 'no-referrer',
         'X-B3-SpanId': 'None',
         'X-B3-TraceId': 'None',
         'X-Robots-Tag': 'noindex, nofollow'
@@ -122,6 +124,7 @@ def test_document_download_with_extension(client, store):
         'Date': mock.ANY,
         'Content-Length': '100',
         'Content-Type': 'application/pdf',
+        'Referrer-Policy': 'no-referrer',
         'X-B3-SpanId': 'None',
         'X-B3-TraceId': 'None',
         'X-Robots-Tag': 'noindex, nofollow'
