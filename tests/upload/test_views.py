@@ -2,6 +2,7 @@ import base64
 from pathlib import Path
 
 import pytest
+from flask import current_app
 
 from app.utils.antivirus import AntivirusError
 
@@ -126,7 +127,7 @@ def test_document_file_size_just_right(client, store, antivirus):
     antivirus.scan.return_value = True
 
     url = '/services/12345678-1111-1111-1111-123456789012/documents'
-    file_content = b'%PDF-1.5 ' + b'a' * (2 * 1024 * 1024 - 8)
+    file_content = b'%PDF-1.5 ' + b'a' * (current_app.config['MAX_CONTENT_LENGTH'] - 9)
     response = _document_upload(client, url, file_content)
 
     assert response.status_code == 201

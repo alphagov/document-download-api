@@ -1,3 +1,5 @@
+import math
+
 from flask_env import MetaFlaskEnv
 
 
@@ -22,7 +24,9 @@ class Config(metaclass=MetaFlaskEnv):
         'text/rtf': 'rtf',
     }
 
-    MAX_CONTENT_LENGTH = 2 * 1024 * 1024 + 1024
+    # Max content length consists of 2Mb with an extra 33% to account for the increase in
+    # size after base64 encoding and an extra 1Kb buffer to account for the request headers.
+    MAX_CONTENT_LENGTH = math.floor(2 * 1024 * 1024 * 1.33 + 1024)
 
     FRONTEND_HOSTNAME = None
 
