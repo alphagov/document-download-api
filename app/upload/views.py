@@ -17,24 +17,18 @@ upload_blueprint.before_request(check_auth)
 def upload_document(service_id):
     no_document_error = jsonify(error='No document upload'), 400
 
-    if request.is_json:
-        if 'document' not in request.json:
-            return no_document_error
+    if 'document' not in request.json:
+        return no_document_error
 
-        try:
-            raw_content = b64decode(request.json['document'])
-        except binascii.Error:
-            return jsonify(error='Document is not base64 encoded'), 400
+    try:
+        raw_content = b64decode(request.json['document'])
+    except binascii.Error:
+        return jsonify(error='Document is not base64 encoded'), 400
 
-        if len(raw_content) > current_app.config['MAX_CONTENT_LENGTH']:
-            abort(413)
-        file_data = BytesIO(raw_content)
-        is_csv = request.json.get('is_csv', False)
-    else:
-        if 'document' not in request.files:
-            return no_document_error
-        file_data = request.files['document']
-        is_csv = False
+    if len(raw_content) > current_app.config['MAX_CONTENT_LENGTH']:
+        abort(413)
+    file_data = BytesIO(raw_content)
+    is_csv = request.json.get('is_csv', False)
 
     if not isinstance(is_csv, bool):
         return jsonify(error='Value for is_csv must be a boolean'), 400
