@@ -12,7 +12,8 @@ def get_mime_type(document_stream):
 
     # some versions of libmagic mis-report docx, xlsx, etc. as a zip files (which they technically are),
     # so lets dive in and check the zip file headers to see if it looks like one of these.
-    if mime_type == 'application/zip':
+    # some xlsx are also misinterpreted as octet-stream on paas's version of libmagic, so check those too.
+    if mime_type in {'application/octet-stream', 'application/zip'}:
         try:
             filenames = ZipFile(BytesIO(data)).namelist()
 

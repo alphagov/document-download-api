@@ -30,13 +30,15 @@ def test_get_mime_type(filename, expected_mime_type):
     ('test.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
     ('test.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'),
 ])
+@pytest.mark.parametrize('libmagic_return_value', ['application/zip', 'application/octet-stream'])
 def test_get_mime_type_zip_xml(
     filename,
     expected_mime_type,
+    libmagic_return_value,
     mocker
 ):
     # libmagic on PaaS sometimes mistakes docx, xlsx, etc. files as ZIPs
-    mocker.patch('app.utils.magic.from_buffer', return_value='application/zip')
+    mocker.patch('app.utils.magic.from_buffer', return_value=libmagic_return_value)
 
     file = open(sample_files_path / filename, 'rb')
     assert get_mime_type(file) == expected_mime_type
