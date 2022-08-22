@@ -105,9 +105,10 @@ def test_document_upload_invalid_encoding(client):
     }
 
 
-def test_document_upload_unknown_type(client):
+def test_document_upload_unknown_type(client, antivirus):
     url = '/services/12345678-1111-1111-1111-123456789012/documents'
     file_content = b'\x00pdf file contents\n'
+
     response = _document_upload(client, url, file_content)
 
     assert response.status_code == 400

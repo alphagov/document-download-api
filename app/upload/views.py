@@ -33,6 +33,15 @@ def upload_document(service_id):
     if not isinstance(is_csv, bool):
         return jsonify(error='Value for is_csv must be a boolean'), 400
 
+    if current_app.config['ANTIVIRUS_ENABLED']:
+        try:
+            virus_free = antivirus_client.scan(file_data)
+        except AntivirusError:
+            return jsonify(error='Antivirus API error'), 503
+
+        if not virus_free:
+            return jsonify(error="File did not pass the virus scan"), 400
+
     mimetype = get_mime_type(file_data)
     if mimetype not in current_app.config['ALLOWED_FILE_TYPES']:
         allowed_file_types = ', '.join(sorted({f"'.{x}'" for x in current_app.config['ALLOWED_FILE_TYPES'].values()}))
@@ -42,15 +51,6 @@ def upload_document(service_id):
     # an explicit POST body parameter `is_csv` from the caller to resolve it as text/csv
     if is_csv and mimetype == 'text/plain':
         mimetype = 'text/csv'
-
-    if current_app.config['ANTIVIRUS_ENABLED']:
-        try:
-            virus_free = antivirus_client.scan(file_data)
-        except AntivirusError:
-            return jsonify(error='Antivirus API error'), 503
-
-        if not virus_free:
-            return jsonify(error="File did not pass the virus scan"), 400
 
     document = document_store.put(service_id, file_data, mimetype=mimetype)
 
