@@ -4,6 +4,10 @@
 #
 #    pip-compile requirements.in
 #
+argon2-cffi==21.3.0
+    # via -r requirements.in
+argon2-cffi-bindings==21.2.0
+    # via argon2-cffi
 awscli==1.22.93
     # via awscli-cwlogs
 awscli-cwlogs==1.4.6
@@ -25,6 +29,8 @@ certifi==2020.12.5
     # via
     #   pyproj
     #   requests
+cffi==1.15.1
+    # via argon2-cffi-bindings
 chardet==4.0.0
     # via requests
 click==8.1.2
@@ -89,6 +95,8 @@ prometheus-client==0.10.1
     # via gds-metrics
 pyasn1==0.4.8
     # via rsa
+pycparser==2.21
+    # via cffi
 pyparsing==2.4.7
     # via packaging
 pypdf2==1.27.12
