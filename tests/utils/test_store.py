@@ -44,7 +44,7 @@ def test_document_key_with_uuid(store):
 
 
 def test_put_document(store):
-    ret = store.put('service-id', mock.Mock(), mimetype='application/pdf')
+    ret = store.put('service-id', mock.Mock(), mimetype='application/pdf', verification_email=None)
 
     assert ret == {
         'id': Matcher('UUID length match', lambda x: len(x) == 36),
@@ -58,6 +58,27 @@ def test_put_document(store):
         Key=Matcher('document key', lambda x: x.startswith('service-id/') and len(x) == 11 + 36),
         SSECustomerKey=ret['encryption_key'],
         SSECustomerAlgorithm='AES256'
+    )
+
+
+def test_put_document_sends_hashed_recipient_email_to_s3_as_metadata_if_verification_email_present(store):
+    ret = store.put(
+        'service-id', mock.Mock(), mimetype='application/pdf', verification_email="email@example.com"
+    )
+
+    assert ret == {
+        'id': Matcher('UUID length match', lambda x: len(x) == 36),
+        'encryption_key': Matcher('32 bytes', lambda x: len(x) == 32 and isinstance(x, bytes))
+    }
+
+    store.s3.put_object.assert_called_once_with(
+        Body=mock.ANY,
+        Bucket='test-bucket',
+        ContentType='application/pdf',
+        Key=Matcher('document key', lambda x: x.startswith('service-id/') and len(x) == 11 + 36),
+        SSECustomerKey=ret['encryption_key'],
+        SSECustomerAlgorithm='AES256',
+        Metadata={"hashed-recipient-email": mock.ANY}
     )
 
 

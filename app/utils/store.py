@@ -2,6 +2,7 @@ import os
 import uuid
 
 import boto3
+from argon2 import PasswordHasher, Type
 from botocore.exceptions import ClientError as BotoClientError
 
 
@@ -17,7 +18,7 @@ class DocumentStore:
     def init_app(self, app):
         self.bucket = app.config['DOCUMENTS_BUCKET']
 
-    def put(self, service_id, document_stream, *, mimetype):
+    def put(self, service_id, document_stream, *, mimetype, verification_email=None):
         """
         returns dict {'id': 'some-uuid', 'encryption_key': b'32 byte encryption key'}
         """
@@ -25,14 +26,26 @@ class DocumentStore:
         encryption_key = self.generate_encryption_key()
         document_id = str(uuid.uuid4())
 
-        self.s3.put_object(
-            Bucket=self.bucket,
-            Key=self.get_document_key(service_id, document_id),
-            Body=document_stream,
-            ContentType=mimetype,
-            SSECustomerKey=encryption_key,
-            SSECustomerAlgorithm='AES256'
-        )
+        if verification_email:
+            hashed_recipient_email = self._hash_recipient_email(verification_email)
+            self.s3.put_object(
+                Bucket=self.bucket,
+                Key=self.get_document_key(service_id, document_id),
+                Body=document_stream,
+                ContentType=mimetype,
+                SSECustomerKey=encryption_key,
+                SSECustomerAlgorithm='AES256',
+                Metadata={"hashed-recipient-email": hashed_recipient_email}
+            )
+        else:
+            self.s3.put_object(
+                Bucket=self.bucket,
+                Key=self.get_document_key(service_id, document_id),
+                Body=document_stream,
+                ContentType=mimetype,
+                SSECustomerKey=encryption_key,
+                SSECustomerAlgorithm='AES256'
+            )
 
         return {
             'id': document_id,
@@ -86,3 +99,24 @@ class DocumentStore:
 
     def get_document_key(self, service_id, document_id):
         return "{}/{}".format(service_id, document_id)
+
+    def _hash_recipient_email(self, verification_email):
+        """
+        We pass in verification_email, which is recipient's email address.
+
+        We then hash it with argon2ID as per algorithm and parameters laid out by OWASP:
+        https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#password-hashing-algorithms
+
+        And we returned hashed email address, to later store it in S3 as metadata.
+
+        Before changing the params, consider how to migrate existing hashes (check the OWASP cheatsheet for more info)
+        """
+        hasher = PasswordHasher(
+            memory_cost=15360,
+            time_cost=2,
+            parallelism=1,
+            hash_len=16,
+            type=Type.ID
+        )
+
+        return hasher.hash(verification_email)

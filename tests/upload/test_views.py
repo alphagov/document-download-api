@@ -16,12 +16,15 @@ def antivirus(mocker):
     return mocker.patch('app.upload.views.antivirus_client')
 
 
-def _document_upload(client, url, file_content):
+def _document_upload(client, url, file_content, verification_email=None):
+    data = {
+        'document': base64.b64encode(file_content).decode('utf-8'),
+    }
+    if verification_email:
+        data['verification_email'] = verification_email
     response = client.post(
         url,
-        json={
-            'document': base64.b64encode(file_content).decode('utf-8'),
-        }
+        json=data
     )
     return response
 
@@ -63,6 +66,26 @@ def test_document_upload_returns_link_to_frontend(client, store, antivirus):
         },
         'status': 'ok'
     }
+
+
+def test_document_upload_sends_verification_email_on_to_document_store(
+    client, store, antivirus
+):
+    store.put.return_value = {
+        'id': 'ffffffff-ffff-ffff-ffff-ffffffffffff',
+        'encryption_key': bytes(32),
+    }
+
+    antivirus.scan.return_value = True
+
+    url = '/services/00000000-0000-0000-0000-000000000000/documents'
+    file_content = b'%PDF-1.4 file contents'
+    _document_upload(client, url, file_content, verification_email='user@example.com')
+
+    # Check that the contents of the file saved is as expected
+    put_args, put_kwargs = store.put.call_args_list[0]
+
+    assert put_kwargs["verification_email"] == 'user@example.com'
 
 
 def test_document_upload_virus_found(client, store, antivirus):

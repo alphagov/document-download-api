@@ -52,7 +52,12 @@ def upload_document(service_id):
     if is_csv and mimetype == 'text/plain':
         mimetype = 'text/csv'
 
-    document = document_store.put(service_id, file_data, mimetype=mimetype)
+    document = document_store.put(
+        service_id,
+        file_data,
+        mimetype=mimetype,
+        verification_email=request.json.get("verification_email", None)
+    )
 
     return jsonify(
         status='ok',
