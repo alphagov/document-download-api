@@ -9,3 +9,5 @@ environment.sh
 .envrc
 
 application.log.json
+
+.hypothesis

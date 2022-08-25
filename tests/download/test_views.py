@@ -4,6 +4,7 @@ from uuid import UUID
 
 import pytest
 from flask import url_for
+from flask.sessions import SecureCookieSessionInterface
 
 from app.utils.store import DocumentStoreError
 
@@ -254,3 +255,123 @@ def test_get_document_metadata_when_document_is_not_in_s3(client, store):
     assert response.status_code == 200
     assert response.json == {'document': None}
     assert response.headers['X-Robots-Tag'] == 'noindex, nofollow'
+
+
+class TestAuthenticateDocument:
+    def test_missing_decryption_key(self, client, store):
+        response = client.post(
+            url_for(
+                'download.authenticate_access_to_document',
+                service_id='00000000-0000-0000-0000-000000000000',
+                document_id='ffffffff-ffff-ffff-ffff-ffffffffffff',
+            ),
+            json={
+                'email_address': 'bad@notify.example',
+            }
+        )
+
+        assert response.status_code == 400
+        assert response.json['error'] == 'Missing decryption key'
+
+    def test_invalid_decryption_key(self, client, store):
+        response = client.post(
+            url_for(
+                'download.authenticate_access_to_document',
+                service_id='00000000-0000-0000-0000-000000000000',
+                document_id='ffffffff-ffff-ffff-ffff-ffffffffffff',
+            ),
+            json={
+                'key': 'a',
+                'email_address': 'bad@notify.example',
+            }
+        )
+
+        assert response.status_code == 400
+        assert response.json['error'] == 'Invalid decryption key'
+
+    def test_no_email_address(self, client, store):
+        response = client.post(
+            url_for(
+                'download.authenticate_access_to_document',
+                service_id='00000000-0000-0000-0000-000000000000',
+                document_id='ffffffff-ffff-ffff-ffff-ffffffffffff',
+            ),
+            json={
+                'key': 'sP09NZwxDwl3DE2j1bj0jCTbBjpeLkGiJ_rq788NWHM',  # bytes_to_Base64(os.urandom(32))
+            }
+        )
+
+        assert response.status_code == 400
+        assert response.json['error'] == 'No email address'
+
+    def test_invalid_email_address(self, client, store):
+        response = client.post(
+            url_for(
+                'download.authenticate_access_to_document',
+                service_id='00000000-0000-0000-0000-000000000000',
+                document_id='ffffffff-ffff-ffff-ffff-ffffffffffff',
+            ),
+            json={
+                'key': 'sP09NZwxDwl3DE2j1bj0jCTbBjpeLkGiJ_rq788NWHM',  # bytes_to_Base64(os.urandom(32))
+                'email_address': 'not-an-email',
+            }
+        )
+
+        assert response.status_code == 400
+        assert response.json['error'] == 'Invalid email address'
+
+    def test_authentication_failure(self, client, store):
+        with mock.patch('app.download.views.document_store.authenticate') as authenticate_mock:
+            authenticate_mock.return_value = False
+
+            response = client.post(
+                url_for(
+                    'download.authenticate_access_to_document',
+                    service_id='00000000-0000-0000-0000-000000000000',
+                    document_id='ffffffff-ffff-ffff-ffff-ffffffffffff',
+                ),
+                json={
+                    'key': 'sP09NZwxDwl3DE2j1bj0jCTbBjpeLkGiJ_rq788NWHM',  # bytes_to_Base64(os.urandom(32))
+                    'email_address': 'test@notify.example',
+                }
+            )
+
+        assert response.status_code == 403
+        assert response.json['error'] == 'Authentication failure'
+
+    def test_signed_data_from_successful_authentication(self, app, client, store):
+        store.get_document_metadata.return_value = {
+            'mimetype': 'text/csv',
+            'verify_email': True,
+        }
+
+        with mock.patch('app.download.views.document_store.authenticate') as authenticate_mock:
+            authenticate_mock.return_value = True
+
+            response = client.post(
+                url_for(
+                    'download.authenticate_access_to_document',
+                    service_id='00000000-0000-0000-0000-000000000000',
+                    document_id='ffffffff-ffff-ffff-ffff-ffffffffffff',
+                ),
+                json={
+                    'key': 'sP09NZwxDwl3DE2j1bj0jCTbBjpeLkGiJ_rq788NWHM',  # bytes_to_Base64(os.urandom(32))
+                    'email_address': 'test@notify.example',
+                }
+            )
+            signed_data = response.json['signed_data']
+            direct_file_url = response.json['direct_file_url']
+
+        assert response.status_code == 200
+        assert direct_file_url == (
+            'http://document-download.test/'
+            'services/00000000-0000-0000-0000-000000000000/'
+            'documents/ffffffff-ffff-ffff-ffff-ffffffffffff.csv'
+            '?key=sP09NZwxDwl3DE2j1bj0jCTbBjpeLkGiJ_rq788NWHM'
+        )
+
+        signer = SecureCookieSessionInterface().get_signing_serializer(app)
+        data = signer.loads(signed_data)
+
+        assert data['service_id'] == UUID('00000000-0000-0000-0000-000000000000')
+        assert data['document_id'] == UUID('ffffffff-ffff-ffff-ffff-ffffffffffff')
