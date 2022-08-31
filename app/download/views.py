@@ -6,7 +6,12 @@ from flask import (
     request,
     send_file,
 )
+from flask.sessions import SecureCookieSessionInterface
 from notifications_utils.base64_uuid import base64_to_bytes
+from notifications_utils.recipients import (
+    InvalidEmailError,
+    validate_and_format_email_address,
+)
 
 from app import document_store
 from app.utils.store import DocumentStoreError
@@ -110,3 +115,44 @@ def get_document_metadata(service_id, document_id):
     response.headers['X-Robots-Tag'] = 'noindex, nofollow'
     response.headers['Referrer-Policy'] = 'no-referrer'
     return response
+
+
+@download_blueprint.route('/services/<uuid:service_id>/documents/<uuid:document_id>/authenticate', methods=['POST'])
+def authenticate_access_to_document(service_id, document_id):
+    key = request.json.get('key')
+    if not key:
+        return jsonify(error='Missing decryption key'), 400
+
+    try:
+        key = base64_to_bytes(key)
+    except ValueError:
+        return jsonify(error='Invalid decryption key'), 400
+
+    email_address = request.json.get('email_address', None)
+    if not email_address:
+        return jsonify(error='No email address'), 400
+
+    try:
+        email_address = validate_and_format_email_address(email_address)
+    except InvalidEmailError:
+        return jsonify(error='Invalid email address'), 400
+
+    if document_store.authenticate(service_id, document_id, key, email_address) is False:
+        return jsonify(error='Authentication failure'), 403
+
+    signer = SecureCookieSessionInterface().get_signing_serializer(current_app)
+
+    return jsonify(
+        signed_data=signer.dumps(
+            {
+                'service_id': service_id,
+                'document_id': document_id,
+            }
+        ),
+        direct_file_url=get_direct_file_url(
+            service_id=service_id,
+            document_id=document_id,
+            key=key,
+            mimetype=document_store.get_document_metadata(service_id, document_id, key)['mimetype'],
+        )
+    )

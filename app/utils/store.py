@@ -2,8 +2,9 @@ import os
 import uuid
 
 import boto3
-from argon2 import PasswordHasher, Type
 from botocore.exceptions import ClientError as BotoClientError
+
+from app.utils.hasher import Hasher
 
 
 class DocumentStoreError(Exception):
@@ -11,6 +12,8 @@ class DocumentStoreError(Exception):
 
 
 class DocumentStore:
+    _hasher = Hasher()
+
     def __init__(self, bucket=None):
         self.s3 = boto3.client("s3")
         self.bucket = bucket
@@ -27,7 +30,8 @@ class DocumentStore:
         document_id = str(uuid.uuid4())
 
         if verification_email:
-            hashed_recipient_email = self._hash_recipient_email(verification_email)
+            hashed_recipient_email = self._hasher.hash(verification_email)
+
             self.s3.put_object(
                 Bucket=self.bucket,
                 Key=self.get_document_key(service_id, document_id),
@@ -101,23 +105,24 @@ class DocumentStore:
     def get_document_key(self, service_id, document_id):
         return "{}/{}".format(service_id, document_id)
 
-    def _hash_recipient_email(self, verification_email):
-        """
-        We pass in verification_email, which is recipient's email address.
+    def authenticate(self, service_id: str, document_id: str, decryption_key: bytes, email_address: str) -> bool:
+        try:
+            response = self.s3.head_object(
+                Bucket=self.bucket,
+                Key=self.get_document_key(service_id, document_id),
+                SSECustomerKey=decryption_key,
+                SSECustomerAlgorithm='AES256'
+            )
 
-        We then hash it with argon2ID as per algorithm and parameters laid out by OWASP:
-        https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#password-hashing-algorithms
+        except BotoClientError as e:
+            if e.response['Error']['Code'] == '404':
+                return False
 
-        And we returned hashed email address, to later store it in S3 as metadata.
+            return False
 
-        Before changing the params, consider how to migrate existing hashes (check the OWASP cheatsheet for more info)
-        """
-        hasher = PasswordHasher(
-            memory_cost=15360,
-            time_cost=2,
-            parallelism=1,
-            hash_len=16,
-            type=Type.ID
-        )
+        hashed_email = response.get('Metadata', {}).get('hashed-recipient-email', None)
 
-        return hasher.hash(verification_email)
+        if not hashed_email:
+            return False
+
+        return self._hasher.verify(value=email_address, hash_to_verify=hashed_email)

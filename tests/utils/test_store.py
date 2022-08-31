@@ -164,3 +164,36 @@ def test_get_document_metadata_with_unexpected_boto_error(store):
 
     with pytest.raises(DocumentStoreError):
         store.get_document_metadata('service-id', 'document-id', '0f0f0f')
+
+
+def test_authenticate_document_when_missing(store):
+    store.s3.head_object = mock.Mock(side_effect=BotoClientError({
+        'Error': {
+            'Code': '404',
+            'Message': 'Not Found'
+        }
+    }, 'HeadObject'))
+
+    assert store.get_document_metadata('service-id', 'document-id', '0f0f0f') is None
+
+    assert store.authenticate('service-id', 'document-id', b'0f0f0f', 'test@notify.example') is False
+
+
+@pytest.mark.parametrize(
+    'email_address, expected_result',
+    (
+        ('bad@example.notify', False),
+        ('test@notify.example', True),
+    )
+)
+def test_authenticate_document_email_address_check(store_with_email, email_address, expected_result):
+    assert store_with_email.authenticate('service-id', 'document-id', b'0f0f0f', email_address) is expected_result
+
+
+def test_authenticate_fails_if_document_does_not_have_hash(store):
+    with mock.patch.object(store, '_hasher') as mock_hasher:
+        # Error on any attempt to use the hasher
+        # Ensures we don't get through to hashing and return False from that, invalidating the test.
+        mock.seal(mock_hasher)
+
+        assert store.authenticate('service-id', 'document-id', b'0f0f0f', 'test@notify.example') is False
