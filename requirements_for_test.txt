@@ -1,6 +1,6 @@
 -r requirements.txt
 
-flake8==4.0.1
+flake8==5.0.4
 hypothesis==6.54.4
 isort==5.10.1
 
