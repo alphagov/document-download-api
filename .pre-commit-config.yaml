@@ -7,11 +7,14 @@ repos:
   - id: check-yaml
   - id: debug-statements
 - repo: https://github.com/PyCQA/flake8
-  rev: 4.0.1
+  rev: 5.0.4
   hooks:
-  - id: flake8 (python)
+  - id: flake8
+    name: flake8 (python)
 - repo: https://github.com/PyCQA/isort
   rev: 5.10.1
   hooks:
     - id: isort
       name: isort (python)
+
+
