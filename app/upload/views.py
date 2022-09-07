@@ -2,6 +2,7 @@ from base64 import b64decode, binascii
 from io import BytesIO
 
 from flask import Blueprint, abort, current_app, jsonify, request
+from werkzeug.exceptions import BadRequest
 
 from app import antivirus_client, document_store
 from app.utils import get_mime_type
@@ -13,25 +14,33 @@ upload_blueprint = Blueprint('upload', __name__, url_prefix='')
 upload_blueprint.before_request(check_auth)
 
 
-@upload_blueprint.route('/services/<uuid:service_id>/documents', methods=['POST'])
-def upload_document(service_id):
-    no_document_error = jsonify(error='No document upload'), 400
-
-    if 'document' not in request.json:
-        return no_document_error
+def _get_upload_document_request_data(data):
+    if 'document' not in data:
+        raise BadRequest('No document upload')
 
     try:
-        raw_content = b64decode(request.json['document'])
+        raw_content = b64decode(data['document'])
     except binascii.Error:
-        return jsonify(error='Document is not base64 encoded'), 400
+        raise BadRequest('Document is not base64 encoded')
 
     if len(raw_content) > current_app.config['MAX_CONTENT_LENGTH']:
         abort(413)
     file_data = BytesIO(raw_content)
-    is_csv = request.json.get('is_csv', False)
+    is_csv = data.get('is_csv', False)
 
     if not isinstance(is_csv, bool):
-        return jsonify(error='Value for is_csv must be a boolean'), 400
+        raise BadRequest('Value for is_csv must be a boolean')
+
+    return file_data, is_csv
+
+
+@upload_blueprint.route('/services/<uuid:service_id>/documents', methods=['POST'])
+def upload_document(service_id):
+    try:
+        file_data, is_csv = _get_upload_document_request_data(request.json)
+
+    except BadRequest as e:
+        return jsonify(error=e.description), 400
 
     if current_app.config['ANTIVIRUS_ENABLED']:
         try:
