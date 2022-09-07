@@ -8,14 +8,12 @@ from flask import (
 )
 from flask.sessions import SecureCookieSessionInterface
 from notifications_utils.base64_uuid import base64_to_bytes
-from notifications_utils.recipients import (
-    InvalidEmailError,
-    validate_and_format_email_address,
-)
+from notifications_utils.recipients import InvalidEmailError
 
 from app import document_store
 from app.utils.store import DocumentStoreError
 from app.utils.urls import get_direct_file_url
+from app.utils.validation import clean_and_validate_email_address
 
 download_blueprint = Blueprint('download', __name__, url_prefix='')
 
@@ -134,7 +132,7 @@ def authenticate_access_to_document(service_id, document_id):
         return jsonify(error='No email address'), 400
 
     try:
-        email_address = validate_and_format_email_address(email_address)
+        email_address = clean_and_validate_email_address(email_address)
     except InvalidEmailError:
         return jsonify(error='Invalid email address'), 400
 

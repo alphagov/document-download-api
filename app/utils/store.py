@@ -1,10 +1,16 @@
 import os
 import uuid
+from urllib.parse import urlencode
 
 import boto3
 from botocore.exceptions import ClientError as BotoClientError
+from notifications_utils.recipients import InvalidEmailError
 
 from app.utils.hasher import Hasher
+from app.utils.validation import (
+    clean_and_validate_email_address,
+    clean_and_validate_retention_period,
+)
 
 
 class DocumentStoreError(Exception):
@@ -21,7 +27,7 @@ class DocumentStore:
     def init_app(self, app):
         self.bucket = app.config['DOCUMENTS_BUCKET']
 
-    def put(self, service_id, document_stream, *, mimetype, verification_email=None):
+    def put(self, service_id, document_stream, *, mimetype, verification_email=None, retention_period=None):
         """
         returns dict {'id': 'some-uuid', 'encryption_key': b'32 byte encryption key'}
         """
@@ -31,8 +37,20 @@ class DocumentStore:
 
         extra_kwargs = {}
         if verification_email:
+            # Make super sure that the email is in our standardised format
+            try:
+                verification_email = clean_and_validate_email_address(verification_email)
+            except InvalidEmailError as e:
+                raise ValueError(str(e))
+
             hashed_recipient_email = self._hasher.hash(verification_email)
             extra_kwargs['Metadata'] = {"hashed-recipient-email": hashed_recipient_email}
+
+        if retention_period:
+            # Make super sure that our retention period is in our standardised format
+            retention_period = clean_and_validate_retention_period(retention_period)
+            tags = {"retention-period": retention_period}
+            extra_kwargs['Tagging'] = urlencode(tags)
 
         self.s3.put_object(
             Bucket=self.bucket,
@@ -41,7 +59,7 @@ class DocumentStore:
             ContentType=mimetype,
             SSECustomerKey=encryption_key,
             SSECustomerAlgorithm='AES256',
-            **extra_kwargs
+            **extra_kwargs,
         )
 
         return {
@@ -99,6 +117,9 @@ class DocumentStore:
         return "{}/{}".format(service_id, document_id)
 
     def authenticate(self, service_id: str, document_id: str, decryption_key: bytes, email_address: str) -> bool:
+        # Make super sure that the email is in our standardised format
+        email_address = clean_and_validate_email_address(email_address)
+
         try:
             response = self.s3.head_object(
                 Bucket=self.bucket,

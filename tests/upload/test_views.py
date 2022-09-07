@@ -2,7 +2,9 @@ import base64
 from pathlib import Path
 
 import pytest
+from werkzeug.exceptions import BadRequest
 
+from app.upload.views import _get_upload_document_request_data
 from app.utils.antivirus import AntivirusError
 
 
@@ -16,12 +18,16 @@ def antivirus(mocker):
     return mocker.patch('app.upload.views.antivirus_client')
 
 
-def _document_upload(client, url, file_content, verification_email=None):
+def _document_upload(client, url, file_content, verification_email=None, retention_period=None):
     data = {
         'document': base64.b64encode(file_content).decode('utf-8'),
     }
+
     if verification_email:
         data['verification_email'] = verification_email
+    if retention_period:
+        data['retention_period'] = retention_period
+
     response = client.post(
         url,
         json=data
@@ -305,3 +311,34 @@ def test_document_upload_bad_is_csv_value(client):
     assert response.json == {
         'error': 'Value for is_csv must be a boolean'
     }
+
+
+@pytest.mark.parametrize(
+    'data, expected_error',
+    (
+        ({}, 'No document upload'),
+        ({'document': 'foo'}, 'Document is not base64 encoded'),
+        ({'document': 'YQoxLAo=', 'is_csv': 1}, 'Value for is_csv must be a boolean'),
+        (
+            {'document': 'YQoxLAo=', 'verification_email': True},
+            'Verification email must be a string.'
+        ),
+        (
+            {'document': 'YQoxLAo=', 'verification_email': 'sam@foo'},
+            'Not a valid email address'
+        ),
+        (
+            {'document': 'YQoxLAo=', 'retention_period': True},
+            "Retention period must be a string of the format '<1-78> weeks'.",
+        ),
+        (
+            {'document': 'YQoxLAo=', 'retention_period': '3 days'},
+            "Retention period must be a string of the format '<1-78> weeks'.",
+        ),
+    )
+)
+def test_get_upload_document_request_data_errors(app, data, expected_error):
+    with pytest.raises(BadRequest) as e:
+        _get_upload_document_request_data(data)
+
+    assert e.value.description == expected_error

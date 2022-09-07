@@ -67,7 +67,9 @@ def test_document_key_with_uuid(store):
 
 
 def test_put_document(store):
-    ret = store.put('service-id', mock.Mock(), mimetype='application/pdf', verification_email=None)
+    ret = store.put(
+        'service-id', mock.Mock(), mimetype='application/pdf', verification_email=None, retention_period=None
+    )
 
     assert ret == {
         'id': Matcher('UUID length match', lambda x: len(x) == 36),
@@ -103,6 +105,41 @@ def test_put_document_sends_hashed_recipient_email_to_s3_as_metadata_if_verifica
         SSECustomerAlgorithm='AES256',
         Metadata={"hashed-recipient-email": mock.ANY}
     )
+
+
+def test_put_document_errors_if_verification_email_set_badly(store):
+    with pytest.raises(ValueError):
+        store.put(
+            'service-id', mock.Mock(), mimetype='application/pdf', verification_email="email@example"
+        )
+
+
+def test_put_document_tags_document_if_retention_period_set(store):
+    ret = store.put(
+        'service-id', mock.Mock(), mimetype='application/pdf', retention_period='4 weeks'
+    )
+
+    assert ret == {
+        'id': Matcher('UUID length match', lambda x: len(x) == 36),
+        'encryption_key': Matcher('32 bytes', lambda x: len(x) == 32 and isinstance(x, bytes))
+    }
+
+    store.s3.put_object.assert_called_once_with(
+        Body=mock.ANY,
+        Bucket='test-bucket',
+        ContentType='application/pdf',
+        Key=Matcher('document key', lambda x: x.startswith('service-id/') and len(x) == 11 + 36),
+        SSECustomerKey=ret['encryption_key'],
+        SSECustomerAlgorithm='AES256',
+        Tagging='retention-period=4+weeks',
+    )
+
+
+def test_put_document_errors_if_retention_period_set_badly(store):
+    with pytest.raises(ValueError):
+        store.put(
+            'service-id', mock.Mock(), mimetype='application/pdf', retention_period='5 days'
+        )
 
 
 def test_get_document(store):
