@@ -29,27 +29,20 @@ class DocumentStore:
         encryption_key = self.generate_encryption_key()
         document_id = str(uuid.uuid4())
 
+        extra_kwargs = {}
         if verification_email:
             hashed_recipient_email = self._hasher.hash(verification_email)
+            extra_kwargs['Metadata'] = {"hashed-recipient-email": hashed_recipient_email}
 
-            self.s3.put_object(
-                Bucket=self.bucket,
-                Key=self.get_document_key(service_id, document_id),
-                Body=document_stream,
-                ContentType=mimetype,
-                SSECustomerKey=encryption_key,
-                SSECustomerAlgorithm='AES256',
-                Metadata={"hashed-recipient-email": hashed_recipient_email}
-            )
-        else:
-            self.s3.put_object(
-                Bucket=self.bucket,
-                Key=self.get_document_key(service_id, document_id),
-                Body=document_stream,
-                ContentType=mimetype,
-                SSECustomerKey=encryption_key,
-                SSECustomerAlgorithm='AES256'
-            )
+        self.s3.put_object(
+            Bucket=self.bucket,
+            Key=self.get_document_key(service_id, document_id),
+            Body=document_stream,
+            ContentType=mimetype,
+            SSECustomerKey=encryption_key,
+            SSECustomerAlgorithm='AES256',
+            **extra_kwargs
+        )
 
         return {
             'id': document_id,
