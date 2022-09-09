@@ -106,7 +106,8 @@ def get_document_metadata(service_id, document_id):
                 document_id=document_id,
                 key=key,
                 mimetype=metadata['mimetype'],
-            )
+            ),
+            'verify_email': metadata['verify_email'],
         }
     else:
         document = None
