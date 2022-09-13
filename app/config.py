@@ -1,10 +1,12 @@
+import os
+
 from flask_env import MetaFlaskEnv
 
 
 class Config(metaclass=MetaFlaskEnv):
     DEBUG = False
 
-    SECRET_KEY = None
+    SECRET_KEY = os.environ.get('SECRET_KEY')
     AUTH_TOKENS = None
 
     DOCUMENTS_BUCKET = None
