@@ -107,13 +107,6 @@ def test_put_document_sends_hashed_recipient_email_to_s3_as_metadata_if_verifica
     )
 
 
-def test_put_document_errors_if_verification_email_set_badly(store):
-    with pytest.raises(ValueError):
-        store.put(
-            'service-id', mock.Mock(), mimetype='application/pdf', verification_email="email@example"
-        )
-
-
 def test_put_document_tags_document_if_retention_period_set(store):
     ret = store.put(
         'service-id', mock.Mock(), mimetype='application/pdf', retention_period='4 weeks'
@@ -133,13 +126,6 @@ def test_put_document_tags_document_if_retention_period_set(store):
         SSECustomerAlgorithm='AES256',
         Tagging='retention-period=4+weeks',
     )
-
-
-def test_put_document_errors_if_retention_period_set_badly(store):
-    with pytest.raises(ValueError):
-        store.put(
-            'service-id', mock.Mock(), mimetype='application/pdf', retention_period='5 days'
-        )
 
 
 def test_get_document(store):
