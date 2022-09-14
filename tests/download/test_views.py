@@ -217,7 +217,7 @@ def test_get_document_metadata_document_store_error(client, store):
 
 
 def test_get_document_metadata_when_document_is_in_s3(client, store):
-    store.get_document_metadata.return_value = {'mimetype': 'text/plain', 'verify_email': False}
+    store.get_document_metadata.return_value = {'mimetype': 'text/plain', 'verify_email': False, 'size': 1024}
     response = client.get(
         url_for(
             'download.get_document_metadata',
@@ -238,6 +238,7 @@ def test_get_document_metadata_when_document_is_in_s3(client, store):
                 '?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
             ]),
             'verify_email': False,
+            'size_in_bytes': 1024,
         }
     }
 

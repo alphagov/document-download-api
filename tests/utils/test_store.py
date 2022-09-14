@@ -19,7 +19,8 @@ def store(mocker):
     mock_boto.client.return_value.head_object.return_value = {
         'ResponseMetadata': {'RequestId': 'ABCD'},
         'Expiration': 'expiry-date="Fri, 01 May 2020 00:00:00 GMT"',
-        'ContentType': 'text/plain'
+        'ContentType': 'text/plain',
+        'ContentLength': 100
     }
     store = DocumentStore(bucket='test-bucket')
     return store
@@ -37,6 +38,7 @@ def store_with_email(mocker):
         'ResponseMetadata': {'RequestId': 'ABCD'},
         'Expiration': 'expiry-date="Fri, 01 May 2020 00:00:00 GMT"',
         'ContentType': 'text/plain',
+        'ContentLength': 100,
         'Metadata': {
             'hashed-recipient-email': (
                 # Hash of 'test@notify.example'
@@ -158,12 +160,12 @@ def test_get_document_with_boto_error(store):
 
 def test_get_document_metadata_when_document_is_in_s3(store):
     metadata = store.get_document_metadata('service-id', 'document-id', '0f0f0f')
-    assert metadata == {'mimetype': 'text/plain', 'verify_email': False}
+    assert metadata == {'mimetype': 'text/plain', 'verify_email': False, 'size': 100}
 
 
 def test_get_document_metadata_when_document_is_in_s3_with_hashed_email(store_with_email):
     metadata = store_with_email.get_document_metadata('service-id', 'document-id', '0f0f0f')
-    assert metadata == {'mimetype': 'text/plain', 'verify_email': True}
+    assert metadata == {'mimetype': 'text/plain', 'verify_email': True, 'size': 100}
 
 
 def test_get_document_metadata_when_document_is_not_in_s3(store):

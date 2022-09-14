@@ -93,7 +93,8 @@ class DocumentStore:
 
             return {
                 'mimetype': metadata['ContentType'],
-                'verify_email': True if metadata.get('Metadata', {}).get('hashed-recipient-email', None) else False
+                'verify_email': True if metadata.get('Metadata', {}).get('hashed-recipient-email', None) else False,
+                'size': metadata['ContentLength'],
             }
         except BotoClientError as e:
             if e.response['Error']['Code'] == '404':
