@@ -41,3 +41,9 @@ make test
 ## Further documentation
 
 - [Updating dependencies](https://github.com/alphagov/notifications-manuals/wiki/Dependencies)
+
+### Black mid-project reformat
+
+We added the Python auto-formatter `black` to this project after its inception. This required a bulk re-format of existing files, which generated a large and noisy commit. Git blame can be configured to ignore this commit with the following command:
+
+`git config --local blame.ignoreRevsFile .git-blame-ignore-revs`
