@@ -1,5 +1,6 @@
 import os
 import uuid
+from urllib.parse import urlencode
 
 import boto3
 from botocore.exceptions import ClientError as BotoClientError
@@ -21,35 +22,35 @@ class DocumentStore:
     def init_app(self, app):
         self.bucket = app.config['DOCUMENTS_BUCKET']
 
-    def put(self, service_id, document_stream, *, mimetype, verification_email=None):
+    def put(self, service_id, document_stream, *, mimetype, verification_email=None, retention_period=None):
         """
+        verification_email and retention_period need to already be in a validated and known-good format
+        by the time they come into this method.
+
         returns dict {'id': 'some-uuid', 'encryption_key': b'32 byte encryption key'}
         """
 
         encryption_key = self.generate_encryption_key()
         document_id = str(uuid.uuid4())
 
+        extra_kwargs = {}
         if verification_email:
             hashed_recipient_email = self._hasher.hash(verification_email)
+            extra_kwargs['Metadata'] = {"hashed-recipient-email": hashed_recipient_email}
 
-            self.s3.put_object(
-                Bucket=self.bucket,
-                Key=self.get_document_key(service_id, document_id),
-                Body=document_stream,
-                ContentType=mimetype,
-                SSECustomerKey=encryption_key,
-                SSECustomerAlgorithm='AES256',
-                Metadata={"hashed-recipient-email": hashed_recipient_email}
-            )
-        else:
-            self.s3.put_object(
-                Bucket=self.bucket,
-                Key=self.get_document_key(service_id, document_id),
-                Body=document_stream,
-                ContentType=mimetype,
-                SSECustomerKey=encryption_key,
-                SSECustomerAlgorithm='AES256'
-            )
+        if retention_period:
+            tags = {"retention-period": retention_period}
+            extra_kwargs['Tagging'] = urlencode(tags)
+
+        self.s3.put_object(
+            Bucket=self.bucket,
+            Key=self.get_document_key(service_id, document_id),
+            Body=document_stream,
+            ContentType=mimetype,
+            SSECustomerKey=encryption_key,
+            SSECustomerAlgorithm='AES256',
+            **extra_kwargs,
+        )
 
         return {
             'id': document_id,
@@ -106,6 +107,9 @@ class DocumentStore:
         return "{}/{}".format(service_id, document_id)
 
     def authenticate(self, service_id: str, document_id: str, decryption_key: bytes, email_address: str) -> bool:
+        """
+        email_address needs to be in a validated and known-good format before being passed to this method
+        """
         try:
             response = self.s3.head_object(
                 Bucket=self.bucket,

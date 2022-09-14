@@ -2,36 +2,63 @@ from base64 import b64decode, binascii
 from io import BytesIO
 
 from flask import Blueprint, abort, current_app, jsonify, request
+from notifications_utils.recipients import InvalidEmailError
+from werkzeug.exceptions import BadRequest
 
 from app import antivirus_client, document_store
 from app.utils import get_mime_type
 from app.utils.antivirus import AntivirusError
 from app.utils.authentication import check_auth
 from app.utils.urls import get_direct_file_url, get_frontend_download_url
+from app.utils.validation import (
+    clean_and_validate_email_address,
+    clean_and_validate_retention_period,
+)
 
 upload_blueprint = Blueprint('upload', __name__, url_prefix='')
 upload_blueprint.before_request(check_auth)
 
 
-@upload_blueprint.route('/services/<uuid:service_id>/documents', methods=['POST'])
-def upload_document(service_id):
-    no_document_error = jsonify(error='No document upload'), 400
-
-    if 'document' not in request.json:
-        return no_document_error
+def _get_upload_document_request_data(data):
+    if 'document' not in data:
+        raise BadRequest('No document upload')
 
     try:
-        raw_content = b64decode(request.json['document'])
+        raw_content = b64decode(data['document'])
     except binascii.Error:
-        return jsonify(error='Document is not base64 encoded'), 400
+        raise BadRequest('Document is not base64 encoded')
 
     if len(raw_content) > current_app.config['MAX_CONTENT_LENGTH']:
         abort(413)
     file_data = BytesIO(raw_content)
-    is_csv = request.json.get('is_csv', False)
+    is_csv = data.get('is_csv', False)
 
     if not isinstance(is_csv, bool):
-        return jsonify(error='Value for is_csv must be a boolean'), 400
+        raise BadRequest('Value for is_csv must be a boolean')
+
+    verification_email = data.get("verification_email", None)
+    if verification_email is not None:
+        try:
+            verification_email = clean_and_validate_email_address(verification_email)
+        except InvalidEmailError as e:
+            raise BadRequest(str(e))
+
+    retention_period = data.get("retention_period", None)
+    if retention_period is not None:
+        try:
+            retention_period = clean_and_validate_retention_period(retention_period)
+        except ValueError as e:
+            raise BadRequest(str(e))
+
+    return file_data, is_csv, verification_email, retention_period
+
+
+@upload_blueprint.route('/services/<uuid:service_id>/documents', methods=['POST'])
+def upload_document(service_id):
+    try:
+        file_data, is_csv, verification_email, retention_period = _get_upload_document_request_data(request.json)
+    except BadRequest as e:
+        return jsonify(error=e.description), 400
 
     if current_app.config['ANTIVIRUS_ENABLED']:
         try:
@@ -56,7 +83,8 @@ def upload_document(service_id):
         service_id,
         file_data,
         mimetype=mimetype,
-        verification_email=request.json.get("verification_email", None)
+        verification_email=verification_email,
+        retention_period=retention_period,
     )
 
     return jsonify(
