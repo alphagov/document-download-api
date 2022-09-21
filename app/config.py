@@ -2,6 +2,13 @@ import os
 
 from flask_env import MetaFlaskEnv
 
+if os.environ.get("VCAP_SERVICES"):
+    # on cloudfoundry, config is a json blob in VCAP_SERVICES - unpack it, and populate
+    # standard environment variables from it
+    from app.cloudfoundry_config import extract_cloudfoundry_config
+
+    extract_cloudfoundry_config()
+
 
 class Config(metaclass=MetaFlaskEnv):
     DEBUG = False
@@ -39,6 +46,12 @@ class Config(metaclass=MetaFlaskEnv):
     HTTP_SCHEME = "https"
     FRONTEND_HOSTNAME = None
 
+    REDIS_URL = os.getenv("REDIS_URL")
+    REDIS_ENABLED = REDIS_URL is not None
+
+    DOCUMENT_AUTHENTICATION_RATE_LIMIT = int(os.getenv("DOCUMENT_AUTHENTICATION_RATE_LIMIT", "50"))
+    DOCUMENT_AUTHENTICATE_RATE_INTERVAL_SECONDS = int(os.getenv("DOCUMENT_AUTHENTICATE_RATE_INTERVAL_SECONDS", "300"))
+
 
 class Test(Config):
     DEBUG = True
@@ -56,6 +69,9 @@ class Test(Config):
 
     FRONTEND_HOSTNAME = "document-download-frontend-test"
 
+    REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/1")
+    REDIS_ENABLED = os.environ.get("REDIS_ENABLED") == "1"
+
 
 class Development(Config):
     DEBUG = True
@@ -71,6 +87,9 @@ class Development(Config):
 
     HTTP_SCHEME = "http"
     FRONTEND_HOSTNAME = "localhost:7001"
+
+    REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/1")
+    REDIS_ENABLED = os.environ.get("REDIS_ENABLED") == "1"
 
 
 class Preview(Config):
