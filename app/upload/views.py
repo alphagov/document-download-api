@@ -36,10 +36,10 @@ def _get_upload_document_request_data(data):
     if not isinstance(is_csv, bool):
         raise BadRequest('Value for is_csv must be a boolean')
 
-    verification_email = data.get("verification_email", None)
-    if verification_email is not None:
+    confirmation_email = data.get("confirmation_email", None)
+    if confirmation_email is not None:
         try:
-            verification_email = clean_and_validate_email_address(verification_email)
+            confirmation_email = clean_and_validate_email_address(confirmation_email)
         except InvalidEmailError as e:
             raise BadRequest(str(e))
 
@@ -50,13 +50,13 @@ def _get_upload_document_request_data(data):
         except ValueError as e:
             raise BadRequest(str(e))
 
-    return file_data, is_csv, verification_email, retention_period
+    return file_data, is_csv, confirmation_email, retention_period
 
 
 @upload_blueprint.route('/services/<uuid:service_id>/documents', methods=['POST'])
 def upload_document(service_id):
     try:
-        file_data, is_csv, verification_email, retention_period = _get_upload_document_request_data(request.json)
+        file_data, is_csv, confirmation_email, retention_period = _get_upload_document_request_data(request.json)
     except BadRequest as e:
         return jsonify(error=e.description), 400
 
@@ -83,7 +83,7 @@ def upload_document(service_id):
         service_id,
         file_data,
         mimetype=mimetype,
-        verification_email=verification_email,
+        confirmation_email=confirmation_email,
         retention_period=retention_period,
     )
 

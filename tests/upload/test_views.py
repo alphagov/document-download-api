@@ -18,13 +18,13 @@ def antivirus(mocker):
     return mocker.patch('app.upload.views.antivirus_client')
 
 
-def _document_upload(client, url, file_content, verification_email=None, retention_period=None):
+def _document_upload(client, url, file_content, confirmation_email=None, retention_period=None):
     data = {
         'document': base64.b64encode(file_content).decode('utf-8'),
     }
 
-    if verification_email:
-        data['verification_email'] = verification_email
+    if confirmation_email:
+        data['confirmation_email'] = confirmation_email
     if retention_period:
         data['retention_period'] = retention_period
 
@@ -74,7 +74,7 @@ def test_document_upload_returns_link_to_frontend(client, store, antivirus):
     }
 
 
-def test_document_upload_sends_verification_email_on_to_document_store(
+def test_document_upload_sends_confirmation_email_on_to_document_store(
     client, store, antivirus
 ):
     store.put.return_value = {
@@ -86,12 +86,12 @@ def test_document_upload_sends_verification_email_on_to_document_store(
 
     url = '/services/00000000-0000-0000-0000-000000000000/documents'
     file_content = b'%PDF-1.4 file contents'
-    _document_upload(client, url, file_content, verification_email='user@example.com')
+    _document_upload(client, url, file_content, confirmation_email='user@example.com')
 
     # Check that the contents of the file saved is as expected
     put_args, put_kwargs = store.put.call_args_list[0]
 
-    assert put_kwargs["verification_email"] == 'user@example.com'
+    assert put_kwargs["confirmation_email"] == 'user@example.com'
 
 
 def test_document_upload_virus_found(client, store, antivirus):
@@ -320,11 +320,11 @@ def test_document_upload_bad_is_csv_value(client):
         ({'document': 'foo'}, 'Document is not base64 encoded'),
         ({'document': 'YQoxLAo=', 'is_csv': 1}, 'Value for is_csv must be a boolean'),
         (
-            {'document': 'YQoxLAo=', 'verification_email': True},
-            'Verification email must be a string.'
+            {'document': 'YQoxLAo=', 'confirmation_email': True},
+            'Confirmation email must be a string.'
         ),
         (
-            {'document': 'YQoxLAo=', 'verification_email': 'sam@foo'},
+            {'document': 'YQoxLAo=', 'confirmation_email': 'sam@foo'},
             'Not a valid email address'
         ),
         (

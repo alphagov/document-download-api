@@ -105,7 +105,7 @@ def get_document_metadata(service_id, document_id):
                 key=key,
                 mimetype=metadata['mimetype'],
             ),
-            'verify_email': metadata['verify_email'],
+            'confirm_email': metadata['confirm_email'],
             'size_in_bytes': metadata['size'],
         }
     else:

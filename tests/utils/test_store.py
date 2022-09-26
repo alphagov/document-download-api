@@ -70,7 +70,7 @@ def test_document_key_with_uuid(store):
 
 def test_put_document(store):
     ret = store.put(
-        'service-id', mock.Mock(), mimetype='application/pdf', verification_email=None, retention_period=None
+        'service-id', mock.Mock(), mimetype='application/pdf', confirmation_email=None, retention_period=None
     )
 
     assert ret == {
@@ -88,9 +88,9 @@ def test_put_document(store):
     )
 
 
-def test_put_document_sends_hashed_recipient_email_to_s3_as_metadata_if_verification_email_present(store):
+def test_put_document_sends_hashed_recipient_email_to_s3_as_metadata_if_confirmation_email_present(store):
     ret = store.put(
-        'service-id', mock.Mock(), mimetype='application/pdf', verification_email="email@example.com"
+        'service-id', mock.Mock(), mimetype='application/pdf', confirmation_email="email@example.com"
     )
 
     assert ret == {
@@ -160,12 +160,12 @@ def test_get_document_with_boto_error(store):
 
 def test_get_document_metadata_when_document_is_in_s3(store):
     metadata = store.get_document_metadata('service-id', 'document-id', '0f0f0f')
-    assert metadata == {'mimetype': 'text/plain', 'verify_email': False, 'size': 100}
+    assert metadata == {'mimetype': 'text/plain', 'confirm_email': False, 'size': 100}
 
 
 def test_get_document_metadata_when_document_is_in_s3_with_hashed_email(store_with_email):
     metadata = store_with_email.get_document_metadata('service-id', 'document-id', '0f0f0f')
-    assert metadata == {'mimetype': 'text/plain', 'verify_email': True, 'size': 100}
+    assert metadata == {'mimetype': 'text/plain', 'confirm_email': True, 'size': 100}
 
 
 def test_get_document_metadata_when_document_is_not_in_s3(store):
