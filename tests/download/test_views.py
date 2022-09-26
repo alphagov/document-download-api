@@ -217,7 +217,7 @@ def test_get_document_metadata_document_store_error(client, store):
 
 
 def test_get_document_metadata_when_document_is_in_s3(client, store):
-    store.get_document_metadata.return_value = {'mimetype': 'text/plain', 'verify_email': False, 'size': 1024}
+    store.get_document_metadata.return_value = {'mimetype': 'text/plain', 'confirm_email': False, 'size': 1024}
     response = client.get(
         url_for(
             'download.get_document_metadata',
@@ -237,7 +237,7 @@ def test_get_document_metadata_when_document_is_in_s3(client, store):
                 '/documents/ffffffff-ffff-ffff-ffff-ffffffffffff.txt',
                 '?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
             ]),
-            'verify_email': False,
+            'confirm_email': False,
             'size_in_bytes': 1024,
         }
     }
@@ -344,7 +344,7 @@ class TestAuthenticateDocument:
     def test_signed_data_from_successful_authentication(self, app, client, store):
         store.get_document_metadata.return_value = {
             'mimetype': 'text/csv',
-            'verify_email': True,
+            'confirm_email': True,
         }
 
         with mock.patch('app.download.views.document_store.authenticate') as authenticate_mock:

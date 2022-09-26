@@ -22,9 +22,9 @@ class DocumentStore:
     def init_app(self, app):
         self.bucket = app.config['DOCUMENTS_BUCKET']
 
-    def put(self, service_id, document_stream, *, mimetype, verification_email=None, retention_period=None):
+    def put(self, service_id, document_stream, *, mimetype, confirmation_email=None, retention_period=None):
         """
-        verification_email and retention_period need to already be in a validated and known-good format
+        confirmation_email and retention_period need to already be in a validated and known-good format
         by the time they come into this method.
 
         returns dict {'id': 'some-uuid', 'encryption_key': b'32 byte encryption key'}
@@ -34,8 +34,8 @@ class DocumentStore:
         document_id = str(uuid.uuid4())
 
         extra_kwargs = {}
-        if verification_email:
-            hashed_recipient_email = self._hasher.hash(verification_email)
+        if confirmation_email:
+            hashed_recipient_email = self._hasher.hash(confirmation_email)
             extra_kwargs['Metadata'] = {"hashed-recipient-email": hashed_recipient_email}
 
         if retention_period:
@@ -93,7 +93,7 @@ class DocumentStore:
 
             return {
                 'mimetype': metadata['ContentType'],
-                'verify_email': True if metadata.get('Metadata', {}).get('hashed-recipient-email', None) else False,
+                'confirm_email': True if metadata.get('Metadata', {}).get('hashed-recipient-email', None) else False,
                 'size': metadata['ContentLength'],
             }
         except BotoClientError as e:

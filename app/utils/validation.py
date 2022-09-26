@@ -6,11 +6,11 @@ from notifications_utils.recipients import (
 )
 
 
-def clean_and_validate_email_address(verification_email):
-    if not isinstance(verification_email, str):
-        raise InvalidEmailError('Verification email must be a string.')
+def clean_and_validate_email_address(confirmation_email):
+    if not isinstance(confirmation_email, str):
+        raise InvalidEmailError('Confirmation email must be a string.')
 
-    return validate_and_format_email_address(verification_email)
+    return validate_and_format_email_address(confirmation_email)
 
 
 def clean_and_validate_retention_period(retention_period):

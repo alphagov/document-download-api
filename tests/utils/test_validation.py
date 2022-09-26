@@ -11,7 +11,7 @@ def test_clean_and_validate_email_address():
     with pytest.raises(InvalidEmailError) as e:
         clean_and_validate_email_address(False)
 
-    assert str(e.value) == 'Verification email must be a string.'
+    assert str(e.value) == 'Confirmation email must be a string.'
 
 
 def test_clean_and_validate_retention_period():
