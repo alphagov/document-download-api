@@ -197,8 +197,16 @@ def test_get_document_metadata_document_store_error(client, store):
     assert response.json == {"error": "something went wrong"}
 
 
-def test_get_document_metadata_when_document_is_in_s3(client, store):
-    store.get_document_metadata.return_value = {"mimetype": "text/plain", "confirm_email": False, "size": 1024}
+@pytest.mark.parametrize(
+    "mimetype, expected_extension",
+    [
+        ("text/csv", "csv"),
+        ("application/msword", "doc"),
+        ("application/pdf", "pdf"),
+    ],
+)
+def test_get_document_metadata_when_document_is_in_s3(client, store, mimetype, expected_extension):
+    store.get_document_metadata.return_value = {"mimetype": mimetype, "confirm_email": False, "size": 1024}
     response = client.get(
         url_for(
             "download.get_document_metadata",
@@ -216,12 +224,13 @@ def test_get_document_metadata_when_document_is_in_s3(client, store):
                 [
                     "http://document-download.test",
                     "/services/00000000-0000-0000-0000-000000000000",
-                    "/documents/ffffffff-ffff-ffff-ffff-ffffffffffff.txt",
+                    f"/documents/ffffffff-ffff-ffff-ffff-ffffffffffff.{expected_extension}",
                     "?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
                 ]
             ),
             "confirm_email": False,
             "size_in_bytes": 1024,
+            "file_extension": expected_extension,
         }
     }
 

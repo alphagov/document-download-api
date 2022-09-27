@@ -100,6 +100,7 @@ def get_document_metadata(service_id, document_id):
             ),
             "confirm_email": metadata["confirm_email"],
             "size_in_bytes": metadata["size"],
+            "file_extension": current_app.config["ALLOWED_FILE_TYPES"][metadata["mimetype"]],
         }
     else:
         document = None
