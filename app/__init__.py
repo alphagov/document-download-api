@@ -6,16 +6,16 @@ from app.config import configs
 from app.utils.antivirus import AntivirusClient
 from app.utils.store import DocumentStore
 
-document_store = DocumentStore() # noqa, has to be imported before views
-antivirus_client = AntivirusClient() # noqa
-metrics = GDSMetrics() # noqa
+document_store = DocumentStore()  # noqa, has to be imported before views
+antivirus_client = AntivirusClient()  # noqa
+metrics = GDSMetrics()  # noqa
 
 from .download.views import download_blueprint  # noqa
 from .upload.views import upload_blueprint  # noqa
 
 
 def create_app():
-    application = Flask('app')
+    application = Flask("app")
     application.config.from_object(configs[application.env])
 
     request_helper.init_app(application)

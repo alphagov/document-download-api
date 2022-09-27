@@ -1,11 +1,4 @@
-from flask import (
-    Blueprint,
-    current_app,
-    jsonify,
-    make_response,
-    request,
-    send_file,
-)
+from flask import Blueprint, current_app, jsonify, make_response, request, send_file
 from flask.sessions import SecureCookieSessionInterface
 from notifications_utils.base64_uuid import base64_to_bytes
 from notifications_utils.recipients import InvalidEmailError
@@ -15,9 +8,9 @@ from app.utils.store import DocumentStoreError
 from app.utils.urls import get_direct_file_url
 from app.utils.validation import clean_and_validate_email_address
 
-download_blueprint = Blueprint('download', __name__, url_prefix='')
+download_blueprint = Blueprint("download", __name__, url_prefix="")
 
-FILE_TYPES_TO_FORCE_DOWNLOAD_FOR = ['csv', 'rtf']
+FILE_TYPES_TO_FORCE_DOWNLOAD_FOR = ["csv", "rtf"]
 
 
 # Some browsers - Firefox, IE11 - use the final part of the URL as the filename when downloading a file. While we
@@ -25,134 +18,134 @@ FILE_TYPES_TO_FORCE_DOWNLOAD_FOR = ['csv', 'rtf']
 #
 # The duplicate route - without the extension - is still used by some users, probably because they've bookmarked
 # the direct URL to the file. We should be able to delete this once all the old documents have expired (18 months).
-@download_blueprint.route('/services/<uuid:service_id>/documents/<uuid:document_id>.<extension>', methods=['GET'])
-@download_blueprint.route('/services/<uuid:service_id>/documents/<uuid:document_id>', methods=['GET'])
+@download_blueprint.route("/services/<uuid:service_id>/documents/<uuid:document_id>.<extension>", methods=["GET"])
+@download_blueprint.route("/services/<uuid:service_id>/documents/<uuid:document_id>", methods=["GET"])
 def download_document(service_id, document_id, extension=None):
-    if 'key' not in request.args:
-        return jsonify(error='Missing decryption key'), 400
+    if "key" not in request.args:
+        return jsonify(error="Missing decryption key"), 400
 
     try:
-        key = base64_to_bytes(request.args['key'])
+        key = base64_to_bytes(request.args["key"])
     except ValueError:
-        return jsonify(error='Invalid decryption key'), 400
+        return jsonify(error="Invalid decryption key"), 400
 
     try:
         document = document_store.get(service_id, document_id, key)
     except DocumentStoreError as e:
         current_app.logger.info(
-            'Failed to download document: {}'.format(e),
+            "Failed to download document: {}".format(e),
             extra={
-                'service_id': service_id,
-                'document_id': document_id,
-            }
+                "service_id": service_id,
+                "document_id": document_id,
+            },
         )
         return jsonify(error=str(e)), 400
 
-    mimetype = document['mimetype']
-    send_file_kwargs = {'mimetype': mimetype}
-    extension = current_app.config['ALLOWED_FILE_TYPES'][mimetype]
+    mimetype = document["mimetype"]
+    send_file_kwargs = {"mimetype": mimetype}
+    extension = current_app.config["ALLOWED_FILE_TYPES"][mimetype]
 
     if extension in FILE_TYPES_TO_FORCE_DOWNLOAD_FOR:
         # Give CSV files the 'Content-Disposition' header to ensure they are downloaded
         # rather than shown as raw text in the users browser
         send_file_kwargs.update(
             {
-                'download_name': f'{document_id}.{extension}',
-                'as_attachment': True,
+                "download_name": f"{document_id}.{extension}",
+                "as_attachment": True,
             }
         )
 
     response = make_response(
         send_file(
-            document['body'],
+            document["body"],
             **send_file_kwargs,
         )
     )
-    response.headers['Content-Length'] = document['size']
-    response.headers['X-Robots-Tag'] = 'noindex, nofollow'
-    response.headers['Referrer-Policy'] = 'no-referrer'
+    response.headers["Content-Length"] = document["size"]
+    response.headers["X-Robots-Tag"] = "noindex, nofollow"
+    response.headers["Referrer-Policy"] = "no-referrer"
 
     return response
 
 
-@download_blueprint.route('/services/<uuid:service_id>/documents/<uuid:document_id>/check', methods=['GET'])
+@download_blueprint.route("/services/<uuid:service_id>/documents/<uuid:document_id>/check", methods=["GET"])
 def get_document_metadata(service_id, document_id):
-    if 'key' not in request.args:
-        return jsonify(error='Missing decryption key'), 400
+    if "key" not in request.args:
+        return jsonify(error="Missing decryption key"), 400
 
     try:
-        key = base64_to_bytes(request.args['key'])
+        key = base64_to_bytes(request.args["key"])
     except ValueError:
-        return jsonify(error='Invalid decryption key'), 400
+        return jsonify(error="Invalid decryption key"), 400
 
     try:
         metadata = document_store.get_document_metadata(service_id, document_id, key)
     except DocumentStoreError as e:
         current_app.logger.warning(
-            'Failed to get document metadata: {}'.format(e),
+            "Failed to get document metadata: {}".format(e),
             extra={
-                'service_id': service_id,
-                'document_id': document_id,
-            }
+                "service_id": service_id,
+                "document_id": document_id,
+            },
         )
         return jsonify(error=str(e)), 400
 
     if metadata:
         document = {
-            'direct_file_url': get_direct_file_url(
+            "direct_file_url": get_direct_file_url(
                 service_id=service_id,
                 document_id=document_id,
                 key=key,
-                mimetype=metadata['mimetype'],
+                mimetype=metadata["mimetype"],
             ),
-            'confirm_email': metadata['confirm_email'],
-            'size_in_bytes': metadata['size'],
+            "confirm_email": metadata["confirm_email"],
+            "size_in_bytes": metadata["size"],
         }
     else:
         document = None
 
-    response = make_response({'document': document})
-    response.headers['X-Robots-Tag'] = 'noindex, nofollow'
-    response.headers['Referrer-Policy'] = 'no-referrer'
+    response = make_response({"document": document})
+    response.headers["X-Robots-Tag"] = "noindex, nofollow"
+    response.headers["Referrer-Policy"] = "no-referrer"
     return response
 
 
-@download_blueprint.route('/services/<uuid:service_id>/documents/<uuid:document_id>/authenticate', methods=['POST'])
+@download_blueprint.route("/services/<uuid:service_id>/documents/<uuid:document_id>/authenticate", methods=["POST"])
 def authenticate_access_to_document(service_id, document_id):
-    key = request.json.get('key')
+    key = request.json.get("key")
     if not key:
-        return jsonify(error='Missing decryption key'), 400
+        return jsonify(error="Missing decryption key"), 400
 
     try:
         key = base64_to_bytes(key)
     except ValueError:
-        return jsonify(error='Invalid decryption key'), 400
+        return jsonify(error="Invalid decryption key"), 400
 
-    email_address = request.json.get('email_address', None)
+    email_address = request.json.get("email_address", None)
     if not email_address:
-        return jsonify(error='No email address'), 400
+        return jsonify(error="No email address"), 400
 
     try:
         email_address = clean_and_validate_email_address(email_address)
     except InvalidEmailError:
-        return jsonify(error='Invalid email address'), 400
+        return jsonify(error="Invalid email address"), 400
 
     if document_store.authenticate(service_id, document_id, key, email_address) is False:
-        return jsonify(error='Authentication failure'), 403
+        return jsonify(error="Authentication failure"), 403
 
     signer = SecureCookieSessionInterface().get_signing_serializer(current_app)
 
     return jsonify(
         signed_data=signer.dumps(
             {
-                'service_id': service_id,
-                'document_id': document_id,
+                "service_id": service_id,
+                "document_id": document_id,
             }
         ),
         direct_file_url=get_direct_file_url(
             service_id=service_id,
             document_id=document_id,
             key=key,
-            mimetype=document_store.get_document_metadata(service_id, document_id, key)['mimetype'],
-        )
+            mimetype=document_store.get_document_metadata(service_id, document_id, key)["mimetype"],
+        ),
     )

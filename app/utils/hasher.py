@@ -7,13 +7,8 @@ class Hasher:
     We use the argon2ID hasher and parameters laid out by OWASP here:
     https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#password-hashing-algorithms
     """
-    _hasher = PasswordHasher(
-        memory_cost=15360,
-        time_cost=2,
-        parallelism=1,
-        hash_len=16,
-        type=Type.ID
-    )
+
+    _hasher = PasswordHasher(memory_cost=15360, time_cost=2, parallelism=1, hash_len=16, type=Type.ID)
 
     def hash(self, value: str):
         return self._hasher.hash(value)

@@ -24,12 +24,12 @@ def token_is_valid(incoming_token):
 
 def get_allowed_tokens(config):
     """Return a list of allowed auth tokens from the application config"""
-    return [token for token in (config.get('AUTH_TOKENS') or '').split(':') if token]
+    return [token for token in (config.get("AUTH_TOKENS") or "").split(":") if token]
 
 
 def get_token_from_headers():
-    auth_header = request.headers.get('Authorization', '')
-    if auth_header[:7] != 'Bearer ':
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header[:7] != "Bearer ":
         return None
 
     return auth_header[7:]
