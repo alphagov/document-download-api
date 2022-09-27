@@ -6,15 +6,15 @@ from flask.testing import FlaskClient
 from app import create_app
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def app():
     app = create_app()
 
     class TestClient(FlaskClient):
         def open(self, *args, **kwargs):
-            kwargs['headers'] = {
-                'Authorization': 'Bearer {}'.format(app.config['AUTH_TOKENS'].split(':')[0]),
-                **(kwargs.get('headers', {})),
+            kwargs["headers"] = {
+                "Authorization": "Bearer {}".format(app.config["AUTH_TOKENS"].split(":")[0]),
+                **(kwargs.get("headers", {})),
             }
 
             return super().open(*args, **kwargs)
@@ -58,4 +58,4 @@ class Matcher:
         return self.key(other)
 
     def __repr__(self):
-        return '<Matcher: {}>'.format(self.description)
+        return "<Matcher: {}>".format(self.description)

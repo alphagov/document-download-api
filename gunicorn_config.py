@@ -1,6 +1,6 @@
 import os
 
-from gds_metrics.gunicorn import child_exit # noqa
+from gds_metrics.gunicorn import child_exit  # noqa
 
 bind = "0.0.0.0:{}".format(os.getenv("PORT"))
 

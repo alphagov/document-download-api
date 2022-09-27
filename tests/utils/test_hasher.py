@@ -8,10 +8,10 @@ class TestHasher:
     def test_hasher_using_argon2id_with_expected_parameters(self):
         hasher = Hasher()
 
-        hash = hasher.hash('abc123')
+        hash = hasher.hash("abc123")
 
-        assert hash.startswith('$argon2id$')
-        assert '$m=15360,t=2,p=1$' in hash
+        assert hash.startswith("$argon2id$")
+        assert "$m=15360,t=2,p=1$" in hash
 
     @given(emails())
     def test_hash_verifies_correctly(self, value):

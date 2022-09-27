@@ -26,6 +26,7 @@ test: ## Run all tests
 	py.test tests/
 	isort --check-only app tests
 	flake8 .
+	black --check .
 
 .PHONY: freeze-requirements
 freeze-requirements: ## create static requirements.txt

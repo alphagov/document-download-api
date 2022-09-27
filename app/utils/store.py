@@ -20,7 +20,7 @@ class DocumentStore:
         self.bucket = bucket
 
     def init_app(self, app):
-        self.bucket = app.config['DOCUMENTS_BUCKET']
+        self.bucket = app.config["DOCUMENTS_BUCKET"]
 
     def put(self, service_id, document_stream, *, mimetype, confirmation_email=None, retention_period=None):
         """
@@ -36,11 +36,11 @@ class DocumentStore:
         extra_kwargs = {}
         if confirmation_email:
             hashed_recipient_email = self._hasher.hash(confirmation_email)
-            extra_kwargs['Metadata'] = {"hashed-recipient-email": hashed_recipient_email}
+            extra_kwargs["Metadata"] = {"hashed-recipient-email": hashed_recipient_email}
 
         if retention_period:
             tags = {"retention-period": retention_period}
-            extra_kwargs['Tagging'] = urlencode(tags)
+            extra_kwargs["Tagging"] = urlencode(tags)
 
         self.s3.put_object(
             Bucket=self.bucket,
@@ -48,14 +48,11 @@ class DocumentStore:
             Body=document_stream,
             ContentType=mimetype,
             SSECustomerKey=encryption_key,
-            SSECustomerAlgorithm='AES256',
+            SSECustomerAlgorithm="AES256",
             **extra_kwargs,
         )
 
-        return {
-            'id': document_id,
-            'encryption_key': encryption_key
-        }
+        return {"id": document_id, "encryption_key": encryption_key}
 
     def get(self, service_id, document_id, decryption_key):
         """
@@ -66,17 +63,13 @@ class DocumentStore:
                 Bucket=self.bucket,
                 Key=self.get_document_key(service_id, document_id),
                 SSECustomerKey=decryption_key,
-                SSECustomerAlgorithm='AES256'
+                SSECustomerAlgorithm="AES256",
             )
 
         except BotoClientError as e:
-            raise DocumentStoreError(e.response['Error'])
+            raise DocumentStoreError(e.response["Error"])
 
-        return {
-            'body': document['Body'],
-            'mimetype': document['ContentType'],
-            'size': document['ContentLength']
-        }
+        return {"body": document["Body"], "mimetype": document["ContentType"], "size": document["ContentLength"]}
 
     def get_document_metadata(self, service_id, document_id, decryption_key):
         """
@@ -88,18 +81,18 @@ class DocumentStore:
                 Bucket=self.bucket,
                 Key=self.get_document_key(service_id, document_id),
                 SSECustomerKey=decryption_key,
-                SSECustomerAlgorithm='AES256'
+                SSECustomerAlgorithm="AES256",
             )
 
             return {
-                'mimetype': metadata['ContentType'],
-                'confirm_email': True if metadata.get('Metadata', {}).get('hashed-recipient-email', None) else False,
-                'size': metadata['ContentLength'],
+                "mimetype": metadata["ContentType"],
+                "confirm_email": True if metadata.get("Metadata", {}).get("hashed-recipient-email", None) else False,
+                "size": metadata["ContentLength"],
             }
         except BotoClientError as e:
-            if e.response['Error']['Code'] == '404':
+            if e.response["Error"]["Code"] == "404":
                 return None
-            raise DocumentStoreError(e.response['Error'])
+            raise DocumentStoreError(e.response["Error"])
 
     def generate_encryption_key(self):
         return os.urandom(32)
@@ -116,16 +109,16 @@ class DocumentStore:
                 Bucket=self.bucket,
                 Key=self.get_document_key(service_id, document_id),
                 SSECustomerKey=decryption_key,
-                SSECustomerAlgorithm='AES256'
+                SSECustomerAlgorithm="AES256",
             )
 
         except BotoClientError as e:
-            if e.response['Error']['Code'] == '404':
+            if e.response["Error"]["Code"] == "404":
                 return False
 
             return False
 
-        hashed_email = response.get('Metadata', {}).get('hashed-recipient-email', None)
+        hashed_email = response.get("Metadata", {}).get("hashed-recipient-email", None)
 
         if not hashed_email:
             return False

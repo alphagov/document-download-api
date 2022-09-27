@@ -8,7 +8,7 @@ from notifications_utils.recipients import (
 
 def clean_and_validate_email_address(confirmation_email):
     if not isinstance(confirmation_email, str):
-        raise InvalidEmailError('Confirmation email must be a string.')
+        raise InvalidEmailError("Confirmation email must be a string.")
 
     return validate_and_format_email_address(confirmation_email)
 
@@ -21,7 +21,7 @@ def clean_and_validate_retention_period(retention_period):
 
     retention_period = retention_period.lower().strip()
 
-    matches = re.match(r'^(\d+) weeks?$', retention_period)
+    matches = re.match(r"^(\d+) weeks?$", retention_period)
     if not matches:
         raise ValueError(error_message)
 
@@ -29,7 +29,7 @@ def clean_and_validate_retention_period(retention_period):
     if not 0 < weeks <= 78:
         raise ValueError(error_message)
 
-    if not retention_period.endswith('s'):
-        retention_period += 's'
+    if not retention_period.endswith("s"):
+        retention_period += "s"
 
     return retention_period
