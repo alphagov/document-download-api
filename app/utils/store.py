@@ -69,7 +69,12 @@ class DocumentStore:
         except BotoClientError as e:
             raise DocumentStoreError(e.response["Error"])
 
-        return {"body": document["Body"], "mimetype": document["ContentType"], "size": document["ContentLength"]}
+        return {
+            "body": document["Body"],
+            "mimetype": document["ContentType"],
+            "size": document["ContentLength"],
+            "metadata": document["Metadata"],
+        }
 
     def get_document_metadata(self, service_id, document_id, decryption_key):
         """
@@ -86,7 +91,7 @@ class DocumentStore:
 
             return {
                 "mimetype": metadata["ContentType"],
-                "confirm_email": True if metadata.get("Metadata", {}).get("hashed-recipient-email", None) else False,
+                "confirm_email": self.get_email_hash(metadata) is not None,
                 "size": metadata["ContentLength"],
             }
         except BotoClientError as e:
@@ -118,9 +123,13 @@ class DocumentStore:
 
             return False
 
-        hashed_email = response.get("Metadata", {}).get("hashed-recipient-email", None)
+        hashed_email = self.get_email_hash(response)
 
         if not hashed_email:
             return False
 
         return self._hasher.verify(value=email_address, hash_to_verify=hashed_email)
+
+    @staticmethod
+    def get_email_hash(boto_response):
+        return boto_response.get("Metadata", {}).get("hashed-recipient-email", None)
