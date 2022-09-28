@@ -120,8 +120,7 @@ class DocumentStore:
         except BotoClientError as e:
             if e.response["Error"]["Code"] == "404":
                 return False
-
-            return False
+            raise DocumentStoreError(e.response["Error"])
 
         hashed_email = self.get_email_hash(response)
 

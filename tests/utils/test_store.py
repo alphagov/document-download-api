@@ -215,3 +215,12 @@ def test_authenticate_fails_if_document_does_not_have_hash(store):
         mock.seal(mock_hasher)
 
         assert store.authenticate("service-id", "document-id", b"0f0f0f", "test@notify.example") is False
+
+
+def test_authenticate_with_unexpected_boto_error(store):
+    store.s3.head_object = mock.Mock(
+        side_effect=BotoClientError({"Error": {"Code": "code", "Message": "Unhandled Exception"}}, "HeadObject")
+    )
+
+    with pytest.raises(DocumentStoreError):
+        store.authenticate("service-id", "document-id", b"0f0f0f", "test@notify.example")
