@@ -1,9 +1,9 @@
 from flask import Blueprint, current_app, jsonify, make_response, request, send_file
-from flask.sessions import SecureCookieSessionInterface
 from notifications_utils.base64_uuid import base64_to_bytes
 from notifications_utils.recipients import InvalidEmailError
 
 from app import document_store, redis_client
+from app.utils.signed_data import sign_service_and_document_id
 from app.utils.store import DocumentStoreError
 from app.utils.urls import get_direct_file_url
 from app.utils.validation import clean_and_validate_email_address
@@ -150,15 +150,8 @@ def authenticate_access_to_document(service_id, document_id):
     if document_store.authenticate(service_id, document_id, key, email_address) is False:
         return jsonify(error="Authentication failure"), 403
 
-    signer = SecureCookieSessionInterface().get_signing_serializer(current_app)
-
     return jsonify(
-        signed_data=signer.dumps(
-            {
-                "service_id": service_id,
-                "document_id": document_id,
-            }
-        ),
+        signed_data=sign_service_and_document_id(service_id, document_id),
         direct_file_url=get_direct_file_url(
             service_id=service_id,
             document_id=document_id,

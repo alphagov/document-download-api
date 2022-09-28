@@ -12,3 +12,5 @@ pytest-mock==3.7.0
 requests-mock==1.9.3
 
 jinja2-cli[yaml]==0.8.2
+
+freezegun==1.2.2
