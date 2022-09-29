@@ -369,3 +369,30 @@ class TestAuthenticateDocument:
 
         assert data["service_id"] == UUID("00000000-0000-0000-0000-000000000000")
         assert data["document_id"] == UUID("ffffffff-ffff-ffff-ffff-ffffffffffff")
+
+    def test_authentication_rate_limiting(self, app, client, store):
+        store.get_document_metadata.return_value = {
+            "mimetype": "text/csv",
+            "verify_email": True,
+        }
+
+        with (
+            mock.patch("app.download.views.document_store.authenticate") as authenticate_mock,
+            mock.patch("app.redis_client.exceeded_rate_limit") as mock_exceeded_rate_limit,
+        ):
+            authenticate_mock.return_value = True
+            mock_exceeded_rate_limit.return_value = True
+
+            response = client.post(
+                url_for(
+                    "download.authenticate_access_to_document",
+                    service_id="00000000-0000-0000-0000-000000000000",
+                    document_id="ffffffff-ffff-ffff-ffff-ffffffffffff",
+                ),
+                json={
+                    "key": "sP09NZwxDwl3DE2j1bj0jCTbBjpeLkGiJ_rq788NWHM",  # bytes_to_Base64(os.urandom(32))
+                    "email_address": "test@notify.example",
+                },
+            )
+
+        assert response.status_code == 429

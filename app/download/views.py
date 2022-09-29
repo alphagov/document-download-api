@@ -3,7 +3,7 @@ from flask.sessions import SecureCookieSessionInterface
 from notifications_utils.base64_uuid import base64_to_bytes
 from notifications_utils.recipients import InvalidEmailError
 
-from app import document_store
+from app import document_store, redis_client
 from app.utils.store import DocumentStoreError
 from app.utils.urls import get_direct_file_url
 from app.utils.validation import clean_and_validate_email_address
@@ -114,6 +114,22 @@ def get_document_metadata(service_id, document_id):
 @download_blueprint.route("/services/<uuid:service_id>/documents/<uuid:document_id>/authenticate", methods=["POST"])
 def authenticate_access_to_document(service_id, document_id):
     key = request.json.get("key")
+
+    rate_limit, rate_interval = (
+        current_app.config["DOCUMENT_AUTHENTICATION_RATE_LIMIT"],
+        current_app.config["DOCUMENT_AUTHENTICATE_RATE_INTERVAL_SECONDS"],
+    )
+    if redis_client.exceeded_rate_limit(
+        f"authenticate-document-{service_id}-{document_id}",
+        limit=rate_limit,
+        interval=rate_interval,
+    ):
+        return (
+            jsonify(error=f"Too many requests - more than {rate_limit} in the last {rate_interval} seconds"),
+            429,
+            {"Retry-After": rate_interval},
+        )
+
     if not key:
         return jsonify(error="Missing decryption key"), 400
 
