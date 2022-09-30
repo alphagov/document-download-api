@@ -3,9 +3,11 @@ from unittest import mock
 from uuid import UUID
 
 import pytest
-from flask import url_for
+from flask import redirect, url_for
 from flask.sessions import SecureCookieSessionInterface
 
+from app.download.views import get_redirect_url_if_user_not_authenticated
+from app.utils.signed_data import sign_service_and_document_id
 from app.utils.store import DocumentStoreError
 
 
@@ -14,8 +16,13 @@ def store(mocker):
     return mocker.patch("app.download.views.document_store")
 
 
-def test_document_download(client, store):
-    store.get.return_value = {"body": io.BytesIO(b"PDF document contents"), "mimetype": "application/pdf", "size": 100}
+def test_download_document(client, store):
+    store.get.return_value = {
+        "body": io.BytesIO(b"PDF document contents"),
+        "mimetype": "application/pdf",
+        "size": 100,
+        "metadata": {},
+    }
 
     response = client.get(
         url_for(
@@ -43,6 +50,40 @@ def test_document_download(client, store):
     )
 
 
+def test_download_document_with_authenticated_user(client, store):
+    store.get.return_value = {
+        "body": io.BytesIO(b"PDF document contents"),
+        "mimetype": "application/pdf",
+        "size": 100,
+        "metadata": {"hashed-recipient-email": "foo bar baz"},
+    }
+
+    service_id = UUID("00000000-0000-0000-0000-000000000000")
+    document_id = UUID("ffffffff-ffff-ffff-ffff-ffffffffffff")
+    signed_data = sign_service_and_document_id(service_id, document_id)
+
+    client.set_cookie(
+        "localhost",
+        key="document_access_signed_data",
+        value=signed_data,
+        path="/",
+        httponly=True,
+    )
+
+    response = client.get(
+        url_for(
+            "download.download_document",
+            service_id=service_id,
+            document_id=document_id,
+            key="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",  # 32 \x00 bytes
+        )
+    )
+
+    assert response.status_code == 200
+    assert response.get_data() == b"PDF document contents"
+    store.get.assert_called_once_with(service_id, document_id, bytes(32))
+
+
 @pytest.mark.parametrize(
     "mimetype, expected_extension, expected_content_type_header",
     [
@@ -51,12 +92,14 @@ def test_document_download(client, store):
         ("application/rtf", "rtf", "application/rtf"),
     ],
 )
-def test_force_document_download(client, store, mimetype, expected_extension, expected_content_type_header):
+def test_download_document_sets_content_type_and_disposition(
+    client, store, mimetype, expected_extension, expected_content_type_header
+):
     """
     Test that file responses have the expected Content-Type/Content-Disposition
     required for browsers to download files in a way that is useful for users.
     """
-    store.get.return_value = {"body": io.BytesIO(b"a,b,c"), "mimetype": mimetype, "size": 100}
+    store.get.return_value = {"body": io.BytesIO(b"a,b,c"), "mimetype": mimetype, "size": 100, "metadata": {}}
 
     document_id = "ffffffff-ffff-ffff-ffff-ffffffffffff"
     response = client.get(
@@ -70,24 +113,12 @@ def test_force_document_download(client, store, mimetype, expected_extension, ex
 
     assert response.status_code == 200
     assert response.get_data() == b"a,b,c"
-    assert dict(response.headers) == {
-        "Cache-Control": mock.ANY,
-        "Date": mock.ANY,
-        "Content-Length": "100",
-        "Content-Type": expected_content_type_header,
-        "Content-Disposition": f"attachment; filename={document_id}.{expected_extension}",
-        "Referrer-Policy": "no-referrer",
-        "X-B3-SpanId": "None",
-        "X-B3-TraceId": "None",
-        "X-Robots-Tag": "noindex, nofollow",
-    }
-    store.get.assert_called_once_with(
-        UUID("00000000-0000-0000-0000-000000000000"), UUID("ffffffff-ffff-ffff-ffff-ffffffffffff"), bytes(32)
-    )
+    assert response.headers["Content-Type"] == expected_content_type_header
+    assert response.headers["Content-Disposition"] == f"attachment; filename={document_id}.{expected_extension}"
 
 
-def test_document_download_with_extension(client, store):
-    store.get.return_value = {"body": io.BytesIO(b"a,b,c"), "mimetype": "application/pdf", "size": 100}
+def test_download_document_with_extension(client, store):
+    store.get.return_value = {"body": io.BytesIO(b"a,b,c"), "mimetype": "application/pdf", "size": 100, "metadata": {}}
 
     response = client.get(
         url_for(
@@ -113,7 +144,7 @@ def test_document_download_with_extension(client, store):
     }
 
 
-def test_document_download_without_decryption_key(client, store):
+def test_download_document_without_decryption_key(client, store):
     response = client.get(
         url_for(
             "download.download_document",
@@ -126,7 +157,7 @@ def test_document_download_without_decryption_key(client, store):
     assert response.json == {"error": "Missing decryption key"}
 
 
-def test_document_download_with_invalid_decryption_key(client):
+def test_download_document_with_invalid_decryption_key(client):
     response = client.get(
         url_for(
             "download.download_document",
@@ -140,7 +171,7 @@ def test_document_download_with_invalid_decryption_key(client):
     assert response.json == {"error": "Invalid decryption key"}
 
 
-def test_document_download_document_store_error(client, store):
+def test_download_document_document_store_error(client, store):
     store.get.side_effect = DocumentStoreError("something went wrong")
     response = client.get(
         url_for(
@@ -153,6 +184,26 @@ def test_document_download_document_store_error(client, store):
 
     assert response.status_code == 400
     assert response.json == {"error": "something went wrong"}
+
+
+def test_download_document_redirects_if_user_not_authenticated(client, store, mocker):
+    mock_redirect_check = mocker.patch(
+        "app.download.views.get_redirect_url_if_user_not_authenticated", return_value=redirect("/foo")
+    )
+    store.get.return_value = {"body": io.BytesIO(b"a,b,c"), "mimetype": "application/pdf", "size": 100, "metadata": {}}
+
+    response = client.get(
+        url_for(
+            "download.download_document",
+            service_id="00000000-0000-0000-0000-000000000000",
+            document_id="ffffffff-ffff-ffff-ffff-ffffffffffff",
+            key="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",  # 32 \x00 bytes
+        )
+    )
+
+    assert response.status_code == 302
+    assert response.location == "/foo"
+    mock_redirect_check.assert_called_once()
 
 
 def test_get_document_metadata_without_decryption_key(client, store):
@@ -396,3 +447,70 @@ class TestAuthenticateDocument:
             )
 
         assert response.status_code == 429
+
+
+class TestGetRedirectUrlIfUserNotAuthenticated:
+    @pytest.fixture
+    def mock_doc_store_get_response(self):
+        yield {
+            "body": io.BytesIO(b"a,b,c"),
+            "mimetype": "application/pdf",
+            "size": 100,
+            "metadata": {"hashed-recipient-email": "foo"},
+        }
+
+    @pytest.fixture
+    def mock_request(self, app, mocker):
+        with app.test_request_context():
+            mock_request = mocker.patch("app.download.views.request")
+            mock_request.view_args = {
+                "service_id": "00000000-0000-0000-0000-000000000000",
+                "document_id": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+            }
+            mock_request.args = {"key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}
+            mock_request.cookies = {"document_access_signed_data": "foo bar baz"}
+            yield mock_request
+
+    def test_it_returns_none_if_document_not_secured(self, mocker, mock_request, mock_doc_store_get_response):
+        mock_verify = mocker.patch("app.download.views.verify_signed_service_and_document_id")
+        mock_doc_store_get_response["metadata"] = {}
+        mock_request.cookies = {}
+
+        assert get_redirect_url_if_user_not_authenticated(mock_request, mock_doc_store_get_response) is None
+        assert mock_verify.called is False
+
+    def test_it_returns_none_if_signed_data_matches(self, mocker, mock_request, mock_doc_store_get_response):
+        mock_verify = mocker.patch("app.download.views.verify_signed_service_and_document_id", return_value=True)
+
+        assert get_redirect_url_if_user_not_authenticated(mock_request, mock_doc_store_get_response) is None
+        mock_verify.assert_called_once_with(
+            "foo bar baz", "00000000-0000-0000-0000-000000000000", "ffffffff-ffff-ffff-ffff-ffffffffffff"
+        )
+
+    def test_it_redirects_if_signed_data_does_not_match(self, mocker, mock_request, mock_doc_store_get_response):
+        mock_verify = mocker.patch("app.download.views.verify_signed_service_and_document_id", return_value=False)
+
+        redirect = get_redirect_url_if_user_not_authenticated(mock_request, mock_doc_store_get_response)
+        assert redirect.location == "".join(
+            [
+                "https://document-download-frontend-test",
+                "/d/AAAAAAAAAAAAAAAAAAAAAA",
+                "/_____________________w",
+                "?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            ]
+        )
+        mock_verify.assert_called_once_with(
+            "foo bar baz", "00000000-0000-0000-0000-000000000000", "ffffffff-ffff-ffff-ffff-ffffffffffff"
+        )
+
+    def test_it_redirects_if_cookie_not_set(self, mock_request, mock_doc_store_get_response):
+        mock_request.cookies = {}
+        redirect = get_redirect_url_if_user_not_authenticated(mock_request, mock_doc_store_get_response)
+        assert redirect.location == "".join(
+            [
+                "https://document-download-frontend-test",
+                "/d/AAAAAAAAAAAAAAAAAAAAAA",
+                "/_____________________w",
+                "?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            ]
+        )

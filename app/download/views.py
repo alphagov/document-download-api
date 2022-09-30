@@ -1,16 +1,46 @@
-from flask import Blueprint, current_app, jsonify, make_response, request, send_file
+from flask import (
+    Blueprint,
+    current_app,
+    jsonify,
+    make_response,
+    redirect,
+    request,
+    send_file,
+)
 from notifications_utils.base64_uuid import base64_to_bytes
 from notifications_utils.recipients import InvalidEmailError
 
 from app import document_store, redis_client
-from app.utils.signed_data import sign_service_and_document_id
+from app.utils.signed_data import (
+    sign_service_and_document_id,
+    verify_signed_service_and_document_id,
+)
 from app.utils.store import DocumentStoreError
-from app.utils.urls import get_direct_file_url
+from app.utils.urls import get_direct_file_url, get_frontend_download_url
 from app.utils.validation import clean_and_validate_email_address
 
 download_blueprint = Blueprint("download", __name__, url_prefix="")
 
 FILE_TYPES_TO_FORCE_DOWNLOAD_FOR = ["csv", "rtf"]
+
+
+def get_redirect_url_if_user_not_authenticated(request, document):
+    # if document doesn't have hashed email, always allow unauthed access
+    if "hashed-recipient-email" not in document["metadata"]:
+        return
+
+    service_id = request.view_args["service_id"]
+    document_id = request.view_args["document_id"]
+
+    if signed_data := request.cookies.get("document_access_signed_data"):
+
+        if verify_signed_service_and_document_id(signed_data, service_id, document_id):
+            return
+
+    url = get_frontend_download_url(service_id, document_id, base64_to_bytes(request.args["key"]))
+
+    current_app.logger.warning(f"could not verify cookie for service {service_id} document {document_id}")
+    return redirect(url)
 
 
 # Some browsers - Firefox, IE11 - use the final part of the URL as the filename when downloading a file. While we
@@ -40,6 +70,9 @@ def download_document(service_id, document_id, extension=None):
             },
         )
         return jsonify(error=str(e)), 400
+
+    if redirect := get_redirect_url_if_user_not_authenticated(request, document):
+        return redirect
 
     mimetype = document["mimetype"]
     send_file_kwargs = {"mimetype": mimetype}
