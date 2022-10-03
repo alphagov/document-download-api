@@ -15,12 +15,14 @@ def store(mocker):
         "Body": mock.Mock(),
         "ContentType": "application/pdf",
         "ContentLength": 100,
+        "Metadata": {},
     }
     mock_boto.client.return_value.head_object.return_value = {
         "ResponseMetadata": {"RequestId": "ABCD"},
         "Expiration": 'expiry-date="Fri, 01 May 2020 00:00:00 GMT"',
         "ContentType": "text/plain",
         "ContentLength": 100,
+        "Metadata": {},
     }
     store = DocumentStore(bucket="test-bucket")
     return store
@@ -33,6 +35,12 @@ def store_with_email(mocker):
         "Body": mock.Mock(),
         "ContentType": "application/pdf",
         "ContentLength": 100,
+        "Metadata": {
+            "hashed-recipient-email": (
+                # Hash of 'test@notify.example'
+                "$argon2id$v=19$m=15360,t=2,p=1$ExyWUyRCJcqzJ+ip7SFZ2A$5SUu0QuYiF/kA9pdLsmE+A"
+            )
+        },
     }
     mock_boto.client.return_value.head_object.return_value = {
         "ResponseMetadata": {"RequestId": "ABCD"},
@@ -131,6 +139,7 @@ def test_get_document(store):
         "body": mock.ANY,
         "mimetype": "application/pdf",
         "size": 100,
+        "metadata": {},
     }
 
     store.s3.get_object.assert_called_once_with(
@@ -206,3 +215,12 @@ def test_authenticate_fails_if_document_does_not_have_hash(store):
         mock.seal(mock_hasher)
 
         assert store.authenticate("service-id", "document-id", b"0f0f0f", "test@notify.example") is False
+
+
+def test_authenticate_with_unexpected_boto_error(store):
+    store.s3.head_object = mock.Mock(
+        side_effect=BotoClientError({"Error": {"Code": "code", "Message": "Unhandled Exception"}}, "HeadObject")
+    )
+
+    with pytest.raises(DocumentStoreError):
+        store.authenticate("service-id", "document-id", b"0f0f0f", "test@notify.example")
