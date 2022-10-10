@@ -4,6 +4,7 @@ from urllib.parse import urlencode
 
 import boto3
 from botocore.exceptions import ClientError as BotoClientError
+from flask import current_app
 
 from app.utils.hasher import Hasher
 
@@ -37,10 +38,14 @@ class DocumentStore:
         if confirmation_email:
             hashed_recipient_email = self._hasher.hash(confirmation_email)
             extra_kwargs["Metadata"] = {"hashed-recipient-email": hashed_recipient_email}
+            current_app.logger.info(f"Enabling email confirmation flow for {service_id}/{document_id}")
 
         if retention_period:
             tags = {"retention-period": retention_period}
             extra_kwargs["Tagging"] = urlencode(tags)
+            current_app.logger.info(
+                f"Setting custom retention period for {service_id}/{document_id}: {retention_period}"
+            )
 
         self.s3.put_object(
             Bucket=self.bucket,
