@@ -20,7 +20,7 @@ def store(mocker):
     }
     mock_boto.client.return_value.head_object.return_value = {
         "ResponseMetadata": {"RequestId": "ABCD"},
-        "Expiration": 'expiry-date="Fri, 01 May 2020 00:00:00 GMT"',
+        "Expiration": 'expiry-date="Fri, 01 May 2020 00:00:00 GMT", expiry-rule="custom-retention-1-weeks"',
         "ContentType": "text/plain",
         "ContentLength": 100,
         "Metadata": {},
@@ -163,12 +163,12 @@ def test_get_document_with_boto_error(store):
 
 def test_get_document_metadata_when_document_is_in_s3(store):
     metadata = store.get_document_metadata("service-id", "document-id", "0f0f0f")
-    assert metadata == {"mimetype": "text/plain", "confirm_email": False, "size": 100}
+    assert metadata == {"mimetype": "text/plain", "confirm_email": False, "size": 100, "available_until": "2020-04-30"}
 
 
 def test_get_document_metadata_when_document_is_in_s3_with_hashed_email(store_with_email):
     metadata = store_with_email.get_document_metadata("service-id", "document-id", "0f0f0f")
-    assert metadata == {"mimetype": "text/plain", "confirm_email": True, "size": 100}
+    assert metadata == {"mimetype": "text/plain", "confirm_email": True, "size": 100, "available_until": "2020-04-30"}
 
 
 def test_get_document_metadata_when_document_is_not_in_s3(store):
@@ -230,8 +230,14 @@ def test_authenticate_with_unexpected_boto_error(store):
 @pytest.mark.parametrize(
     "raw_expiry_rule,expected_date",
     [
-        ('expiry-date="Wed, 26 Oct 2022 00:00:00 GMT", rule-id="remove-old-documents"', date(2022, 10, 25)),
+        # An expiry date in winter time (GMT) - date in GMT ISO 8601 format
         ('expiry-date="Mon, 31 Oct 2022 00:00:00 GMT", rule-id="remove-old-documents"', date(2022, 10, 30)),
+        # An expiry date in summer time (BST) - still sent by AWS in GMT ISO 8601 format.
+        ('expiry-date="Wed, 26 Oct 2022 00:00:00 GMT", rule-id="remove-old-documents"', date(2022, 10, 25)),
+        # Swap the order of the key-value pairs
+        ('rule-id="remove-old-documents", expiry-date="Mon, 31 Oct 2022 00:00:00 GMT"', date(2022, 10, 30)),
+        # Expiry date should handle month borders just fine
+        ('rule-id="remove-old-documents", expiry-date="Tue, 01 Nov 2022 00:00:00 GMT"', date(2022, 10, 31)),
     ],
 )
 def test___convert_expiry_date_to_date_object(raw_expiry_rule, expected_date):

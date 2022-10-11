@@ -97,10 +97,13 @@ class DocumentStore:
                 SSECustomerAlgorithm="AES256",
             )
 
+            expiry_date = self._convert_expiry_date_to_date_object(metadata["Expiration"])
+
             return {
                 "mimetype": metadata["ContentType"],
                 "confirm_email": self.get_email_hash(metadata) is not None,
                 "size": metadata["ContentLength"],
+                "available_until": str(expiry_date),
             }
         except BotoClientError as e:
             if e.response["Error"]["Code"] == "404":
