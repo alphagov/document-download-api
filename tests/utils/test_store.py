@@ -1,4 +1,5 @@
 import uuid
+from datetime import date
 from unittest import mock
 
 import pytest
@@ -224,3 +225,15 @@ def test_authenticate_with_unexpected_boto_error(store):
 
     with pytest.raises(DocumentStoreError):
         store.authenticate("service-id", "document-id", b"0f0f0f", "test@notify.example")
+
+
+@pytest.mark.parametrize(
+    "raw_expiry_rule,expected_date",
+    [
+        ('expiry-date="Wed, 26 Oct 2022 00:00:00 GMT", rule-id="remove-old-documents"', date(2022, 10, 25)),
+        ('expiry-date="Mon, 31 Oct 2022 00:00:00 GMT", rule-id="remove-old-documents"', date(2022, 10, 30)),
+    ],
+)
+def test___convert_expiry_date_to_date_object(raw_expiry_rule, expected_date):
+    result = DocumentStore._convert_expiry_date_to_date_object(raw_expiry_rule)
+    assert result == expected_date

@@ -1,9 +1,12 @@
 import os
+import re
 import uuid
+from datetime import date, timedelta
 from urllib.parse import urlencode
 
 import boto3
 from botocore.exceptions import ClientError as BotoClientError
+from dateutil import parser
 from flask import current_app
 
 from app.utils.hasher import Hasher
@@ -103,6 +106,18 @@ class DocumentStore:
             if e.response["Error"]["Code"] == "404":
                 return None
             raise DocumentStoreError(e.response["Error"])
+
+    @staticmethod
+    def _convert_expiry_date_to_date_object(raw_expiry_date: str) -> date:
+        pattern = re.compile(r'([^=\s]+?)="(.+?)"')
+        expiry_date_as_dict = dict(pattern.findall(raw_expiry_date))
+
+        expiry_date_string = expiry_date_as_dict["expiry-date"]
+
+        expiry_date = parser.parse(expiry_date_string)
+        expiry_date = expiry_date.date() - timedelta(days=1)
+
+        return expiry_date
 
     def generate_encryption_key(self):
         return os.urandom(32)
