@@ -257,7 +257,12 @@ def test_get_document_metadata_document_store_error(client, store):
     ],
 )
 def test_get_document_metadata_when_document_is_in_s3(client, store, mimetype, expected_extension):
-    store.get_document_metadata.return_value = {"mimetype": mimetype, "confirm_email": False, "size": 1024}
+    store.get_document_metadata.return_value = {
+        "mimetype": mimetype,
+        "confirm_email": False,
+        "size": 1024,
+        "available_until": "2020-04-30",
+    }
     response = client.get(
         url_for(
             "download.get_document_metadata",
@@ -282,6 +287,7 @@ def test_get_document_metadata_when_document_is_in_s3(client, store, mimetype, e
             "confirm_email": False,
             "size_in_bytes": 1024,
             "file_extension": expected_extension,
+            "available_until": "2020-04-30",
         }
     }
 
