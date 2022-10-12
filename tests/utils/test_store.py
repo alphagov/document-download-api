@@ -243,3 +243,12 @@ def test_authenticate_with_unexpected_boto_error(store):
 def test___convert_expiry_date_to_date_object(raw_expiry_rule, expected_date):
     result = DocumentStore._convert_expiry_date_to_date_object(raw_expiry_rule)
     assert result == expected_date
+
+
+def test_convert_expiry_date_to_date_object_logs_on_non_gmt_expiration(app, caplog):
+    DocumentStore._convert_expiry_date_to_date_object(
+        'expiry-date="Mon, 31 Oct 2022 00:00:00 EST", rule-id="remove-old-documents"'
+    )
+
+    assert len(caplog.records) == 1
+    assert caplog.records[0].message == "AWS S3 object expiration has unhandled timezone: EST"

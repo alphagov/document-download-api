@@ -117,6 +117,10 @@ class DocumentStore:
 
         expiry_date_string = expiry_date_as_dict["expiry-date"]
 
+        timezone = expiry_date_string.split()[-1]
+        if timezone != "GMT":
+            current_app.logger.warning(f"AWS S3 object expiration has unhandled timezone: {timezone}")
+
         expiry_date = parser.parse(expiry_date_string)
         expiry_date = expiry_date.date() - timedelta(days=1)
 
