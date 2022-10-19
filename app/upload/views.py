@@ -25,7 +25,7 @@ def _get_upload_document_request_data(data):
 
     try:
         raw_content = b64decode(data["document"])
-    except binascii.Error:
+    except (binascii.Error, ValueError):
         raise BadRequest("Document is not base64 encoded")
 
     if len(raw_content) > current_app.config["MAX_CONTENT_LENGTH"]:
