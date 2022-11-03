@@ -2,6 +2,9 @@
 
 schedule: "every two weeks on tuesday"
 
+# Security updates only - not just any newer version
+update: insecure
+
 search: False
 requirements:
   - requirements-app.txt
