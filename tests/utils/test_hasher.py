@@ -1,4 +1,4 @@
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis.strategies import emails
 
 from app.utils.hasher import Hasher
@@ -13,6 +13,7 @@ class TestHasher:
         assert hash.startswith("$argon2id$")
         assert "$m=15360,t=2,p=1$" in hash
 
+    @settings(deadline=None)
     @given(emails())
     def test_hash_verifies_correctly(self, value):
         hasher = Hasher()
