@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask
 from gds_metrics import GDSMetrics
 from notifications_utils import logging, request_helper
@@ -18,7 +20,7 @@ from .upload.views import upload_blueprint  # noqa
 
 def create_app():
     application = Flask("app")
-    application.config.from_object(configs[application.env])
+    application.config.from_object(configs[os.environ["NOTIFY_ENVIRONMENT"]])
 
     request_helper.init_app(application)
     logging.init_app(application)
