@@ -19,7 +19,7 @@ bootstrap: ## install app dependencies
 
 .PHONY: run
 run-flask: ## Run the app locally
-	FLASK_APP=application.py FLASK_ENV=development flask run -p 7000
+	FLASK_APP=application.py FLASK_DEBUG=1 flask run -p 7000
 
 .PHONY: test
 test: ## Run all tests
