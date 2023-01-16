@@ -17,9 +17,17 @@ help:
 bootstrap: ## install app dependencies
 	pip install -r requirements_for_test.txt
 
+.PHONY: bootstrap-with-docker
+bootstrap-with-docker: ## Build the docker image
+	docker build -f docker/Dockerfile -t document-download-api .
+
 .PHONY: run
 run-flask: ## Run the app locally
 	FLASK_APP=application.py FLASK_DEBUG=1 flask run -p 7000
+
+.PHONY: run-flask-with-docker
+run-flask-with-docker: ## Run flask with docker
+	./scripts/run_locally_with_docker.sh
 
 .PHONY: test
 test: ## Run all tests
