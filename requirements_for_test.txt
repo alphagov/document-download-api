@@ -1,9 +1,9 @@
 -r requirements.txt
 
-flake8==5.0.4
+flake8==5.0.4  # Also update `.pre-commit-config.yaml` if this changes
 hypothesis==6.54.4
-isort==5.10.1
-black==22.8.0
+isort==5.12.0  # Also update `.pre-commit-config.yaml` if this changes
+black==22.8.0  # Also update `.pre-commit-config.yaml` if this changes
 
 pytest==7.1.1
 pytest-env==0.6.2
