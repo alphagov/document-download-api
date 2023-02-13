@@ -25,7 +25,7 @@ botocore==1.24.38
     #   s3transfer
 cachetools==4.2.2
     # via notifications-utils
-certifi==2020.12.5
+certifi==2022.12.7
     # via
     #   pyproj
     #   requests
@@ -99,7 +99,7 @@ pycparser==2.21
     # via cffi
 pyparsing==2.4.7
     # via packaging
-pypdf2==1.27.12
+pypdf2==2.10.6
     # via notifications-utils
 pyproj==3.2.1
     # via notifications-utils
@@ -144,6 +144,8 @@ smartypants==2.0.1
     # via notifications-utils
 statsd==3.3.0
     # via notifications-utils
+typing-extensions==4.4.0
+    # via pypdf2
 urllib3==1.26.7
     # via
     #   botocore
