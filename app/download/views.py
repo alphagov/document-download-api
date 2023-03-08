@@ -142,6 +142,12 @@ def get_document_metadata(service_id, document_id):
     response = make_response({"document": document})
     response.headers["X-Robots-Tag"] = "noindex, nofollow"
     response.headers["Referrer-Policy"] = "no-referrer"
+
+    # Max cache duration of 30 minutes as we want to be able to re-check `blocked` tags.
+    # The `blocked` tag will still get checked when trying to download the file so this cache length isn't necessary,
+    # but will help us serve nicer pages on document-download-frontend when we know the file won't be downloadable.
+    response.cache_control.max_age = 1800
+
     return response
 
 
