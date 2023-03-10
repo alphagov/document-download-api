@@ -3,6 +3,7 @@
 
 Flask==2.1.1
 Flask-Env==2.0.0
+werkzeug==2.2.3
 
 python-magic==0.4.25
 rsa>=4.3
