@@ -16,6 +16,10 @@ class DocumentStoreError(Exception):
     pass
 
 
+class DocumentBlocked(Exception):
+    pass
+
+
 class DocumentStore:
     _hasher = Hasher()
 
@@ -25,6 +29,23 @@ class DocumentStore:
 
     def init_app(self, app):
         self.bucket = app.config["DOCUMENTS_BUCKET"]
+
+    def check_for_blocked_document(self, service_id, document_id):
+        """Raises an exception if access to the document has been blocked after creation
+
+        This should be checked before any document access. This might be used to quickly prevent anyone from accessing
+        a file that a service has sent out accidentally.
+
+        Note that the `blocked` tag key MUST be in lowercase.
+        """
+        tags = {
+            item["Key"]: item["Value"]
+            for item in self.s3.get_object_tagging(
+                Bucket=self.bucket, Key=self.get_document_key(service_id, document_id)
+            )["TagSet"]
+        }
+        if tags.get("blocked", "false").lower() in {"true", "yes"}:
+            raise DocumentBlocked("Access to the document has been blocked")
 
     def put(self, service_id, document_stream, *, mimetype, confirmation_email=None, retention_period=None):
         """
@@ -67,6 +88,7 @@ class DocumentStore:
         decryption_key should be raw bytes
         """
         try:
+            self.check_for_blocked_document(service_id, document_id)
             document = self.s3.get_object(
                 Bucket=self.bucket,
                 Key=self.get_document_key(service_id, document_id),
@@ -74,8 +96,10 @@ class DocumentStore:
                 SSECustomerAlgorithm="AES256",
             )
 
+        except DocumentBlocked as e:
+            raise DocumentStoreError("Access to the document has been blocked") from e
         except BotoClientError as e:
-            raise DocumentStoreError(e.response["Error"])
+            raise DocumentStoreError(e.response["Error"]) from e
 
         return {
             "body": document["Body"],
@@ -90,6 +114,7 @@ class DocumentStore:
         """
 
         try:
+            self.check_for_blocked_document(service_id, document_id)
             metadata = self.s3.head_object(
                 Bucket=self.bucket,
                 Key=self.get_document_key(service_id, document_id),
@@ -105,6 +130,8 @@ class DocumentStore:
                 "size": metadata["ContentLength"],
                 "available_until": str(expiry_date),
             }
+        except DocumentBlocked:
+            return None
         except BotoClientError as e:
             if e.response["Error"]["Code"] == "404":
                 return None
@@ -137,17 +164,19 @@ class DocumentStore:
         email_address needs to be in a validated and known-good format before being passed to this method
         """
         try:
+            self.check_for_blocked_document(service_id, document_id)
             response = self.s3.head_object(
                 Bucket=self.bucket,
                 Key=self.get_document_key(service_id, document_id),
                 SSECustomerKey=decryption_key,
                 SSECustomerAlgorithm="AES256",
             )
-
+        except DocumentBlocked:
+            return False
         except BotoClientError as e:
             if e.response["Error"]["Code"] == "404":
                 return False
-            raise DocumentStoreError(e.response["Error"])
+            raise DocumentStoreError(e.response["Error"]) from e
 
         hashed_email = self.get_email_hash(response)
 

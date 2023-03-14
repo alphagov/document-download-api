@@ -5,18 +5,27 @@ from unittest import mock
 import pytest
 from botocore.exceptions import ClientError as BotoClientError
 
-from app.utils.store import DocumentStore, DocumentStoreError
+from app.utils.store import DocumentBlocked, DocumentStore, DocumentStoreError
 from tests.conftest import Matcher, set_config
 
 
 @pytest.fixture
-def store(mocker):
+def mock_boto(mocker):
     mock_boto = mocker.patch("app.utils.store.boto3")
+    return mock_boto
+
+
+@pytest.fixture
+def store(mock_boto):
     mock_boto.client.return_value.get_object.return_value = {
         "Body": mock.Mock(),
         "ContentType": "application/pdf",
         "ContentLength": 100,
         "Metadata": {},
+    }
+    mock_boto.client.return_value.get_object_tagging.return_value = {
+        "VersionId": "1",
+        "TagSet": [],
     }
     mock_boto.client.return_value.head_object.return_value = {
         "ResponseMetadata": {"RequestId": "ABCD"},
@@ -30,8 +39,18 @@ def store(mocker):
 
 
 @pytest.fixture
-def store_with_email(mocker):
-    mock_boto = mocker.patch("app.utils.store.boto3")
+def blocked_document(mock_boto):
+    mock_boto.client.return_value.get_object_tagging.return_value = {
+        "VersionId": "1",
+        "TagSet": [
+            {"Key": "irrelevant", "Value": "Nothing"},
+            {"Key": "blocked", "Value": "true"},
+        ],
+    }
+
+
+@pytest.fixture
+def store_with_email(mock_boto):
     mock_boto.client.return_value.get_object.return_value = {
         "Body": mock.Mock(),
         "ContentType": "application/pdf",
@@ -75,6 +94,36 @@ def test_document_key_with_uuid(store):
     document_id = uuid.uuid4()
 
     assert store.get_document_key(service_id, document_id) == "{}/{}".format(str(service_id), str(document_id))
+
+
+@pytest.mark.parametrize(
+    "blocked_value",
+    (
+        "True",
+        "true",
+        "TRUE",
+        "yes",
+        "YES",
+        pytest.param("no", marks=pytest.mark.xfail),
+        pytest.param("false", marks=pytest.mark.xfail),
+        pytest.param("", marks=pytest.mark.xfail),
+        pytest.param(None, marks=pytest.mark.xfail),
+    ),
+)
+def test_check_for_blocked_document_raises_error(store, mock_boto, blocked_value):
+    tags = [
+        {"Key": "irrelevant", "Value": "Nothing"},
+    ]
+    if blocked_value is not None:
+        tags.append({"Key": "blocked", "Value": blocked_value})
+
+    mock_boto.client.return_value.get_object_tagging.return_value = {
+        "VersionId": "1",
+        "TagSet": tags,
+    }
+
+    with pytest.raises(DocumentBlocked):
+        store.check_for_blocked_document("service-id", "doc-id")
 
 
 def test_put_document(store):
@@ -161,6 +210,13 @@ def test_get_document_with_boto_error(store):
         store.get("service-id", "document-id", "0f0f0f")
 
 
+def test_get_blocked_document(store, blocked_document):
+    with pytest.raises(DocumentStoreError) as e:
+        store.get("service-id", "document-id", bytes(32))
+
+    assert str(e.value) == "Access to the document has been blocked"
+
+
 def test_get_document_metadata_when_document_is_in_s3(store):
     metadata = store.get_document_metadata("service-id", "document-id", "0f0f0f")
     assert metadata == {"mimetype": "text/plain", "confirm_email": False, "size": 100, "available_until": "2020-04-30"}
@@ -186,6 +242,10 @@ def test_get_document_metadata_with_unexpected_boto_error(store):
 
     with pytest.raises(DocumentStoreError):
         store.get_document_metadata("service-id", "document-id", "0f0f0f")
+
+
+def test_get_document_metadata_with_blocked_document(store_with_email, blocked_document):
+    assert store_with_email.get_document_metadata("service-id", "document-id", "0f0f0f") is None
 
 
 def test_authenticate_document_when_missing(store):
@@ -225,6 +285,10 @@ def test_authenticate_with_unexpected_boto_error(store):
 
     with pytest.raises(DocumentStoreError):
         store.authenticate("service-id", "document-id", b"0f0f0f", "test@notify.example")
+
+
+def test_authenticate_with_blocked_document(store, blocked_document):
+    assert store.authenticate("service-id", "document-id", b"0f0f0f", "test@notify.example") is False
 
 
 @pytest.mark.parametrize(
