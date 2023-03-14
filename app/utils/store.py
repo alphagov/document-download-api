@@ -20,6 +20,10 @@ class DocumentBlocked(Exception):
     pass
 
 
+class DocumentExpired(Exception):
+    pass
+
+
 class DocumentStore:
     _hasher = Hasher()
 
@@ -38,12 +42,21 @@ class DocumentStore:
 
         Note that the `blocked` tag key MUST be in lowercase.
         """
-        tags = {
-            item["Key"]: item["Value"]
-            for item in self.s3.get_object_tagging(
-                Bucket=self.bucket, Key=self.get_document_key(service_id, document_id)
-            )["TagSet"]
-        }
+        try:
+            tags = {
+                item["Key"]: item["Value"]
+                for item in self.s3.get_object_tagging(
+                    Bucket=self.bucket, Key=self.get_document_key(service_id, document_id)
+                )["TagSet"]
+            }
+        except BotoClientError as e:
+            if e.response["Error"]["ResourceType"] == "DeleteMarker":
+                # The S3 object has been marked as expired (eg by our retention period lifecycle policy)
+                # We should treat is as not existing
+                raise DocumentExpired("The document is no longer available") from e
+
+            raise e
+
         if tags.get("blocked", "false").lower() in {"true", "yes"}:
             raise DocumentBlocked("Access to the document has been blocked")
 
@@ -96,8 +109,8 @@ class DocumentStore:
                 SSECustomerAlgorithm="AES256",
             )
 
-        except DocumentBlocked as e:
-            raise DocumentStoreError("Access to the document has been blocked") from e
+        except (DocumentBlocked, DocumentExpired) as e:
+            raise DocumentStoreError(str(e)) from e
         except BotoClientError as e:
             raise DocumentStoreError(e.response["Error"]) from e
 
@@ -130,7 +143,7 @@ class DocumentStore:
                 "size": metadata["ContentLength"],
                 "available_until": str(expiry_date),
             }
-        except DocumentBlocked:
+        except (DocumentBlocked, DocumentExpired):
             return None
         except BotoClientError as e:
             if e.response["Error"]["Code"] == "404":
@@ -171,7 +184,7 @@ class DocumentStore:
                 SSECustomerKey=decryption_key,
                 SSECustomerAlgorithm="AES256",
             )
-        except DocumentBlocked:
+        except (DocumentBlocked, DocumentExpired):
             return False
         except BotoClientError as e:
             if e.response["Error"]["Code"] == "404":

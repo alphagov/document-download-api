@@ -2,10 +2,16 @@ import uuid
 from datetime import date
 from unittest import mock
 
+import botocore
 import pytest
 from botocore.exceptions import ClientError as BotoClientError
 
-from app.utils.store import DocumentBlocked, DocumentStore, DocumentStoreError
+from app.utils.store import (
+    DocumentBlocked,
+    DocumentExpired,
+    DocumentStore,
+    DocumentStoreError,
+)
 from tests.conftest import Matcher, set_config
 
 
@@ -22,10 +28,6 @@ def store(mock_boto):
         "ContentType": "application/pdf",
         "ContentLength": 100,
         "Metadata": {},
-    }
-    mock_boto.client.return_value.get_object_tagging.return_value = {
-        "VersionId": "1",
-        "TagSet": [],
     }
     mock_boto.client.return_value.head_object.return_value = {
         "ResponseMetadata": {"RequestId": "ABCD"},
@@ -47,6 +49,21 @@ def blocked_document(mock_boto):
             {"Key": "blocked", "Value": "true"},
         ],
     }
+
+
+@pytest.fixture
+def expired_document(mock_boto):
+    mock_boto.client.return_value.get_object_tagging.side_effect = botocore.exceptions.ClientError(
+        {
+            "Error": {
+                "Code": "MethodNotAllowed",
+                "Message": "The specified method is not allowed against this resource.",
+                "Method": "GET",
+                "ResourceType": "DeleteMarker",
+            }
+        },
+        "GetObjectTagging",
+    )
 
 
 @pytest.fixture
@@ -123,6 +140,11 @@ def test_check_for_blocked_document_raises_error(store, mock_boto, blocked_value
     }
 
     with pytest.raises(DocumentBlocked):
+        store.check_for_blocked_document("service-id", "doc-id")
+
+
+def test_check_for_blocked_document_raises_expired_error(store, expired_document):
+    with pytest.raises(DocumentExpired):
         store.check_for_blocked_document("service-id", "doc-id")
 
 
@@ -217,6 +239,13 @@ def test_get_blocked_document(store, blocked_document):
     assert str(e.value) == "Access to the document has been blocked"
 
 
+def test_get_expired_document(store, expired_document):
+    with pytest.raises(DocumentStoreError) as e:
+        store.get("service-id", "document-id", bytes(32))
+
+    assert str(e.value) == "The document is no longer available"
+
+
 def test_get_document_metadata_when_document_is_in_s3(store):
     metadata = store.get_document_metadata("service-id", "document-id", "0f0f0f")
     assert metadata == {"mimetype": "text/plain", "confirm_email": False, "size": 100, "available_until": "2020-04-30"}
@@ -245,6 +274,10 @@ def test_get_document_metadata_with_unexpected_boto_error(store):
 
 
 def test_get_document_metadata_with_blocked_document(store_with_email, blocked_document):
+    assert store_with_email.get_document_metadata("service-id", "document-id", "0f0f0f") is None
+
+
+def test_get_document_metadata_with_expired_document(store_with_email, expired_document):
     assert store_with_email.get_document_metadata("service-id", "document-id", "0f0f0f") is None
 
 
@@ -288,6 +321,10 @@ def test_authenticate_with_unexpected_boto_error(store):
 
 
 def test_authenticate_with_blocked_document(store, blocked_document):
+    assert store.authenticate("service-id", "document-id", b"0f0f0f", "test@notify.example") is False
+
+
+def test_authenticate_with_expired_document(store, expired_document):
     assert store.authenticate("service-id", "document-id", b"0f0f0f", "test@notify.example") is False
 
 
