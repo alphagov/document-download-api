@@ -67,6 +67,20 @@ def expired_document(mock_boto):
 
 
 @pytest.fixture
+def missing_document(mock_boto):
+    mock_boto.client.return_value.get_object_tagging.side_effect = botocore.exceptions.ClientError(
+        {
+            "Error": {
+                "Code": "NoSuchKey",
+                "Message": "The specified key does not exist.",
+                "Key": "object-key",
+            }
+        },
+        "GetObjectTagging",
+    )
+
+
+@pytest.fixture
 def store_with_email(mock_boto):
     mock_boto.client.return_value.get_object.return_value = {
         "Body": mock.Mock(),
@@ -145,6 +159,11 @@ def test_check_for_blocked_document_raises_error(store, mock_boto, blocked_value
 
 def test_check_for_blocked_document_raises_expired_error(store, expired_document):
     with pytest.raises(DocumentExpired):
+        store.check_for_blocked_document("service-id", "doc-id")
+
+
+def test_check_for_blocked_document_reraises_other_boto_error(store, missing_document):
+    with pytest.raises(BotoClientError):
         store.check_for_blocked_document("service-id", "doc-id")
 
 
