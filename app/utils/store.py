@@ -50,7 +50,7 @@ class DocumentStore:
                 )["TagSet"]
             }
         except BotoClientError as e:
-            if e.response["Error"]["ResourceType"] == "DeleteMarker":
+            if e.response["Error"].get("ResourceType") == "DeleteMarker":
                 # The S3 object has been marked as expired (eg by our retention period lifecycle policy)
                 # We should treat is as not existing
                 raise DocumentExpired("The document is no longer available") from e
