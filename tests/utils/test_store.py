@@ -184,6 +184,7 @@ def test_put_document(store):
         Key=Matcher("document key", lambda x: x.startswith("service-id/") and len(x) == 11 + 36),
         SSECustomerKey=ret["encryption_key"],
         SSECustomerAlgorithm="AES256",
+        Tagging="service-id=service-id",
     )
 
 
@@ -203,6 +204,7 @@ def test_put_document_sends_hashed_recipient_email_to_s3_as_metadata_if_confirma
         SSECustomerKey=ret["encryption_key"],
         SSECustomerAlgorithm="AES256",
         Metadata={"hashed-recipient-email": mock.ANY},
+        Tagging="service-id=service-id",
     )
 
 
@@ -221,7 +223,7 @@ def test_put_document_tags_document_if_retention_period_set(store):
         Key=Matcher("document key", lambda x: x.startswith("service-id/") and len(x) == 11 + 36),
         SSECustomerKey=ret["encryption_key"],
         SSECustomerAlgorithm="AES256",
-        Tagging="retention-period=4+weeks",
+        Tagging="service-id=service-id&retention-period=4+weeks",
     )
 
 

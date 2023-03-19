@@ -77,9 +77,10 @@ class DocumentStore:
             extra_kwargs["Metadata"] = {"hashed-recipient-email": hashed_recipient_email}
             current_app.logger.info(f"Enabling email confirmation flow for {service_id}/{document_id}")
 
+        tags = {"service-id": service_id}
+
         if retention_period:
-            tags = {"retention-period": retention_period}
-            extra_kwargs["Tagging"] = urlencode(tags)
+            tags["retention-period"] = retention_period
             current_app.logger.info(
                 f"Setting custom retention period for {service_id}/{document_id}: {retention_period}"
             )
@@ -91,6 +92,7 @@ class DocumentStore:
             ContentType=mimetype,
             SSECustomerKey=encryption_key,
             SSECustomerAlgorithm="AES256",
+            Tagging=urlencode(tags),
             **extra_kwargs,
         )
 
