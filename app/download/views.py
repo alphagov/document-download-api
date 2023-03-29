@@ -24,6 +24,11 @@ download_blueprint = Blueprint("download", __name__, url_prefix="")
 FILE_TYPES_TO_FORCE_DOWNLOAD_FOR = ["csv", "rtf"]
 
 
+@download_blueprint.route("/services/_status")
+def status():
+    return "ok", 200
+
+
 def get_redirect_url_if_user_not_authenticated(request, document):
     # if document doesn't have hashed email, always allow unauthed access
     if "hashed-recipient-email" not in document["metadata"]:
