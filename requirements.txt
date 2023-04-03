@@ -32,6 +32,7 @@ certifi==2022.12.7
     # via
     #   pyproj
     #   requests
+    #   sentry-sdk
 cffi==1.15.1
     # via argon2-cffi-bindings
 chardet==4.0.0
@@ -137,6 +138,8 @@ s3transfer==0.5.2
     # via
     #   awscli
     #   boto3
+sentry-sdk==1.17.0
+    # via -r requirements.in
 shapely==1.8.1.post1
     # via notifications-utils
 six==1.15.0
@@ -151,10 +154,11 @@ statsd==3.3.0
     # via notifications-utils
 typing-extensions==4.4.0
     # via pypdf2
-urllib3==1.26.7
+urllib3==1.26.15
     # via
     #   botocore
     #   requests
+    #   sentry-sdk
 webencodings==0.5.1
     # via bleach
 werkzeug==2.2.3
