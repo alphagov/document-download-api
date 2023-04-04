@@ -70,7 +70,7 @@ generate-manifest: ## Generate manifest for the app
 
 	@jinja2 --strict manifest.yml.j2 \
 	    -D environment=${CF_SPACE} --format=yaml \
-	    <(${DECRYPT_CMD} ${NOTIFY_CREDENTIALS}/credentials/${CF_SPACE}/document-download/paas-environment.gpg) 2>&1
+		<(${DECRYPT_CMD} ${NOTIFY_CREDENTIALS}/credentials/${CF_SPACE}/paas/environment-variables.gpg) 2>&1
 
 .PHONY: cf-login
 cf-login: ## Log in to Cloud Foundry
