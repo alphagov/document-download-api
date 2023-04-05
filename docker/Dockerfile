@@ -10,6 +10,7 @@ RUN apt-get update \
     libcurl4-openssl-dev \
     libssl-dev \
     libmagic-dev \
+    curl \
     && apt-get -y clean \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
