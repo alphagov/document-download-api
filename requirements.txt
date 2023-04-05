@@ -12,14 +12,17 @@ awscli==1.22.93
     # via awscli-cwlogs
 awscli-cwlogs==1.4.6
     # via -r requirements.in
+awscrt==0.13.8
+    # via botocore
 bleach==4.1.0
     # via notifications-utils
 blinker==1.4
     # via gds-metrics
 boto3==1.21.38
     # via notifications-utils
-botocore==1.24.38
+botocore[crt]==1.24.38
     # via
+    #   -r requirements.in
     #   awscli
     #   boto3
     #   s3transfer
