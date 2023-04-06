@@ -148,7 +148,7 @@ class DocumentStore:
         except BotoClientError as e:
             if e.response["Error"]["Code"] == "404":
                 return None
-            raise DocumentStoreError(e.response["Error"])
+            raise DocumentStoreError(e.response["Error"]) from e
 
     @staticmethod
     def _convert_expiry_date_to_date_object(raw_expiry_date: str) -> date:
