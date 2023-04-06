@@ -25,8 +25,8 @@ def _get_upload_document_request_data(data):
 
     try:
         raw_content = b64decode(data["document"])
-    except (binascii.Error, ValueError):
-        raise BadRequest("Document is not base64 encoded")
+    except (binascii.Error, ValueError) as e:
+        raise BadRequest("Document is not base64 encoded") from e
 
     if len(raw_content) > current_app.config["MAX_CONTENT_LENGTH"]:
         abort(413)
@@ -41,14 +41,14 @@ def _get_upload_document_request_data(data):
         try:
             confirmation_email = clean_and_validate_email_address(confirmation_email)
         except InvalidEmailError as e:
-            raise BadRequest(str(e))
+            raise BadRequest(str(e)) from e
 
     retention_period = data.get("retention_period", None)
     if retention_period is not None:
         try:
             retention_period = clean_and_validate_retention_period(retention_period)
         except ValueError as e:
-            raise BadRequest(str(e))
+            raise BadRequest(str(e)) from e
 
     return file_data, is_csv, confirmation_email, retention_period
 
