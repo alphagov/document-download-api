@@ -31,10 +31,9 @@ run-flask-with-docker: ## Run flask with docker
 
 .PHONY: test
 test: ## Run all tests
-	py.test tests/
-	isort --check-only app tests
-	flake8 .
+	ruff check .
 	black --check .
+	py.test tests/
 
 .PHONY: freeze-requirements
 freeze-requirements: ## create static requirements.txt
