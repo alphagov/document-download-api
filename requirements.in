@@ -22,4 +22,4 @@ git+https://github.com/alphagov/notifications-utils.git@55.1.6
 
 botocore[crt]==1.24.38
 
-sentry_sdk>=1.0.0,<2.0.0
+sentry_sdk[flask]>=1.0.0,<2.0.0
