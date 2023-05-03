@@ -18,7 +18,7 @@ gds-metrics==0.2.4
 
 argon2-cffi==21.3.0
 
-git+https://github.com/alphagov/notifications-utils.git@55.1.6
+notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@62.3.1
 
 botocore[crt]==1.24.38
 

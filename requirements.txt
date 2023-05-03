@@ -16,8 +16,6 @@ awscli-cwlogs==1.4.6
     # via -r requirements.in
 awscrt==0.13.8
     # via botocore
-bleach==4.1.0
-    # via notifications-utils
 blinker==1.4
     # via
     #   gds-metrics
@@ -94,12 +92,10 @@ markupsafe==2.1.1
     #   werkzeug
 mistune==0.8.4
     # via notifications-utils
-notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@55.1.6
+notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@62.3.1
     # via -r requirements.in
 orderedset==2.0.3
     # via notifications-utils
-packaging==20.9
-    # via bleach
 phonenumbers==8.12.22
     # via notifications-utils
 prometheus-client==0.10.1
@@ -108,11 +104,9 @@ pyasn1==0.4.8
     # via rsa
 pycparser==2.21
     # via cffi
-pyparsing==2.4.7
-    # via packaging
 pypdf2==2.10.6
     # via notifications-utils
-pyproj==3.2.1
+pyproj==3.5.0
     # via notifications-utils
 python-dateutil==2.8.1
     # via
@@ -150,7 +144,6 @@ shapely==1.8.1.post1
 six==1.15.0
     # via
     #   awscli-cwlogs
-    #   bleach
     #   eventlet
     #   python-dateutil
 smartypants==2.0.1
@@ -164,8 +157,6 @@ urllib3==1.26.15
     #   botocore
     #   requests
     #   sentry-sdk
-webencodings==0.5.1
-    # via bleach
 werkzeug==2.2.3
     # via
     #   -r requirements.in
