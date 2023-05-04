@@ -6,6 +6,8 @@ NOTIFY_CREDENTIALS ?= ~/.notify-credentials
 CF_APP = document-download-api
 CF_MANIFEST_PATH ?= /tmp/manifest.yml
 
+PYTHON_EXECUTABLE_PREFIX := $(shell test -d "$${VIRTUALENV_ROOT}" && echo "$${VIRTUALENV_ROOT}/bin/" || echo "")
+
 
 ## DEVELOPMENT
 
@@ -39,6 +41,10 @@ test: ## Run all tests
 freeze-requirements: ## create static requirements.txt
 	pip install --upgrade pip-tools
 	pip-compile requirements.in
+
+.PHONY: bump-utils
+bump-utils:  # Bump notifications-utils package to latest version
+	${PYTHON_EXECUTABLE_PREFIX}python -c "from notifications_utils.version_tools import upgrade_version; upgrade_version()"
 
 ## DEPLOYMENT
 
