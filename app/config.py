@@ -34,6 +34,7 @@ class Config(metaclass=MetaFlaskEnv):
     MAX_CONTENT_LENGTH = 2 * 1024 * 1024 + 1024
 
     FRONTEND_HOSTNAME = None
+    FRONTEND_HOSTNAME_INTERNAL = None
 
     NOTIFY_APP_NAME = None
     NOTIFY_LOG_PATH = "application.log"
@@ -44,7 +45,6 @@ class Config(metaclass=MetaFlaskEnv):
     ANTIVIRUS_ENABLED = True
 
     HTTP_SCHEME = "https"
-    FRONTEND_HOSTNAME = None
 
     REDIS_URL = os.getenv("REDIS_URL")
     REDIS_ENABLED = True
@@ -68,6 +68,7 @@ class Test(Config):
     ANTIVIRUS_API_KEY = "test-antivirus-secret"
 
     FRONTEND_HOSTNAME = "document-download-frontend-test"
+    FRONTEND_HOSTNAME_INTERNAL = "document-download-frontend-test"
 
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/1")
     REDIS_ENABLED = os.environ.get("REDIS_ENABLED") == "1"
@@ -87,6 +88,7 @@ class Development(Config):
 
     HTTP_SCHEME = "http"
     FRONTEND_HOSTNAME = "localhost:7001"
+    FRONTEND_HOSTNAME_INTERNAL = "localhost:7001"
 
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/1")
     REDIS_ENABLED = os.environ.get("REDIS_ENABLED") == "1"
