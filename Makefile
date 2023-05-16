@@ -1,4 +1,10 @@
 SHELL := /bin/bash
+DATE = $(shell date +%Y-%m-%d:%H:%M:%S)
+
+APP_VERSION_FILE = app/version.py
+
+GIT_BRANCH ?= $(shell git symbolic-ref --short HEAD 2> /dev/null || echo "detached")
+GIT_COMMIT ?= $(shell git rev-parse HEAD)
 
 CF_API ?= api.cloud.service.gov.uk
 NOTIFY_CREDENTIALS ?= ~/.notify-credentials
@@ -16,11 +22,11 @@ help:
 	@cat $(MAKEFILE_LIST) | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: bootstrap
-bootstrap: ## install app dependencies
+bootstrap: generate-version-file ## install app dependencies
 	pip install -r requirements_for_test.txt
 
 .PHONY: bootstrap-with-docker
-bootstrap-with-docker: ## Build the docker image
+bootstrap-with-docker: generate-version-file ## Build the docker image
 	docker build -f docker/Dockerfile -t document-download-api .
 
 .PHONY: run
@@ -45,6 +51,10 @@ freeze-requirements: ## create static requirements.txt
 .PHONY: bump-utils
 bump-utils:  # Bump notifications-utils package to latest version
 	${PYTHON_EXECUTABLE_PREFIX}python -c "from notifications_utils.version_tools import upgrade_version; upgrade_version()"
+
+.PHONY: generate-version-file
+generate-version-file: ## Generates the app version file
+	@echo -e "__git_commit__ = \"${GIT_COMMIT}\"\n__time__ = \"${DATE}\"" > ${APP_VERSION_FILE}
 
 ## DEPLOYMENT
 
