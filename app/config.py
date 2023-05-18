@@ -33,8 +33,6 @@ class Config(metaclass=MetaFlaskEnv):
 
     MAX_CONTENT_LENGTH = 2 * 1024 * 1024 + 1024
 
-    FRONTEND_HOSTNAME = None
-
     NOTIFY_APP_NAME = None
     NOTIFY_LOG_PATH = "application.log"
 
