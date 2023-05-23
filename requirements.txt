@@ -37,7 +37,7 @@ certifi==2022.12.7
     #   sentry-sdk
 cffi==1.15.1
     # via argon2-cffi-bindings
-chardet==4.0.0
+charset-normalizer==3.1.0
     # via requests
 click==8.1.2
     # via flask
@@ -72,7 +72,7 @@ gunicorn @ git+https://github.com/benoitc/gunicorn.git@1299ea9e967a61ae2edebe191
     # via -r requirements.in
 idna==2.10
     # via requests
-importlib-metadata==4.11.3
+importlib-metadata==6.6.0
     # via flask
 itsdangerous==2.1.2
     # via
@@ -124,7 +124,7 @@ pyyaml==5.4.1
     #   notifications-utils
 redis==4.5.4
     # via flask-redis
-requests==2.25.1
+requests==2.31.0
     # via
     #   awscli-cwlogs
     #   govuk-bank-holidays
@@ -150,7 +150,7 @@ smartypants==2.0.1
     # via notifications-utils
 statsd==3.3.0
     # via notifications-utils
-typing-extensions==4.4.0
+typing-extensions==4.6.0
     # via pypdf2
 urllib3==1.26.15
     # via
@@ -161,7 +161,7 @@ werkzeug==2.2.3
     # via
     #   -r requirements.in
     #   flask
-zipp==3.8.0
+zipp==3.15.0
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
