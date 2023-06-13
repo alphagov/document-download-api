@@ -91,7 +91,9 @@ class Development(Config):
 
 
 class Preview(Config):
-    DOCUMENTS_BUCKET = "preview-document-download"
+    # When running on ECS we set the MULTIREGION_ACCESSPOINT_ARN since we access the bucket
+    # through the multiregion accesspoint
+    DOCUMENTS_BUCKET = os.getenv("MULTIREGION_ACCESSPOINT_ARN", "preview-document-download")
 
 
 class Staging(Config):
