@@ -278,7 +278,7 @@ def test_get_document_metadata_when_document_is_in_s3(client, store, mimetype, e
         "document": {
             "direct_file_url": "".join(
                 [
-                    "http://document-download.test",
+                    "http://document-download-test",
                     "/services/00000000-0000-0000-0000-000000000000",
                     f"/documents/ffffffff-ffff-ffff-ffff-ffffffffffff.{expected_extension}",
                     "?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -415,7 +415,7 @@ class TestAuthenticateDocument:
 
         assert response.status_code == 200
         assert direct_file_url == (
-            "http://document-download.test/"
+            "http://document-download-test/"
             "services/00000000-0000-0000-0000-000000000000/"
             "documents/ffffffff-ffff-ffff-ffff-ffffffffffff.csv"
             "?key=sP09NZwxDwl3DE2j1bj0jCTbBjpeLkGiJ_rq788NWHM"
@@ -499,7 +499,7 @@ class TestGetRedirectUrlIfUserNotAuthenticated:
         redirect = get_redirect_url_if_user_not_authenticated(mock_request, mock_doc_store_get_response)
         assert redirect.location == "".join(
             [
-                "https://document-download-frontend-test",
+                "http://document-download-test",
                 "/d/AAAAAAAAAAAAAAAAAAAAAA",
                 "/_____________________w",
                 "?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -514,7 +514,7 @@ class TestGetRedirectUrlIfUserNotAuthenticated:
         redirect = get_redirect_url_if_user_not_authenticated(mock_request, mock_doc_store_get_response)
         assert redirect.location == "".join(
             [
-                "https://document-download-frontend-test",
+                "http://document-download-test",
                 "/d/AAAAAAAAAAAAAAAAAAAAAA",
                 "/_____________________w",
                 "?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
