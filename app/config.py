@@ -72,6 +72,7 @@ class Test(Config):
 
 
 class Development(Config):
+    SERVER_NAME = os.getenv("SERVER_NAME")
     DEBUG = True
 
     SECRET_KEY = "secret-key"
