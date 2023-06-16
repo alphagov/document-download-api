@@ -1,18 +1,18 @@
 from urllib.parse import urlencode, urlunsplit
 
-from flask import current_app, url_for
+from flask import current_app
 from notifications_utils.base64_uuid import bytes_to_base64, uuid_to_base64
 
 
 def get_direct_file_url(service_id, document_id, key, mimetype):
-    return url_for(
-        "download.download_document",
-        service_id=service_id,
-        document_id=document_id,
-        key=bytes_to_base64(key),
-        extension=current_app.config["ALLOWED_FILE_TYPES"][mimetype],
-        _external=True,
-    )
+    extension = current_app.config["ALLOWED_FILE_TYPES"][mimetype]
+
+    scheme = current_app.config["HTTP_SCHEME"]
+    netloc = current_app.config["FRONTEND_HOSTNAME"]
+    path = f"/services/{service_id}/documents/{document_id}.{extension}"
+    query = urlencode({"key": bytes_to_base64(key)})
+
+    return urlunsplit([scheme, netloc, path, query, None])
 
 
 def get_frontend_download_url(service_id, document_id, key):

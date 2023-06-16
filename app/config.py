@@ -55,7 +55,7 @@ class Test(Config):
     DEBUG = True
 
     # used during tests as a domain name
-    SERVER_NAME = "document-download.test"
+    SERVER_NAME = "document-download-test"
 
     SECRET_KEY = "test-secret"
     AUTH_TOKENS = "test-token:test-token-2"
@@ -65,7 +65,8 @@ class Test(Config):
     ANTIVIRUS_API_HOST = "https://test-antivirus"
     ANTIVIRUS_API_KEY = "test-antivirus-secret"
 
-    FRONTEND_HOSTNAME = "document-download-frontend-test"
+    HTTP_SCHEME = "http"
+    FRONTEND_HOSTNAME = "document-download-test"
 
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/1")
     REDIS_ENABLED = os.environ.get("REDIS_ENABLED") == "1"
