@@ -1,7 +1,7 @@
 -r requirements.txt
 
 black==22.8.0  # Also update `.pre-commit-config.yaml` if this changes
-ruff==0.0.261  # Also update `.pre-commit-config.yaml` if this changes
+ruff==0.0.275  # Also update `.pre-commit-config.yaml` if this changes
 
 hypothesis==6.54.4
 pytest==7.1.1
