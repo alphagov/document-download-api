@@ -75,13 +75,17 @@ class DocumentStore:
         if confirmation_email:
             hashed_recipient_email = self._hasher.hash(confirmation_email)
             extra_kwargs["Metadata"] = {"hashed-recipient-email": hashed_recipient_email}
-            current_app.logger.info(f"Enabling email confirmation flow for {service_id}/{document_id}")
+            current_app.logger.info(
+                "Enabling email confirmation flow for %(service_id)s/%(document_id)s",
+                dict(service_id=service_id, document_id=document_id),
+            )
 
         if retention_period:
             tags = {"retention-period": retention_period}
             extra_kwargs["Tagging"] = urlencode(tags)
             current_app.logger.info(
-                f"Setting custom retention period for {service_id}/{document_id}: {retention_period}"
+                "Setting custom retention period for %(service_id)s/%(document_id)s: %(retention_period)s",
+                dict(service_id=service_id, document_id=document_id, retention_period=retention_period),
             )
 
         self.s3.put_object(
@@ -159,7 +163,7 @@ class DocumentStore:
 
         timezone = expiry_date_string.split()[-1]
         if timezone != "GMT":
-            current_app.logger.warning(f"AWS S3 object expiration has unhandled timezone: {timezone}")
+            current_app.logger.warning("AWS S3 object expiration has unhandled timezone: %s", timezone)
 
         expiry_date = parser.parse(expiry_date_string)
         expiry_date = expiry_date.date() - timedelta(days=1)

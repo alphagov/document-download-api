@@ -44,7 +44,7 @@ def get_redirect_url_if_user_not_authenticated(request, document):
 
     url = get_frontend_download_url(service_id, document_id, base64_to_bytes(request.args["key"]))
 
-    current_app.logger.warning(f"could not verify cookie for service {service_id} document {document_id}")
+    current_app.logger.warning("could not verify cookie for service %s document %s", service_id, document_id)
     return redirect(url)
 
 
@@ -68,7 +68,8 @@ def download_document(service_id, document_id, extension=None):
         document = document_store.get(service_id, document_id, key)
     except DocumentStoreError as e:
         current_app.logger.info(
-            "Failed to download document: {}".format(e),
+            "Failed to download document: %s",
+            e,
             extra={
                 "service_id": service_id,
                 "document_id": document_id,
@@ -120,7 +121,8 @@ def get_document_metadata(service_id, document_id):
         metadata = document_store.get_document_metadata(service_id, document_id, key)
     except DocumentStoreError as e:
         current_app.logger.warning(
-            "Failed to get document metadata: {}".format(e),
+            "Failed to get document metadata: %s",
+            e,
             extra={
                 "service_id": service_id,
                 "document_id": document_id,
