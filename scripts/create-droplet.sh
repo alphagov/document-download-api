@@ -4,8 +4,12 @@ set -eux
 
 CF_SPACE=${CF_SPACE:-monitoring}
 
-[[ ! -f ./.git/short_ref ]] && $(git rev-parse --short HEAD) > ./.git/short_ref
-GIT_REF=$(cat .git/short_ref)
+
+if [[ -f .git/short_ref ]]; then
+  GIT_REF=$(cat .git/short_ref)
+else
+  GIT_REF=$(git rev-parse --short HEAD)
+fi
 DROPLET_BUILD_APP="droplet-build-document-download-api-${GIT_REF}"
 
 echo "Creating ${DROPLET_BUILD_APP} in ${CF_SPACE}"
