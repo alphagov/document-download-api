@@ -19,7 +19,7 @@ applications:
     - route: document-download-api-{{ environment }}.cloudapps.digital
     - route: {{ hostname }}/services
     {% if environment == "preview" %}
-    #- route: download.{{ hostname }}
+    - route: download.{{ hostname }}
     {% endif %}
 
   services:
