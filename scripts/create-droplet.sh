@@ -10,7 +10,7 @@ if [[ -f .git/short_ref ]]; then
 else
   GIT_REF=$(git rev-parse --short HEAD)
 fi
-DROPLET_BUILD_APP="droplet-build-document-download-frontend-${GIT_REF}"
+DROPLET_BUILD_APP="droplet-build-document-download-api-${GIT_REF}"
 
 echo "Creating ${DROPLET_BUILD_APP} in ${CF_SPACE}"
 cf target -s ${CF_SPACE}
@@ -29,4 +29,4 @@ DROPLET_GUID=$(cf curl /v3/apps/$(cf app ${DROPLET_BUILD_APP} --guid)/droplets |
 echo "Created droplet ${DROPLET_GUID}"
 
 CURRENT_TIME=$(date '+%Y-%m-%dT%H-%M-%SZ')
-echo $DROPLET_GUID > document-download-frontend-droplet-guid-${CURRENT_TIME}-${GIT_REF}.txt
+echo $DROPLET_GUID > document-download-api-droplet-guid-${CURRENT_TIME}-${GIT_REF}.txt
