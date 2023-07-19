@@ -10,19 +10,19 @@ argon2-cffi-bindings==21.2.0
     # via argon2-cffi
 async-timeout==4.0.2
     # via redis
-awscli==1.22.93
+awscli==1.29.7
     # via awscli-cwlogs
 awscli-cwlogs==1.4.6
     # via -r requirements.in
-awscrt==0.13.8
+awscrt==0.16.26
     # via botocore
 blinker==1.4
     # via
     #   gds-metrics
     #   sentry-sdk
-boto3==1.21.38
+boto3==1.28.5
     # via notifications-utils
-botocore[crt]==1.24.38
+botocore[crt]==1.31.7
     # via
     #   -r requirements.in
     #   awscli
@@ -118,7 +118,7 @@ python-magic==0.4.25
     # via -r requirements.in
 pytz==2021.1
     # via notifications-utils
-pyyaml==5.4.1
+pyyaml==6.0.1
     # via
     #   awscli
     #   notifications-utils
@@ -133,7 +133,7 @@ rsa==4.7.2
     # via
     #   -r requirements.in
     #   awscli
-s3transfer==0.5.2
+s3transfer==0.6.1
     # via
     #   awscli
     #   boto3
