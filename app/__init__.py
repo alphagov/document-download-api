@@ -9,6 +9,8 @@ from app.config import configs
 from app.utils.antivirus import AntivirusClient
 from app.utils.store import DocumentStore
 
+from .openapi import NotifyValidationError
+
 document_store = DocumentStore()  # noqa, has to be imported before views
 antivirus_client = AntivirusClient()  # noqa
 metrics = GDSMetrics()  # noqa
@@ -51,5 +53,12 @@ def create_app():
 
     application.register_api(download_blueprint)
     application.register_api(upload_blueprint)
+
+    @application.errorhandler(NotifyValidationError)
+    def notify_error_handler(error: NotifyValidationError):
+        # We override pydantic's native validation errors with our custom one so that we can return a 400 instead of
+        # a 422, which is what flask-openapi3 returns. We don't have this behaviour on Notify and so 400 is more
+        # consistent with what we would expect.
+        return error.validation_error.json(), 400, {"content-type": "application/json"}
 
     return application

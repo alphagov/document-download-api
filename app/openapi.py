@@ -2,32 +2,46 @@ import uuid
 from typing import Optional
 
 from flask_openapi3 import Tag
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
 healthcheck_tag = Tag(name="healthcheck")
 download_tag = Tag(name="download")
 upload_tag = Tag(name="upload")
 
 
-class DownloadPath(BaseModel):
+class NotifyValidationError(Exception):
+    def __init__(self, validation_error, *args, **kwargs):
+        self.validation_error = validation_error
+        super().__init__(*args, **kwargs)
+
+
+class CustomErrorBaseModel(BaseModel):
+    def __init__(self, **kwargs):
+        try:
+            super().__init__(**kwargs)
+        except ValidationError as e:
+            raise NotifyValidationError(e) from e
+
+
+class DownloadPath(CustomErrorBaseModel):
     service_id: uuid.UUID = Field(description="The service UUID")
     document_id: uuid.UUID = Field(description="The document UUID")
 
 
-class DownloadQuery(BaseModel):
-    base64_key: Optional[str] = Field(alias="key", description="The encryption key protecting the document")
+class DownloadQuery(CustomErrorBaseModel):
+    base64_key: str = Field(alias="key", description="The encryption key protecting the document")
 
 
-class DownloadBody(BaseModel):
-    base64_key: Optional[str] = Field(alias="key", description="The encryption key protecting the document")
-    email_address: Optional[str] = Field(description="The email address associated with the document on upload")
+class DownloadBody(CustomErrorBaseModel):
+    base64_key: str = Field(alias="key", description="The encryption key protecting the document")
+    email_address: str = Field(description="The email address associated with the document on upload")
 
 
-class UploadPath(BaseModel):
+class UploadPath(CustomErrorBaseModel):
     service_id: uuid.UUID = Field(description="The service UUID")
 
 
-class UploadJson(BaseModel):
+class UploadJson(CustomErrorBaseModel):
     base64_document: str = Field(alias="document", description="Base64-encoded file to store")
     is_csv: Optional[bool] = Field(description="Is the file a CSV?")
     confirmation_email: Optional[str] = Field(
