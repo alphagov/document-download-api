@@ -22,9 +22,6 @@ upload_blueprint.before_request(check_auth)
 
 
 def _get_upload_document_request_data(data: UploadJson):
-    if data.base64_document is None:
-        raise BadRequest("No document upload")
-
     try:
         raw_content = b64decode(data.base64_document)
     except (binascii.Error, ValueError) as e:

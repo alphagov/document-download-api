@@ -1,5 +1,6 @@
 import os
 
+from flask import jsonify
 from flask_openapi3 import Info, OpenAPI
 from gds_metrics import GDSMetrics
 from notifications_utils import logging, request_helper
@@ -59,6 +60,9 @@ def create_app():
         # We override pydantic's native validation errors with our custom one so that we can return a 400 instead of
         # a 422, which is what flask-openapi3 returns. We don't have this behaviour on Notify and so 400 is more
         # consistent with what we would expect.
-        return error.validation_error.json(), 400, {"content-type": "application/json"}
+        if error.override_message:
+            return jsonify(error=error.override_message), 400
+
+        return error.original_error.json(), 400
 
     return application

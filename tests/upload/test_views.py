@@ -304,11 +304,8 @@ def test_document_upload_bad_is_csv_value(client):
 @pytest.mark.parametrize(
     "data, expected_error",
     (
-        ({}, "No document upload"),
         ({"document": "foo"}, "Document is not base64 encoded"),
         ({"document": "😇"}, "Document is not base64 encoded"),
-        ({"document": "YQoxLAo=", "is_csv": 1}, "Value for is_csv must be a boolean"),
-        ({"document": "YQoxLAo=", "confirmation_email": True}, "Confirmation email must be a string."),
         ({"document": "YQoxLAo=", "confirmation_email": "sam@foo"}, "Not a valid email address"),
         (
             {"document": "YQoxLAo=", "retention_period": True},
