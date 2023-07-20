@@ -2,8 +2,8 @@ import base64
 from pathlib import Path
 
 import pytest
-from werkzeug.exceptions import BadRequest
 
+from app.openapi import UploadJson
 from app.upload.views import _get_upload_document_request_data
 from app.utils.antivirus import AntivirusError
 
@@ -321,7 +321,7 @@ def test_document_upload_bad_is_csv_value(client):
     ),
 )
 def test_get_upload_document_request_data_errors(app, data, expected_error):
-    with pytest.raises(BadRequest) as e:
-        _get_upload_document_request_data(data)
+    with pytest.raises(Exception) as e:
+        _get_upload_document_request_data(UploadJson(**data))
 
     assert e.value.description == expected_error

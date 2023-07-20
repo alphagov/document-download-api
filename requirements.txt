@@ -52,11 +52,14 @@ eventlet==0.33.0
 flask==2.2.5
     # via
     #   -r requirements.in
+    #   flask-openapi3
     #   flask-redis
     #   gds-metrics
     #   notifications-utils
     #   sentry-sdk
 flask-env==2.0.0
+    # via -r requirements.in
+flask-openapi3==2.4.0
     # via -r requirements.in
 flask-redis==0.4.0
     # via notifications-utils
@@ -106,6 +109,8 @@ pyasn1==0.4.8
     # via rsa
 pycparser==2.21
     # via cffi
+pydantic==1.10.11
+    # via flask-openapi3
 pypdf==3.13.0
     # via notifications-utils
 pyproj==3.5.0
@@ -155,7 +160,9 @@ smartypants==2.0.1
 statsd==3.3.0
     # via notifications-utils
 typing-extensions==4.7.1
-    # via pypdf
+    # via
+    #   pydantic
+    #   pypdf
 urllib3==1.26.15
     # via
     #   botocore
