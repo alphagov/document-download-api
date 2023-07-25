@@ -92,7 +92,7 @@ markupsafe==2.1.1
     #   werkzeug
 mistune==0.8.4
     # via notifications-utils
-notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@65.0.0
+notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@66.0.0
     # via -r requirements.in
 orderedset==2.0.3
     # via notifications-utils
@@ -104,7 +104,7 @@ pyasn1==0.4.8
     # via rsa
 pycparser==2.21
     # via cffi
-pypdf2==2.10.6
+pypdf==3.13.0
     # via notifications-utils
 pyproj==3.5.0
     # via notifications-utils
@@ -137,6 +137,8 @@ s3transfer==0.6.1
     # via
     #   awscli
     #   boto3
+segno==1.5.2
+    # via notifications-utils
 sentry-sdk[flask]==1.21.1
     # via -r requirements.in
 shapely==1.8.1.post1
@@ -151,7 +153,7 @@ smartypants==2.0.1
 statsd==3.3.0
     # via notifications-utils
 typing-extensions==4.7.1
-    # via pypdf2
+    # via pypdf
 urllib3==1.26.15
     # via
     #   botocore
