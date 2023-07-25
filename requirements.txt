@@ -68,7 +68,7 @@ govuk-bank-holidays==0.11
     # via notifications-utils
 greenlet==1.0.0
     # via eventlet
-gunicorn @ git+https://github.com/benoitc/gunicorn.git@1299ea9e967a61ae2edebe191082fd169b864c64
+gunicorn[eventlet]==21.2.0
     # via -r requirements.in
 idna==2.10
     # via requests
@@ -96,6 +96,8 @@ notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@66
     # via -r requirements.in
 orderedset==2.0.3
     # via notifications-utils
+packaging==23.1
+    # via gunicorn
 phonenumbers==8.12.22
     # via notifications-utils
 prometheus-client==0.10.1
@@ -165,6 +167,3 @@ werkzeug==2.2.3
     #   flask
 zipp==3.16.1
     # via importlib-metadata
-
-# The following packages are considered to be unsafe in a requirements file:
-# setuptools
