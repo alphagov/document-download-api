@@ -68,7 +68,7 @@ govuk-bank-holidays==0.11
     # via notifications-utils
 greenlet==1.0.0
     # via eventlet
-gunicorn @ git+https://github.com/benoitc/gunicorn.git@1299ea9e967a61ae2edebe191082fd169b864c64
+gunicorn[eventlet]==21.2.0
     # via -r requirements.in
 idna==2.10
     # via requests
@@ -92,10 +92,12 @@ markupsafe==2.1.1
     #   werkzeug
 mistune==0.8.4
     # via notifications-utils
-notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@65.0.0
+notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@66.0.0
     # via -r requirements.in
 orderedset==2.0.3
     # via notifications-utils
+packaging==23.1
+    # via gunicorn
 phonenumbers==8.12.22
     # via notifications-utils
 prometheus-client==0.10.1
@@ -104,7 +106,7 @@ pyasn1==0.4.8
     # via rsa
 pycparser==2.21
     # via cffi
-pypdf2==2.10.6
+pypdf==3.13.0
     # via notifications-utils
 pyproj==3.5.0
     # via notifications-utils
@@ -137,6 +139,8 @@ s3transfer==0.6.1
     # via
     #   awscli
     #   boto3
+segno==1.5.2
+    # via notifications-utils
 sentry-sdk[flask]==1.21.1
     # via -r requirements.in
 shapely==1.8.1.post1
@@ -151,7 +155,7 @@ smartypants==2.0.1
 statsd==3.3.0
     # via notifications-utils
 typing-extensions==4.7.1
-    # via pypdf2
+    # via pypdf
 urllib3==1.26.15
     # via
     #   botocore
@@ -163,6 +167,3 @@ werkzeug==2.2.3
     #   flask
 zipp==3.16.1
     # via importlib-metadata
-
-# The following packages are considered to be unsafe in a requirements file:
-# setuptools
