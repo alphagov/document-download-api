@@ -18,9 +18,7 @@ applications:
   routes:
     - route: document-download-api-{{ environment }}.cloudapps.digital
     - route: {{ hostname }}/services
-    {% if environment == "preview" %}
-    #- route: download.{{ hostname }}
-    {% endif %}
+    - route: download.{{ hostname }}
 
   services:
     - logit-ssl-syslog-drain
