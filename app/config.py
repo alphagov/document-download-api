@@ -11,6 +11,7 @@ if os.environ.get("VCAP_SERVICES"):
 
 
 class Config(metaclass=MetaFlaskEnv):
+    SERVER_NAME = os.getenv("SERVER_NAME")
     DEBUG = False
 
     SECRET_KEY = os.environ.get("SECRET_KEY")
@@ -72,7 +73,6 @@ class Test(Config):
 
 
 class Development(Config):
-    SERVER_NAME = os.getenv("SERVER_NAME")
     DEBUG = True
 
     SECRET_KEY = "secret-key"
