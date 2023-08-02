@@ -499,7 +499,7 @@ class TestGetRedirectUrlIfUserNotAuthenticated:
         redirect = get_redirect_url_if_user_not_authenticated(mock_request, mock_doc_store_get_response)
         assert redirect.location == "".join(
             [
-                "https://document-download-frontend-test",
+                "http://document-download-frontend-test",
                 "/d/AAAAAAAAAAAAAAAAAAAAAA",
                 "/_____________________w",
                 "?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -514,7 +514,7 @@ class TestGetRedirectUrlIfUserNotAuthenticated:
         redirect = get_redirect_url_if_user_not_authenticated(mock_request, mock_doc_store_get_response)
         assert redirect.location == "".join(
             [
-                "https://document-download-frontend-test",
+                "http://document-download-frontend-test",
                 "/d/AAAAAAAAAAAAAAAAAAAAAA",
                 "/_____________________w",
                 "?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",

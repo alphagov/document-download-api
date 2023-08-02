@@ -66,6 +66,7 @@ class Test(Config):
     ANTIVIRUS_API_HOST = "https://test-antivirus"
     ANTIVIRUS_API_KEY = "test-antivirus-secret"
 
+    HTTP_SCHEME = "http"
     FRONTEND_HOSTNAME = "document-download-frontend-test"
 
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/1")

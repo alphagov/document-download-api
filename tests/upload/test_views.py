@@ -55,7 +55,7 @@ def test_document_upload_returns_link_to_frontend(client, store, antivirus):
             "id": "ffffffff-ffff-ffff-ffff-ffffffffffff",
             "url": "".join(
                 [
-                    "https://document-download-frontend-test",
+                    "http://document-download-frontend-test",
                     "/d/AAAAAAAAAAAAAAAAAAAAAA",
                     "/_____________________w",
                     "?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -266,7 +266,7 @@ def test_document_upload_csv_handling(
             "id": "ffffffff-ffff-ffff-ffff-ffffffffffff",
             "url": "".join(
                 [
-                    "https://document-download-frontend-test",
+                    "http://document-download-frontend-test",
                     "/d/AAAAAAAAAAAAAAAAAAAAAA",
                     "/_____________________w",
                     "?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
