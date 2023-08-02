@@ -44,6 +44,7 @@ class Config(metaclass=MetaFlaskEnv):
 
     HTTP_SCHEME = "https"
     FRONTEND_HOSTNAME = None
+    DOCUMENT_DOWNLOAD_API_HOSTNAME = None
 
     REDIS_URL = os.getenv("REDIS_URL")
     REDIS_ENABLED = True
@@ -68,6 +69,7 @@ class Test(Config):
 
     HTTP_SCHEME = "http"
     FRONTEND_HOSTNAME = "document-download-frontend-test"
+    DOCUMENT_DOWNLOAD_API_HOSTNAME = "download.document-download-frontend-test"
 
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/1")
     REDIS_ENABLED = os.environ.get("REDIS_ENABLED") == "1"
@@ -87,6 +89,7 @@ class Development(Config):
 
     HTTP_SCHEME = "http"
     FRONTEND_HOSTNAME = "localhost:7001"
+    DOCUMENT_DOWNLOAD_API_HOSTNAME = "localhost:7000"
 
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/1")
     REDIS_ENABLED = os.environ.get("REDIS_ENABLED") == "1"
