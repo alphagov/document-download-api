@@ -57,7 +57,7 @@ class Test(Config):
     DEBUG = True
 
     # used during tests as a domain name
-    SERVER_NAME = "document-download.test"
+    SERVER_NAME = "download.document-download-frontend-test"
 
     SECRET_KEY = "test-secret"
     AUTH_TOKENS = "test-token:test-token-2"

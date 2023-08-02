@@ -21,7 +21,7 @@ def test_get_direct_file_url_gets_local_url_without_compressing_uuids(app):
         document_id=UUID(int=1),
         key=SAMPLE_KEY,
         mimetype="text/plain",
-    ) == "http://document-download.test/services/{}/documents/{}.{}?key={}".format(
+    ) == "http://download.document-download-frontend-test/services/{}/documents/{}.{}?key={}".format(
         "00000000-0000-0000-0000-000000000000",
         "00000000-0000-0000-0000-000000000001",
         "txt",
