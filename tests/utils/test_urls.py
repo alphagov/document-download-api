@@ -15,7 +15,7 @@ def test_get_frontend_download_url_returns_frontend_url(app):
     )
 
 
-def test_get_direct_file_url_gets_local_url_without_compressing_uuids(app):
+def test_get_direct_file_url_gets_local_url_without_compressing_uuids(client):
     assert get_direct_file_url(
         service_id=UUID(int=0),
         document_id=UUID(int=1),

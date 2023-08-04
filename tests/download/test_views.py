@@ -466,16 +466,15 @@ class TestGetRedirectUrlIfUserNotAuthenticated:
         }
 
     @pytest.fixture
-    def mock_request(self, app, mocker):
-        with app.test_request_context():
-            mock_request = mocker.patch("app.download.views.request")
-            mock_request.view_args = {
-                "service_id": "00000000-0000-0000-0000-000000000000",
-                "document_id": "ffffffff-ffff-ffff-ffff-ffffffffffff",
-            }
-            mock_request.args = {"key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}
-            mock_request.cookies = {"document_access_signed_data": "foo bar baz"}
-            yield mock_request
+    def mock_request(self, client, mocker):
+        mock_request = mocker.patch("app.download.views.request")
+        mock_request.view_args = {
+            "service_id": "00000000-0000-0000-0000-000000000000",
+            "document_id": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+        }
+        mock_request.args = {"key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}
+        mock_request.cookies = {"document_access_signed_data": "foo bar baz"}
+        yield mock_request
 
     def test_it_returns_none_if_document_not_secured(self, mocker, mock_request, mock_doc_store_get_response):
         mock_verify = mocker.patch("app.download.views.verify_signed_service_and_document_id")

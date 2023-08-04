@@ -56,9 +56,6 @@ class Config(metaclass=MetaFlaskEnv):
 class Test(Config):
     DEBUG = True
 
-    # used during tests as a domain name
-    SERVER_NAME = "download.document-download-frontend-test"
-
     SECRET_KEY = "test-secret"
     AUTH_TOKENS = "test-token:test-token-2"
 
@@ -69,7 +66,7 @@ class Test(Config):
 
     HTTP_SCHEME = "http"
     FRONTEND_HOSTNAME = "document-download-frontend-test"
-    DOCUMENT_DOWNLOAD_API_HOSTNAME = "download.document-download-frontend-test"
+    DOCUMENT_DOWNLOAD_API_HOSTNAME = f"download.{FRONTEND_HOSTNAME}"
 
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/1")
     REDIS_ENABLED = os.environ.get("REDIS_ENABLED") == "1"
