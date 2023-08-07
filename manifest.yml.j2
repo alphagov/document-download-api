@@ -29,6 +29,7 @@ applications:
     NOTIFY_ENVIRONMENT: {{ environment }}
 
     FRONTEND_HOSTNAME: {{ hostname }}
+    DOCUMENT_DOWNLOAD_API_HOSTNAME: download.{{ hostname }}
 
     NOTIFY_APP_NAME: document-download-api
     NOTIFY_LOG_PATH: /home/vcap/logs/app.log

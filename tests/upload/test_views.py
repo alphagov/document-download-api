@@ -55,7 +55,7 @@ def test_document_upload_returns_link_to_frontend(client, store, antivirus):
             "id": "ffffffff-ffff-ffff-ffff-ffffffffffff",
             "url": "".join(
                 [
-                    "https://document-download-frontend-test",
+                    "http://document-download-frontend-test",
                     "/d/AAAAAAAAAAAAAAAAAAAAAA",
                     "/_____________________w",
                     "?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -63,7 +63,7 @@ def test_document_upload_returns_link_to_frontend(client, store, antivirus):
             ),
             "direct_file_url": "".join(
                 [
-                    "http://document-download.test",
+                    "http://download.document-download-frontend-test",
                     "/services/00000000-0000-0000-0000-000000000000",
                     "/documents/ffffffff-ffff-ffff-ffff-ffffffffffff.pdf",
                     "?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -266,7 +266,7 @@ def test_document_upload_csv_handling(
             "id": "ffffffff-ffff-ffff-ffff-ffffffffffff",
             "url": "".join(
                 [
-                    "https://document-download-frontend-test",
+                    "http://document-download-frontend-test",
                     "/d/AAAAAAAAAAAAAAAAAAAAAA",
                     "/_____________________w",
                     "?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -275,7 +275,7 @@ def test_document_upload_csv_handling(
             "mimetype": expected_mimetype,
             "direct_file_url": "".join(
                 [
-                    "http://document-download.test",
+                    "http://download.document-download-frontend-test",
                     "/services/00000000-0000-0000-0000-000000000000",
                     "/documents/ffffffff-ffff-ffff-ffff-ffffffffffff",
                     f'.{app.config["ALLOWED_FILE_TYPES"][expected_mimetype]}',

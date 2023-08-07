@@ -44,6 +44,7 @@ class Config(metaclass=MetaFlaskEnv):
 
     HTTP_SCHEME = "https"
     FRONTEND_HOSTNAME = None
+    DOCUMENT_DOWNLOAD_API_HOSTNAME = None
 
     REDIS_URL = os.getenv("REDIS_URL")
     REDIS_ENABLED = True
@@ -55,9 +56,6 @@ class Config(metaclass=MetaFlaskEnv):
 class Test(Config):
     DEBUG = True
 
-    # used during tests as a domain name
-    SERVER_NAME = "document-download.test"
-
     SECRET_KEY = "test-secret"
     AUTH_TOKENS = "test-token:test-token-2"
 
@@ -66,7 +64,9 @@ class Test(Config):
     ANTIVIRUS_API_HOST = "https://test-antivirus"
     ANTIVIRUS_API_KEY = "test-antivirus-secret"
 
+    HTTP_SCHEME = "http"
     FRONTEND_HOSTNAME = "document-download-frontend-test"
+    DOCUMENT_DOWNLOAD_API_HOSTNAME = f"download.{FRONTEND_HOSTNAME}"
 
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/1")
     REDIS_ENABLED = os.environ.get("REDIS_ENABLED") == "1"
@@ -86,6 +86,7 @@ class Development(Config):
 
     HTTP_SCHEME = "http"
     FRONTEND_HOSTNAME = "localhost:7001"
+    DOCUMENT_DOWNLOAD_API_HOSTNAME = "localhost:7000"
 
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/1")
     REDIS_ENABLED = os.environ.get("REDIS_ENABLED") == "1"

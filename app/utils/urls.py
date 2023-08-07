@@ -5,14 +5,16 @@ from notifications_utils.base64_uuid import bytes_to_base64, uuid_to_base64
 
 
 def get_direct_file_url(service_id, document_id, key, mimetype):
-    return url_for(
+    path = url_for(
         "download.download_document",
         service_id=service_id,
         document_id=document_id,
         key=bytes_to_base64(key),
         extension=current_app.config["ALLOWED_FILE_TYPES"][mimetype],
-        _external=True,
+        _external=False,
     )
+
+    return f"{current_app.config['HTTP_SCHEME']}://{current_app.config['DOCUMENT_DOWNLOAD_API_HOSTNAME']}{path}"
 
 
 def get_frontend_download_url(service_id, document_id, key):

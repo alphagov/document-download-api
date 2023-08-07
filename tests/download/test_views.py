@@ -278,7 +278,7 @@ def test_get_document_metadata_when_document_is_in_s3(client, store, mimetype, e
         "document": {
             "direct_file_url": "".join(
                 [
-                    "http://document-download.test",
+                    "http://download.document-download-frontend-test",
                     "/services/00000000-0000-0000-0000-000000000000",
                     f"/documents/ffffffff-ffff-ffff-ffff-ffffffffffff.{expected_extension}",
                     "?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -415,7 +415,7 @@ class TestAuthenticateDocument:
 
         assert response.status_code == 200
         assert direct_file_url == (
-            "http://document-download.test/"
+            "http://download.document-download-frontend-test/"
             "services/00000000-0000-0000-0000-000000000000/"
             "documents/ffffffff-ffff-ffff-ffff-ffffffffffff.csv"
             "?key=sP09NZwxDwl3DE2j1bj0jCTbBjpeLkGiJ_rq788NWHM"
@@ -466,16 +466,15 @@ class TestGetRedirectUrlIfUserNotAuthenticated:
         }
 
     @pytest.fixture
-    def mock_request(self, app, mocker):
-        with app.test_request_context():
-            mock_request = mocker.patch("app.download.views.request")
-            mock_request.view_args = {
-                "service_id": "00000000-0000-0000-0000-000000000000",
-                "document_id": "ffffffff-ffff-ffff-ffff-ffffffffffff",
-            }
-            mock_request.args = {"key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}
-            mock_request.cookies = {"document_access_signed_data": "foo bar baz"}
-            yield mock_request
+    def mock_request(self, client, mocker):
+        mock_request = mocker.patch("app.download.views.request")
+        mock_request.view_args = {
+            "service_id": "00000000-0000-0000-0000-000000000000",
+            "document_id": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+        }
+        mock_request.args = {"key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"}
+        mock_request.cookies = {"document_access_signed_data": "foo bar baz"}
+        yield mock_request
 
     def test_it_returns_none_if_document_not_secured(self, mocker, mock_request, mock_doc_store_get_response):
         mock_verify = mocker.patch("app.download.views.verify_signed_service_and_document_id")
@@ -499,7 +498,7 @@ class TestGetRedirectUrlIfUserNotAuthenticated:
         redirect = get_redirect_url_if_user_not_authenticated(mock_request, mock_doc_store_get_response)
         assert redirect.location == "".join(
             [
-                "https://document-download-frontend-test",
+                "http://document-download-frontend-test",
                 "/d/AAAAAAAAAAAAAAAAAAAAAA",
                 "/_____________________w",
                 "?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
@@ -514,7 +513,7 @@ class TestGetRedirectUrlIfUserNotAuthenticated:
         redirect = get_redirect_url_if_user_not_authenticated(mock_request, mock_doc_store_get_response)
         assert redirect.location == "".join(
             [
-                "https://document-download-frontend-test",
+                "http://document-download-frontend-test",
                 "/d/AAAAAAAAAAAAAAAAAAAAAA",
                 "/_____________________w",
                 "?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
