@@ -2,16 +2,16 @@ import os
 import socket
 
 import eventlet
+import gunicorn
 from gds_metrics.gunicorn import child_exit  # noqa
 
-bind = "0.0.0.0:{}".format(os.getenv("PORT"))
-
 workers = 4
-
 worker_class = "eventlet"
 worker_connections = 1000
-
+bind = "0.0.0.0:{}".format(os.getenv("PORT"))
 errorlog = "/home/vcap/logs/gunicorn_error.log"
+gunicorn.SERVER_SOFTWARE = "None"
+keepalive = 90
 
 
 def fix_ssl_monkeypatching():
