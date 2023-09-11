@@ -9,6 +9,7 @@ worker_class = "eventlet"
 worker_connections = 1000
 bind = "0.0.0.0:{}".format(os.getenv("PORT"))
 errorlog = "/home/vcap/logs/gunicorn_error.log"
+keepalive = 90
 
 
 def fix_ssl_monkeypatching():
