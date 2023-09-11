@@ -21,3 +21,5 @@ notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@66
 botocore[crt]==1.31.7
 
 sentry_sdk[flask]>=1.0.0,<2.0.0
+
+flask-openapi3

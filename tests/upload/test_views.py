@@ -2,8 +2,8 @@ import base64
 from pathlib import Path
 
 import pytest
-from werkzeug.exceptions import BadRequest
 
+from app.openapi import UploadJson
 from app.upload.views import _get_upload_document_request_data
 from app.utils.antivirus import AntivirusError
 
@@ -304,11 +304,8 @@ def test_document_upload_bad_is_csv_value(client):
 @pytest.mark.parametrize(
     "data, expected_error",
     (
-        ({}, "No document upload"),
         ({"document": "foo"}, "Document is not base64 encoded"),
         ({"document": "😇"}, "Document is not base64 encoded"),
-        ({"document": "YQoxLAo=", "is_csv": 1}, "Value for is_csv must be a boolean"),
-        ({"document": "YQoxLAo=", "confirmation_email": True}, "Confirmation email must be a string."),
         ({"document": "YQoxLAo=", "confirmation_email": "sam@foo"}, "Not a valid email address"),
         (
             {"document": "YQoxLAo=", "retention_period": True},
@@ -321,7 +318,7 @@ def test_document_upload_bad_is_csv_value(client):
     ),
 )
 def test_get_upload_document_request_data_errors(app, data, expected_error):
-    with pytest.raises(BadRequest) as e:
-        _get_upload_document_request_data(data)
+    with pytest.raises(Exception) as e:
+        _get_upload_document_request_data(UploadJson(**data))
 
     assert e.value.description == expected_error

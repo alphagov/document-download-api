@@ -1,5 +1,4 @@
 from flask import (
-    Blueprint,
     current_app,
     jsonify,
     make_response,
@@ -7,10 +6,12 @@ from flask import (
     request,
     send_file,
 )
+from flask_openapi3 import APIBlueprint
 from notifications_utils.base64_uuid import base64_to_bytes
 from notifications_utils.recipients import InvalidEmailError
 
 from app import document_store, redis_client
+from app.openapi import DownloadBody, DownloadPath, DownloadQuery, download_tag, healthcheck_tag
 from app.utils.signed_data import (
     sign_service_and_document_id,
     verify_signed_service_and_document_id,
@@ -19,12 +20,12 @@ from app.utils.store import DocumentStoreError
 from app.utils.urls import get_direct_file_url, get_frontend_download_url
 from app.utils.validation import clean_and_validate_email_address
 
-download_blueprint = Blueprint("download", __name__, url_prefix="")
+download_blueprint = APIBlueprint("download", __name__, url_prefix="")
 
 FILE_TYPES_TO_FORCE_DOWNLOAD_FOR = ["csv", "rtf"]
 
 
-@download_blueprint.route("/services/_status")
+@download_blueprint.get("/services/_status", tags=[healthcheck_tag])
 def status():
     return "ok", 200
 
@@ -53,14 +54,20 @@ def get_redirect_url_if_user_not_authenticated(request, document):
 #
 # The duplicate route - without the extension - is still used by some users, probably because they've bookmarked
 # the direct URL to the file. We should be able to delete this once all the old documents have expired (18 months).
-@download_blueprint.route("/services/<uuid:service_id>/documents/<uuid:document_id>.<extension>", methods=["GET"])
-@download_blueprint.route("/services/<uuid:service_id>/documents/<uuid:document_id>", methods=["GET"])
-def download_document(service_id, document_id, extension=None):
-    if "key" not in request.args:
+@download_blueprint.get(
+    "/services/<uuid:service_id>/documents/<uuid:document_id>.<extension>", tags=[download_tag], doc_ui=False
+)
+@download_blueprint.get(
+    "/services/<uuid:service_id>/documents/<uuid:document_id>", tags=[download_tag], security=[{"cookie": []}]
+)
+def download_document(path: DownloadPath, query: DownloadQuery):
+    service_id, document_id = path.service_id, path.document_id
+
+    if query.base64_key is None:
         return jsonify(error="Missing decryption key"), 400
 
     try:
-        key = base64_to_bytes(request.args["key"])
+        key = base64_to_bytes(query.base64_key)
     except ValueError:
         return jsonify(error="Invalid decryption key"), 400
 
@@ -107,13 +114,15 @@ def download_document(service_id, document_id, extension=None):
     return response
 
 
-@download_blueprint.route("/services/<uuid:service_id>/documents/<uuid:document_id>/check", methods=["GET"])
-def get_document_metadata(service_id, document_id):
-    if "key" not in request.args:
+@download_blueprint.get("/services/<uuid:service_id>/documents/<uuid:document_id>/check", tags=[download_tag])
+def get_document_metadata(path: DownloadPath, query: DownloadQuery):
+    service_id, document_id = path.service_id, path.document_id
+
+    if not query.base64_key:
         return jsonify(error="Missing decryption key"), 400
 
     try:
-        key = base64_to_bytes(request.args["key"])
+        key = base64_to_bytes(query.base64_key)
     except ValueError:
         return jsonify(error="Invalid decryption key"), 400
 
@@ -158,9 +167,9 @@ def get_document_metadata(service_id, document_id):
     return response
 
 
-@download_blueprint.route("/services/<uuid:service_id>/documents/<uuid:document_id>/authenticate", methods=["POST"])
-def authenticate_access_to_document(service_id, document_id):
-    key = request.json.get("key")
+@download_blueprint.post("/services/<uuid:service_id>/documents/<uuid:document_id>/authenticate", tags=[download_tag])
+def authenticate_access_to_document(path: DownloadPath, body: DownloadBody):
+    service_id, document_id = path.service_id, path.document_id
 
     rate_limit, rate_interval = (
         current_app.config["DOCUMENT_AUTHENTICATION_RATE_LIMIT"],
@@ -177,20 +186,13 @@ def authenticate_access_to_document(service_id, document_id):
             {"Retry-After": rate_interval},
         )
 
-    if not key:
-        return jsonify(error="Missing decryption key"), 400
-
     try:
-        key = base64_to_bytes(key)
+        key = base64_to_bytes(body.base64_key)
     except ValueError:
         return jsonify(error="Invalid decryption key"), 400
 
-    email_address = request.json.get("email_address", None)
-    if not email_address:
-        return jsonify(error="No email address"), 400
-
     try:
-        email_address = clean_and_validate_email_address(email_address)
+        email_address = clean_and_validate_email_address(body.email_address)
     except InvalidEmailError:
         return jsonify(error="Invalid email address"), 400
 
