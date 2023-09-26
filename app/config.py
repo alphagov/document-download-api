@@ -24,6 +24,7 @@ class Config(metaclass=MetaFlaskEnv):
         "application/pdf": "pdf",
         "text/csv": "csv",
         "text/plain": "txt",
+        "application/json": "json",
         "application/msword": "doc",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
