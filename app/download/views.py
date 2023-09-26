@@ -21,7 +21,7 @@ from app.utils.validation import clean_and_validate_email_address
 
 download_blueprint = Blueprint("download", __name__, url_prefix="")
 
-FILE_TYPES_TO_FORCE_DOWNLOAD_FOR = ["csv", "rtf"]
+FILE_TYPES_TO_FORCE_DOWNLOAD_FOR = ["csv", "rtf", "json"]
 
 
 @download_blueprint.route("/services/_status")

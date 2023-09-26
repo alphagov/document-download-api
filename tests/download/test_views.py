@@ -90,6 +90,7 @@ def test_download_document_with_authenticated_user(client, store):
         ("text/csv", "csv", "text/csv; charset=utf-8"),
         ("text/rtf", "rtf", "text/rtf; charset=utf-8"),
         ("application/rtf", "rtf", "application/rtf"),
+        ("application/json", "json", "application/json"),
     ],
 )
 def test_download_document_sets_content_type_and_disposition(
