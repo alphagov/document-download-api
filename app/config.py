@@ -101,6 +101,7 @@ class Preview(Config):
 
 class Staging(Config):
     DOCUMENTS_BUCKET = "staging-document-download"
+    REDIS_ENABLED = False
 
 
 class Production(Config):
