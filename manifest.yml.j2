@@ -53,3 +53,6 @@ applications:
     {% if REDIS_URL is defined %}
     REDIS_URL: '{{ REDIS_URL }}'
     {% endif %}
+    {% if REDIS_ENABLED is defined %}
+    REDIS_ENABLED: '{{ REDIS_ENABLED }}'
+    {% endif %}
