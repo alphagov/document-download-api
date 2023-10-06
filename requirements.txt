@@ -154,9 +154,9 @@ smartypants==2.0.1
     # via notifications-utils
 statsd==3.3.0
     # via notifications-utils
-typing-extensions==4.7.1
+typing-extensions==4.8.0
     # via pypdf
-urllib3==1.26.15
+urllib3==1.26.17
     # via
     #   botocore
     #   requests
@@ -165,5 +165,5 @@ werkzeug==2.2.3
     # via
     #   -r requirements.in
     #   flask
-zipp==3.16.2
+zipp==3.17.0
     # via importlib-metadata
