@@ -2,6 +2,13 @@ import os
 
 from flask_env import MetaFlaskEnv
 
+if os.environ.get("VCAP_SERVICES"):
+    # on cloudfoundry, config is a json blob in VCAP_SERVICES - unpack it, and populate
+    # standard environment variables from it
+    from app.cloudfoundry_config import extract_cloudfoundry_config
+
+    extract_cloudfoundry_config()
+
 
 class Config(metaclass=MetaFlaskEnv):
     SERVER_NAME = os.getenv("SERVER_NAME")
@@ -26,7 +33,8 @@ class Config(metaclass=MetaFlaskEnv):
         "text/rtf": "rtf",
     }
 
-    MAX_CONTENT_LENGTH = 2 * 1024 * 1024 + 1024
+    MAX_CONTENT_LENGTH = 3 * 1024 * 1024  # 3MiB: Enforced by Flask/Werkzeug to generously allow for b64 size inflation
+    MAX_DECODED_FILE_SIZE = (2 * 1024 * 1024) + 1024  # ~2MiB: Enforced by us - max file size after b64decode
 
     NOTIFY_APP_NAME = None
     NOTIFY_LOG_PATH = "application.log"
@@ -40,8 +48,7 @@ class Config(metaclass=MetaFlaskEnv):
     FRONTEND_HOSTNAME = None
     DOCUMENT_DOWNLOAD_API_HOSTNAME = None
 
-    # use DB 1 to separate logically from Notify - as likely to re-use the same redis instance
-    REDIS_URL = os.getenv("REDIS_URL") + "/1" if os.getenv("REDIS_URL") else None
+    REDIS_URL = os.getenv("REDIS_URL")
     REDIS_ENABLED = False if os.environ.get("REDIS_ENABLED") == "0" else True
 
     DOCUMENT_AUTHENTICATION_RATE_LIMIT = int(os.getenv("DOCUMENT_AUTHENTICATION_RATE_LIMIT", "50"))
@@ -94,11 +101,11 @@ class Preview(Config):
 
 
 class Staging(Config):
-    DOCUMENTS_BUCKET = os.getenv("MULTIREGION_ACCESSPOINT_ARN", "staging-document-download")
+    DOCUMENTS_BUCKET = "staging-document-download"
 
 
 class Production(Config):
-    DOCUMENTS_BUCKET = os.getenv("MULTIREGION_ACCESSPOINT_ARN", "production-document-download")
+    DOCUMENTS_BUCKET = "production-document-download"
 
 
 configs = {

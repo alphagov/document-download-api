@@ -1,9 +1,9 @@
 # Run `make freeze-requirements` to update requirements.txt
 # with package version changes made in requirements-app.txt
 
-Flask==2.2.5
+Flask==3.0.0
 Flask-Env==2.0.0
-werkzeug==2.2.3
+werkzeug==3.0.1
 
 python-magic==0.4.25
 rsa>=4.3
