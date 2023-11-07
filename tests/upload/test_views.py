@@ -243,7 +243,6 @@ def test_document_upload_csv_handling(
     extra_form_data,
     expected_mimetype,
 ):
-
     store.put.return_value = {
         "id": "ffffffff-ffff-ffff-ffff-ffffffffffff",
         "encryption_key": bytes(32),
