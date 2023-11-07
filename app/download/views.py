@@ -38,7 +38,6 @@ def get_redirect_url_if_user_not_authenticated(request, document):
     document_id = request.view_args["document_id"]
 
     if signed_data := request.cookies.get("document_access_signed_data"):
-
         if verify_signed_service_and_document_id(signed_data, service_id, document_id):
             return
 
