@@ -107,7 +107,7 @@ pyasn1==0.4.8
     # via rsa
 pycparser==2.21
     # via cffi
-pypdf==3.13.0
+pypdf==3.17.0
     # via notifications-utils
 pyproj==3.5.0
     # via notifications-utils
