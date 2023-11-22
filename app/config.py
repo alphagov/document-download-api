@@ -80,8 +80,8 @@ class Development(Config):
     ANTIVIRUS_ENABLED = False
 
     HTTP_SCHEME = "http"
-    FRONTEND_HOSTNAME = "localhost:7001"
-    DOCUMENT_DOWNLOAD_API_HOSTNAME = "localhost:7000"
+    FRONTEND_HOSTNAME = os.getenv("FRONTEND_HOSTNAME", "localhost:7001")
+    DOCUMENT_DOWNLOAD_API_HOSTNAME = os.getenv("DOCUMENT_DOWNLOAD_API_HOSTNAME", "localhost:7000")
 
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/1")
     REDIS_ENABLED = os.environ.get("REDIS_ENABLED") == "1"
