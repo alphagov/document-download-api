@@ -54,8 +54,6 @@ flask==3.0.0
     #   gds-metrics
     #   notifications-utils
     #   sentry-sdk
-flask-env==2.0.0
-    # via -r requirements.in
 flask-redis==0.4.0
     # via notifications-utils
 gds-metrics==0.2.4

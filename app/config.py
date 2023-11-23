@@ -1,14 +1,12 @@
 import os
 
-from flask_env import MetaFlaskEnv
 
-
-class Config(metaclass=MetaFlaskEnv):
+class Config:
     SERVER_NAME = os.getenv("SERVER_NAME")
     DEBUG = False
 
     SECRET_KEY = os.environ.get("SECRET_KEY")
-    AUTH_TOKENS = None
+    AUTH_TOKENS = os.environ.get("AUTH_TOKENS")
 
     DOCUMENTS_BUCKET = None
 
@@ -31,23 +29,23 @@ class Config(metaclass=MetaFlaskEnv):
     MAX_DECODED_FILE_SIZE = (2 * 1024 * 1024) + 1024  # ~2MiB: Enforced by us - max file size after b64decode
     MAX_CUSTOM_FILENAME_LENGTH = 100
 
-    NOTIFY_APP_NAME = None
-    NOTIFY_LOG_PATH = "application.log"
+    NOTIFY_APP_NAME = os.environ.get("NOTIFY_APP_NAME")
+    NOTIFY_LOG_PATH = os.environ.get("NOTIFY_LOG_PATH", "application.log")
 
     NOTIFY_RUNTIME_PLATFORM = os.getenv("NOTIFY_RUNTIME_PLATFORM", "paas")
 
-    ANTIVIRUS_API_HOST = None
-    ANTIVIRUS_API_KEY = None
+    ANTIVIRUS_API_HOST = os.environ.get("ANTIVIRUS_API_HOST")
+    ANTIVIRUS_API_KEY = os.environ.get("ANTIVIRUS_API_KEY")
 
     ANTIVIRUS_ENABLED = True
 
     HTTP_SCHEME = "https"
-    FRONTEND_HOSTNAME = None
-    DOCUMENT_DOWNLOAD_API_HOSTNAME = None
+    FRONTEND_HOSTNAME = os.environ.get("FRONTEND_HOSTNAME")
+    DOCUMENT_DOWNLOAD_API_HOSTNAME = os.environ.get("DOCUMENT_DOWNLOAD_API_HOSTNAME")
 
     # use DB 1 to separate logically from Notify - as likely to re-use the same redis instance
     REDIS_URL = os.getenv("REDIS_URL") + "/1" if os.getenv("REDIS_URL") else None
-    REDIS_ENABLED = False if os.environ.get("REDIS_ENABLED") == "0" else True
+    REDIS_ENABLED = os.environ.get("REDIS_ENABLED") == "1"
 
     DOCUMENT_AUTHENTICATION_RATE_LIMIT = int(os.getenv("DOCUMENT_AUTHENTICATION_RATE_LIMIT", "50"))
     DOCUMENT_AUTHENTICATE_RATE_INTERVAL_SECONDS = int(os.getenv("DOCUMENT_AUTHENTICATE_RATE_INTERVAL_SECONDS", "300"))
@@ -68,8 +66,7 @@ class Test(Config):
     FRONTEND_HOSTNAME = "document-download-frontend-test"
     DOCUMENT_DOWNLOAD_API_HOSTNAME = f"download.{FRONTEND_HOSTNAME}"
 
-    REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/1")
-    REDIS_ENABLED = os.environ.get("REDIS_ENABLED") == "1"
+    REDIS_URL = "redis://localhost:6379/1"
 
     NOTIFY_RUNTIME_PLATFORM = "test"
 
@@ -87,8 +84,8 @@ class Development(Config):
     ANTIVIRUS_ENABLED = False
 
     HTTP_SCHEME = "http"
-    FRONTEND_HOSTNAME = "localhost:7001"
-    DOCUMENT_DOWNLOAD_API_HOSTNAME = "localhost:7000"
+    FRONTEND_HOSTNAME = os.environ.get("FRONTEND_HOSTNAME", "localhost:7001")
+    DOCUMENT_DOWNLOAD_API_HOSTNAME = os.environ.get("DOCUMENT_DOWNLOAD_API_HOSTNAME", "localhost:7000")
 
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/1")
     REDIS_ENABLED = os.environ.get("REDIS_ENABLED") == "1"
