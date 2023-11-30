@@ -27,7 +27,7 @@ bootstrap: generate-version-file ## install app dependencies
 
 .PHONY: bootstrap-with-docker
 bootstrap-with-docker: generate-version-file ## Build the docker image
-	docker build -f docker/Dockerfile -t document-download-api .
+	docker build -f docker/Dockerfile --target test -t document-download-api .
 
 .PHONY: run
 run-flask: ## Run the app locally
@@ -35,13 +35,17 @@ run-flask: ## Run the app locally
 
 .PHONY: run-flask-with-docker
 run-flask-with-docker: ## Run flask with docker
-	./scripts/run_locally_with_docker.sh
+	FLASK_APP=application.py FLASK_DEBUG=1 ./scripts/run_locally_with_docker.sh flask run --host 0.0.0.0 -p 7000
 
 .PHONY: test
 test: ## Run all tests
 	ruff check .
 	black --check .
 	py.test tests/
+
+.PHONY: test-with-docker
+test-with-docker: ## Run tests in Docker container
+	FLASK_APP=application.py FLASK_DEBUG=1 ./scripts/run_locally_with_docker.sh make test
 
 .PHONY: freeze-requirements
 freeze-requirements: ## create static requirements.txt
