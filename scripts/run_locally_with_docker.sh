@@ -11,4 +11,4 @@ docker run -it --rm \
   -p ${PORT}:${PORT} \
   -v $(pwd):/home/vcap/app \
   ${DOCKER_IMAGE_NAME} \
-  flask run --host 0.0.0.0 -p ${PORT}
+  ${@}
