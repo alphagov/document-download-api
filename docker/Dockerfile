@@ -7,6 +7,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends \
     build-essential \
     git \
+    curl \
     libcurl4-openssl-dev \
     libssl-dev \
     libmagic-dev \
