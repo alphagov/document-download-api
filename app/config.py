@@ -94,11 +94,11 @@ class Preview(Config):
 
 
 class Staging(Config):
-    DOCUMENTS_BUCKET = "staging-document-download"
+    DOCUMENTS_BUCKET = os.getenv("MULTIREGION_ACCESSPOINT_ARN", "staging-document-download")
 
 
 class Production(Config):
-    DOCUMENTS_BUCKET = "production-document-download"
+    DOCUMENTS_BUCKET = os.getenv("MULTIREGION_ACCESSPOINT_ARN", "production-document-download")
 
 
 configs = {
