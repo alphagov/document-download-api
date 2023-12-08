@@ -13,6 +13,7 @@ sample_files_path = Path(__file__).parent.parent / "sample_files"
         # supported by doc dl
         ("test.pdf", "application/pdf"),
         ("test.csv", "text/plain"),
+        ("test_longer.csv", "text/csv"),
         ("test.doc", "application/msword"),
         ("test.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
         ("test.odt", "application/vnd.oasis.opendocument.text"),

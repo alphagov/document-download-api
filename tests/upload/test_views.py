@@ -203,6 +203,21 @@ def test_unauthorized_document_upload(client):
             "text/plain",
         ),
         (
+            "test_longer.csv",
+            {"is_csv": True},
+            "text/csv",
+        ),
+        (
+            "test_longer.csv",
+            {"is_csv": False},
+            "text/csv",
+        ),
+        (
+            "test_longer.csv",
+            {},
+            "text/csv",
+        ),
+        (
             "test.txt",
             {"is_csv": True},
             "text/csv",
