@@ -74,7 +74,7 @@ def upload_document(service_id):
         allowed_file_types = ", ".join(sorted({f"'.{x}'" for x in current_app.config["ALLOWED_FILE_TYPES"].values()}))
         return jsonify(error=f"Unsupported file type '{mimetype}'. Supported types are: {allowed_file_types}"), 400
 
-    # Our mimetype auto-detection resolves CSV content as text/plain, so we use
+    # Our mimetype auto-detection sometimes resolves CSV content as text/plain, so we use
     # an explicit POST body parameter `is_csv` from the caller to resolve it as text/csv
     if is_csv and mimetype == "text/plain":
         mimetype = "text/csv"

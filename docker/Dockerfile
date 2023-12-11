@@ -1,4 +1,4 @@
-FROM python:3.9-slim-bullseye AS base
+FROM python:3.9-slim-bookworm AS base
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1
