@@ -63,9 +63,9 @@ def test_download_document_with_authenticated_user(client, store):
     signed_data = sign_service_and_document_id(service_id, document_id)
 
     client.set_cookie(
-        "localhost",
         key="document_access_signed_data",
         value=signed_data,
+        domain="localhost",
         path="/",
         httponly=True,
     )

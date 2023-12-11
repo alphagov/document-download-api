@@ -28,7 +28,7 @@ def _get_upload_document_request_data(data):
     except (binascii.Error, ValueError) as e:
         raise BadRequest("Document is not base64 encoded") from e
 
-    if len(raw_content) > current_app.config["MAX_CONTENT_LENGTH"]:
+    if len(raw_content) > current_app.config["MAX_DECODED_FILE_SIZE"]:
         abort(413)
     file_data = BytesIO(raw_content)
     is_csv = data.get("is_csv", False)

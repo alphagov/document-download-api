@@ -16,8 +16,9 @@ awscli-cwlogs==1.4.6
     # via -r requirements.in
 awscrt==0.16.26
     # via botocore
-blinker==1.4
+blinker==1.7.0
     # via
+    #   flask
     #   gds-metrics
     #   sentry-sdk
 boto3==1.28.5
@@ -39,7 +40,7 @@ cffi==1.15.1
     # via argon2-cffi-bindings
 charset-normalizer==3.1.0
     # via requests
-click==8.1.2
+click==8.1.7
     # via flask
 colorama==0.4.3
     # via awscli
@@ -49,7 +50,7 @@ docutils==0.15.2
     # via awscli
 eventlet==0.33.0
     # via gunicorn
-flask==2.2.5
+flask==3.0.0
     # via
     #   -r requirements.in
     #   flask-redis
@@ -78,7 +79,7 @@ itsdangerous==2.1.2
     # via
     #   flask
     #   notifications-utils
-jinja2==3.1.1
+jinja2==3.1.2
     # via
     #   flask
     #   notifications-utils
@@ -162,7 +163,7 @@ urllib3==1.26.18
     #   botocore
     #   requests
     #   sentry-sdk
-werkzeug==2.2.3
+werkzeug==3.0.1
     # via
     #   -r requirements.in
     #   flask
