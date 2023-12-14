@@ -94,13 +94,13 @@ markupsafe==2.1.1
     #   werkzeug
 mistune==0.8.4
     # via notifications-utils
-notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@66.0.0
+notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@73.1.0
     # via -r requirements.in
 orderedset==2.0.3
     # via notifications-utils
 packaging==23.1
     # via gunicorn
-phonenumbers==8.12.22
+phonenumbers==8.13.26
     # via notifications-utils
 prometheus-client==0.10.1
     # via gds-metrics
