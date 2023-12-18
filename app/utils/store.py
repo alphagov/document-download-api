@@ -60,7 +60,9 @@ class DocumentStore:
         if tags.get("blocked", "false").lower() in {"true", "yes"}:
             raise DocumentBlocked("Access to the document has been blocked")
 
-    def put(self, service_id, document_stream, *, mimetype, confirmation_email=None, retention_period=None):
+    def put(
+        self, service_id, document_stream, *, mimetype, confirmation_email=None, retention_period=None, filename=None
+    ):
         """
         confirmation_email and retention_period need to already be in a validated and known-good format
         by the time they come into this method.
@@ -71,10 +73,10 @@ class DocumentStore:
         encryption_key = self.generate_encryption_key()
         document_id = str(uuid.uuid4())
 
-        extra_kwargs = {}
+        extra_kwargs = {"Metadata": {}}
         if confirmation_email:
             hashed_recipient_email = self._hasher.hash(confirmation_email)
-            extra_kwargs["Metadata"] = {"hashed-recipient-email": hashed_recipient_email}
+            extra_kwargs["Metadata"]["hashed-recipient-email"] = hashed_recipient_email
             current_app.logger.info(
                 "Enabling email confirmation flow for %(service_id)s/%(document_id)s",
                 dict(service_id=service_id, document_id=document_id),
@@ -87,6 +89,9 @@ class DocumentStore:
                 "Setting custom retention period for %(service_id)s/%(document_id)s: %(retention_period)s",
                 dict(service_id=service_id, document_id=document_id, retention_period=retention_period),
             )
+
+        if filename:
+            extra_kwargs["Metadata"]["filename"] = filename
 
         self.s3.put_object(
             Bucket=self.bucket,
@@ -146,6 +151,7 @@ class DocumentStore:
                 "confirm_email": self.get_email_hash(metadata) is not None,
                 "size": metadata["ContentLength"],
                 "available_until": str(expiry_date),
+                "filename": metadata["Metadata"].get("filename"),
             }
         except (DocumentBlocked, DocumentExpired):
             return None

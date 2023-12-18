@@ -269,6 +269,17 @@ def test_unauthorized_document_upload(client):
             {},
             "application/pdf",
         ),
+        (
+            "test.csv",
+            {"filename": "test.csv"},
+            "text/csv",
+        ),
+        # `is_csv` ignored if filename is explicitly provided
+        (
+            "test.pdf",
+            {"is_csv": True, "filename": "test.pdf"},
+            "application/pdf",
+        ),
     ),
 )
 def test_document_upload_csv_handling(
@@ -353,6 +364,17 @@ def test_document_upload_bad_is_csv_value(client):
         (
             {"document": "YQoxLAo=", "retention_period": "3 days"},
             "Retention period must be a string of the format '<1-78> weeks'.",
+        ),
+        (
+            {"document": "YQoxLAo=", "filename": "no file extension"},
+            "Filename must have a file extension, eg .csv",
+        ),
+        (
+            {"document": "YQoxLAo=", "filename": "rejected-file-extension.gif"},
+            (
+                "Unsupported file type '.gif'. "
+                "Supported types are: '.csv', '.doc', '.docx', '.json', '.odt', '.pdf', '.rtf', '.txt', '.xlsx'"
+            ),
         ),
     ),
 )

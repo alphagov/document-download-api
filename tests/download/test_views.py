@@ -40,6 +40,7 @@ def test_download_document(client, store):
         "Date": mock.ANY,
         "Content-Length": "100",
         "Content-Type": "application/pdf",
+        "Content-Disposition": "inline; filename=ffffffff-ffff-ffff-ffff-ffffffffffff.pdf",
         "Referrer-Policy": "no-referrer",
         "X-B3-SpanId": "None",
         "X-B3-TraceId": "None",
@@ -117,6 +118,36 @@ def test_download_document_sets_content_type_and_disposition(
     assert response.headers["Content-Disposition"] == f"attachment; filename={document_id}.{expected_extension}"
 
 
+def test_download_document_sets_filename_from_metadata(client, store):
+    """
+    Test that file responses have the expected Content-Type/Content-Disposition
+    required for browsers to download files in a way that is useful for users.
+    """
+    store.get.return_value = {
+        "body": io.BytesIO(b"a,b,c"),
+        "mimetype": "application/pdf",
+        "size": 100,
+        "metadata": {"filename": "my-nice-filename.pdf"},
+    }
+
+    document_id = "ffffffff-ffff-ffff-ffff-ffffffffffff"
+    response = client.get(
+        url_for(
+            "download.download_document",
+            service_id="00000000-0000-0000-0000-000000000000",
+            document_id=document_id,
+            filename="my-nice-filename",
+            extension="pdf",
+            key="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",  # 32 \x00 bytes
+        )
+    )
+
+    assert response.status_code == 200
+    assert response.get_data() == b"a,b,c"
+    assert response.headers["Content-Type"] == "application/pdf"
+    assert response.headers["Content-Disposition"] == "inline; filename=my-nice-filename.pdf"
+
+
 def test_download_document_with_extension(client, store):
     store.get.return_value = {"body": io.BytesIO(b"a,b,c"), "mimetype": "application/pdf", "size": 100, "metadata": {}}
 
@@ -126,7 +157,7 @@ def test_download_document_with_extension(client, store):
             service_id="00000000-0000-0000-0000-000000000000",
             document_id="ffffffff-ffff-ffff-ffff-ffffffffffff",
             key="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",  # 32 \x00 bytes
-            extension=".pdf",
+            extension="pdf",
         )
     )
 
@@ -137,6 +168,7 @@ def test_download_document_with_extension(client, store):
         "Date": mock.ANY,
         "Content-Length": "100",
         "Content-Type": "application/pdf",
+        "Content-Disposition": "inline; filename=ffffffff-ffff-ffff-ffff-ffffffffffff.pdf",
         "Referrer-Policy": "no-referrer",
         "X-B3-SpanId": "None",
         "X-B3-TraceId": "None",
@@ -262,6 +294,7 @@ def test_get_document_metadata_when_document_is_in_s3(client, store, mimetype, e
         "confirm_email": False,
         "size": 1024,
         "available_until": "2020-04-30",
+        "filename": None,
     }
     response = client.get(
         url_for(
@@ -288,6 +321,7 @@ def test_get_document_metadata_when_document_is_in_s3(client, store, mimetype, e
             "size_in_bytes": 1024,
             "file_extension": expected_extension,
             "available_until": "2020-04-30",
+            "filename": None,
         }
     }
 
@@ -394,6 +428,7 @@ class TestAuthenticateDocument:
         store.get_document_metadata.return_value = {
             "mimetype": "text/csv",
             "confirm_email": True,
+            "filename": None,
         }
 
         with mock.patch("app.download.views.document_store.authenticate") as authenticate_mock:
@@ -431,6 +466,7 @@ class TestAuthenticateDocument:
         store.get_document_metadata.return_value = {
             "mimetype": "text/csv",
             "verify_email": True,
+            "filename": None,
         }
 
         with (

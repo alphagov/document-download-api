@@ -184,6 +184,7 @@ def test_put_document(store):
         Key=Matcher("document key", lambda x: x.startswith("service-id/") and len(x) == 11 + 36),
         SSECustomerKey=ret["encryption_key"],
         SSECustomerAlgorithm="AES256",
+        Metadata={},
     )
 
 
@@ -222,6 +223,26 @@ def test_put_document_tags_document_if_retention_period_set(store):
         SSECustomerKey=ret["encryption_key"],
         SSECustomerAlgorithm="AES256",
         Tagging="retention-period=4+weeks",
+        Metadata={},
+    )
+
+
+def test_put_document_records_filename_if_set(store):
+    ret = store.put("service-id", mock.Mock(), mimetype="application/pdf", filename="my-nice-filename.pdf")
+
+    assert ret == {
+        "id": Matcher("UUID length match", lambda x: len(x) == 36),
+        "encryption_key": Matcher("32 bytes", lambda x: len(x) == 32 and isinstance(x, bytes)),
+    }
+
+    store.s3.put_object.assert_called_once_with(
+        Body=mock.ANY,
+        Bucket="test-bucket",
+        ContentType="application/pdf",
+        Key=Matcher("document key", lambda x: x.startswith("service-id/") and len(x) == 11 + 36),
+        SSECustomerKey=ret["encryption_key"],
+        SSECustomerAlgorithm="AES256",
+        Metadata={"filename": "my-nice-filename.pdf"},
     )
 
 
@@ -267,12 +288,24 @@ def test_get_expired_document(store, expired_document):
 
 def test_get_document_metadata_when_document_is_in_s3(store):
     metadata = store.get_document_metadata("service-id", "document-id", "0f0f0f")
-    assert metadata == {"mimetype": "text/plain", "confirm_email": False, "size": 100, "available_until": "2020-04-30"}
+    assert metadata == {
+        "mimetype": "text/plain",
+        "confirm_email": False,
+        "size": 100,
+        "available_until": "2020-04-30",
+        "filename": None,
+    }
 
 
 def test_get_document_metadata_when_document_is_in_s3_with_hashed_email(store_with_email):
     metadata = store_with_email.get_document_metadata("service-id", "document-id", "0f0f0f")
-    assert metadata == {"mimetype": "text/plain", "confirm_email": True, "size": 100, "available_until": "2020-04-30"}
+    assert metadata == {
+        "mimetype": "text/plain",
+        "confirm_email": True,
+        "size": 100,
+        "available_until": "2020-04-30",
+        "filename": None,
+    }
 
 
 def test_get_document_metadata_when_document_is_not_in_s3(store):

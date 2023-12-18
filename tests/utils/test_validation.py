@@ -3,6 +3,7 @@ from notifications_utils.recipients import InvalidEmailError
 
 from app.utils.validation import (
     clean_and_validate_email_address,
+    clean_and_validate_filename,
     clean_and_validate_retention_period,
 )
 
@@ -27,3 +28,21 @@ def test_clean_and_validate_retention_period_invalid_values(value):
         clean_and_validate_retention_period(value)
 
     assert str(e.value) == "Retention period must be a string of the format '<1-78> weeks'."
+
+
+def test_clean_and_validate_filename_needs_dot():
+    with pytest.raises(ValueError) as e:
+        clean_and_validate_filename("my-filename")
+    assert str(e.value) == "Filename must have a file extension, eg .csv"
+
+
+@pytest.mark.parametrize(
+    "value, extension", (("something.odf", ".odf"), ("archive.zip", ".zip"), ("something.with.dots.gif", ".gif"))
+)
+def test_clean_and_validate_filename_rejects_unknown_file_extensions(client, value, extension):
+    with pytest.raises(ValueError) as e:
+        clean_and_validate_filename(value)
+        assert str(e.value) == (
+            f"Unsupported file type '{extension}'. "
+            f"Supported types are: '.csv', '.doc', '.docx', '.json', '.odt', '.pdf', '.rtf', '.txt', '.xlsx'"
+        )

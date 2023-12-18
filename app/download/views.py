@@ -11,6 +11,7 @@ from notifications_utils.base64_uuid import base64_to_bytes
 from notifications_utils.recipients import InvalidEmailError
 
 from app import document_store, redis_client
+from app.utils.files import split_filename
 from app.utils.signed_data import (
     sign_service_and_document_id,
     verify_signed_service_and_document_id,
@@ -79,19 +80,19 @@ def download_document(service_id, document_id, extension=None):
     if redirect := get_redirect_url_if_user_not_authenticated(request, document):
         return redirect
 
-    mimetype = document["mimetype"]
-    send_file_kwargs = {"mimetype": mimetype}
-    extension = current_app.config["ALLOWED_FILE_TYPES"][mimetype]
+    if filename := document["metadata"].get("filename"):
+        extension = split_filename(filename, dotted=False)[1]
+        mimetype = current_app.config["FILE_EXTENSIONS_TO_MIMETYPES"][extension]
+    else:
+        mimetype = document["mimetype"]
+        extension = current_app.config["ALLOWED_FILE_TYPES"][mimetype]
+        filename = f"{document_id}.{extension}"
 
-    if extension in FILE_TYPES_TO_FORCE_DOWNLOAD_FOR:
-        # Give CSV files the 'Content-Disposition' header to ensure they are downloaded
-        # rather than shown as raw text in the users browser
-        send_file_kwargs.update(
-            {
-                "download_name": f"{document_id}.{extension}",
-                "as_attachment": True,
-            }
-        )
+    send_file_kwargs = {
+        "mimetype": mimetype,
+        "download_name": filename,
+        "as_attachment": extension in FILE_TYPES_TO_FORCE_DOWNLOAD_FOR,
+    }
 
     response = make_response(
         send_file(
@@ -140,6 +141,7 @@ def get_document_metadata(service_id, document_id):
             "confirm_email": metadata["confirm_email"],
             "size_in_bytes": metadata["size"],
             "file_extension": current_app.config["ALLOWED_FILE_TYPES"][metadata["mimetype"]],
+            "filename": metadata["filename"],
             "available_until": metadata["available_until"],
         }
     else:
