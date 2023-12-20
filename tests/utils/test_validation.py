@@ -30,6 +30,11 @@ def test_clean_and_validate_retention_period_invalid_values(value):
     assert str(e.value) == "Retention period must be a string of the format '<1-78> weeks'."
 
 
+@pytest.mark.parametrize("filename", ("file.csv", "my-file.csv", "my.dotted.file.csv", "!@£$%^&*().pdf"))
+def test_clean_and_validate_filename_happy_path(client, filename):
+    assert clean_and_validate_filename(filename) == filename
+
+
 def test_clean_and_validate_filename_needs_dot():
     with pytest.raises(ValueError) as e:
         clean_and_validate_filename("my-filename")
