@@ -38,7 +38,7 @@ def clean_and_validate_retention_period(retention_period):
     return retention_period
 
 
-def clean_and_validate_filename(filename):
+def validate_filename(filename):
     if "." not in filename:
         raise ValueError("Filename must have a file extension, eg .csv")
 

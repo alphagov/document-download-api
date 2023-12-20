@@ -14,8 +14,8 @@ from app.utils.files import split_filename
 from app.utils.urls import get_direct_file_url, get_frontend_download_url
 from app.utils.validation import (
     clean_and_validate_email_address,
-    clean_and_validate_filename,
     clean_and_validate_retention_period,
+    validate_filename,
 )
 
 upload_blueprint = Blueprint("upload", __name__, url_prefix="")
@@ -56,7 +56,7 @@ def _get_upload_document_request_data(data):  # noqa: C901
     filename = data.get("filename", None)
     if filename:
         try:
-            filename = clean_and_validate_filename(filename)
+            filename = validate_filename(filename)
         except ValueError as e:
             raise BadRequest(str(e)) from e
 
