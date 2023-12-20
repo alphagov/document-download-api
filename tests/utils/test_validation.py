@@ -38,7 +38,7 @@ def test_validate_filename_happy_path(client, filename):
 def test_validate_filename_needs_dot():
     with pytest.raises(ValueError) as e:
         validate_filename("my-filename")
-    assert str(e.value) == "Filename must have a file extension, eg .csv"
+    assert str(e.value) == "`filename` must end with a file extension. For example, filename.csv"
 
 
 @pytest.mark.parametrize(

@@ -40,7 +40,7 @@ def clean_and_validate_retention_period(retention_period):
 
 def validate_filename(filename):
     if "." not in filename:
-        raise ValueError("Filename must have a file extension, eg .csv")
+        raise ValueError("`filename` must end with a file extension. For example, filename.csv")
 
     extension = split_filename(filename, dotted=False)[1]
     if extension not in current_app.config["FILE_EXTENSIONS_TO_MIMETYPES"]:

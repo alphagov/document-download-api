@@ -413,7 +413,7 @@ def test_document_upload_bad_is_csv_value(client):
         ),
         (
             {"document": "YQoxLAo=", "filename": "no file extension"},
-            "Filename must have a file extension, eg .csv",
+            "`filename` must end with a file extension. For example, filename.csv",
         ),
         (
             {"document": "YQoxLAo=", "filename": "rejected-file-extension.gif"},
