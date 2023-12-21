@@ -252,6 +252,8 @@ def test_put_document_tags_document_if_retention_period_set(store):
         ("my-nice-filename.pdf", "my-nice-filename.pdf"),
         ("Юникод.pdf", r"\u042e\u043d\u0438\u043a\u043e\u0434.pdf"),
         ("✅.pdf", r"\u2705.pdf"),
+        # If someone passes us a string which has some \uxxxx text (not bytes) it should be double-escaped
+        (r"\u2705.pdf", r"\\u2705.pdf"),
     ),
 )
 def test_put_document_records_filename_if_set(store, filename, expected_filename_for_s3):
