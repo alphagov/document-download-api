@@ -5,6 +5,7 @@ from unittest import mock
 import pytest
 from werkzeug.exceptions import BadRequest
 
+import app
 from app.upload.views import _get_upload_document_request_data
 from app.utils.antivirus import AntivirusError
 
@@ -323,6 +324,62 @@ def test_document_upload_csv_handling(
     }
 
 
+@pytest.mark.parametrize("extension, expected_mimetype", app.config.Config.FILE_EXTENSIONS_TO_MIMETYPES.items())
+@pytest.mark.parametrize("is_csv", (True, False))  # `is_csv` should just be ignored when `filename` is provided
+def test_document_upload_filename_handling(
+    app,
+    client,
+    store,
+    antivirus,
+    expected_mimetype,
+    extension,
+    is_csv,
+):
+    store.put.return_value = {
+        "id": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+        "encryption_key": bytes(32),
+    }
+
+    antivirus.scan.return_value = True
+
+    file_name = f"test-file.{extension}"
+    with open(Path(__file__).parent.parent / "sample_files" / f"test.{extension}", "rb") as f:
+        response = client.post(
+            "/services/00000000-0000-0000-0000-000000000000/documents",
+            json={
+                "document": base64.b64encode(f.read()).decode("utf-8"),
+                "filename": file_name,
+                "is_csv": is_csv,
+            },
+        )
+
+    assert response.status_code == 201
+    assert response.json == {
+        "document": {
+            "id": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+            "url": "".join(
+                [
+                    "http://document-download-frontend-test",
+                    "/d/AAAAAAAAAAAAAAAAAAAAAA",
+                    "/_____________________w",
+                    "?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                ]
+            ),
+            "mimetype": expected_mimetype,
+            "direct_file_url": "".join(
+                [
+                    "http://download.document-download-frontend-test",
+                    "/services/00000000-0000-0000-0000-000000000000",
+                    "/documents/ffffffff-ffff-ffff-ffff-ffffffffffff",
+                    f".{extension}",
+                    "?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+                ]
+            ),
+        },
+        "status": "ok",
+    }
+
+
 def test_document_upload_bad_is_csv_value(client):
     with open(Path(__file__).parent.parent / "sample_files" / "test.csv", "rb") as f:
         response = client.post(
@@ -353,6 +410,17 @@ def test_document_upload_bad_is_csv_value(client):
         (
             {"document": "YQoxLAo=", "retention_period": "3 days"},
             "Retention period must be a string of the format '<1-78> weeks'.",
+        ),
+        (
+            {"document": "YQoxLAo=", "filename": "no file extension"},
+            "`filename` must end with a file extension. For example, filename.csv",
+        ),
+        (
+            {"document": "YQoxLAo=", "filename": "rejected-file-extension.gif"},
+            (
+                "Unsupported file type '.gif'. "
+                "Supported types are: '.csv', '.doc', '.docx', '.json', '.odt', '.pdf', '.rtf', '.txt', '.xlsx'"
+            ),
         ),
     ),
 )

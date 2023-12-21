@@ -1,3 +1,4 @@
+import mimetypes
 import os
 
 from flask import Flask
@@ -16,6 +17,9 @@ redis_client = RedisClient()
 
 from .download.views import download_blueprint  # noqa
 from .upload.views import upload_blueprint  # noqa
+
+
+mimetypes.init()
 
 
 def create_app():

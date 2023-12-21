@@ -22,9 +22,10 @@ class Config(metaclass=MetaFlaskEnv):
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
         "application/vnd.oasis.opendocument.text": "odt",
-        "application/rtf": "rtf",
         "text/rtf": "rtf",
+        "application/rtf": "rtf",
     }
+    FILE_EXTENSIONS_TO_MIMETYPES = {value: key for key, value in ALLOWED_FILE_TYPES.items()}
 
     MAX_CONTENT_LENGTH = 3 * 1024 * 1024  # 3MiB: Enforced by Flask/Werkzeug to generously allow for b64 size inflation
     MAX_DECODED_FILE_SIZE = (2 * 1024 * 1024) + 1024  # ~2MiB: Enforced by us - max file size after b64decode
