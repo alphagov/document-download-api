@@ -109,6 +109,25 @@ def store_with_email(mock_boto):
     return store
 
 
+@pytest.fixture
+def store_with_filename(mock_boto):
+    mock_boto.client.return_value.get_object.return_value = {
+        "Body": mock.Mock(),
+        "ContentType": "application/pdf",
+        "ContentLength": 100,
+        "Metadata": {"filename": r"\u2705.pdf"},  # `✅.pdf` encoded for storage in AWS S3 Metadata
+    }
+    mock_boto.client.return_value.head_object.return_value = {
+        "ResponseMetadata": {"RequestId": "ABCD"},
+        "Expiration": 'expiry-date="Fri, 01 May 2020 00:00:00 GMT"',
+        "ContentType": "text/plain",
+        "ContentLength": 100,
+        "Metadata": {"filename": r"\u2705.pdf"},  # `✅.pdf` encoded for storage in AWS S3 Metadata
+    }
+    store = DocumentStore(bucket="test-bucket")
+    return store
+
+
 def test_document_store_init_app(app, store):
     with set_config(app, DOCUMENTS_BUCKET="test-bucket-2"):
         store.init_app(app)
@@ -227,8 +246,18 @@ def test_put_document_tags_document_if_retention_period_set(store):
     )
 
 
-def test_put_document_records_filename_if_set(store):
-    ret = store.put("service-id", mock.Mock(), mimetype="application/pdf", filename="my-nice-filename.pdf")
+@pytest.mark.parametrize(
+    "filename, expected_filename_for_s3",
+    (
+        ("my-nice-filename.pdf", "my-nice-filename.pdf"),
+        ("Юникод.pdf", r"\u042e\u043d\u0438\u043a\u043e\u0434.pdf"),
+        ("✅.pdf", r"\u2705.pdf"),
+        # If someone passes us a string which has some \uxxxx text (not bytes) it should be double-escaped
+        (r"\u2705.pdf", r"\\u2705.pdf"),
+    ),
+)
+def test_put_document_records_filename_if_set(store, filename, expected_filename_for_s3):
+    ret = store.put("service-id", mock.Mock(), mimetype="application/pdf", filename=filename)
 
     assert ret == {
         "id": Matcher("UUID length match", lambda x: len(x) == 36),
@@ -242,7 +271,7 @@ def test_put_document_records_filename_if_set(store):
         Key=Matcher("document key", lambda x: x.startswith("service-id/") and len(x) == 11 + 36),
         SSECustomerKey=ret["encryption_key"],
         SSECustomerAlgorithm="AES256",
-        Metadata={"filename": "my-nice-filename.pdf"},
+        Metadata={"filename": expected_filename_for_s3},
     )
 
 
@@ -305,6 +334,17 @@ def test_get_document_metadata_when_document_is_in_s3_with_hashed_email(store_wi
         "size": 100,
         "available_until": "2020-04-30",
         "filename": None,
+    }
+
+
+def test_get_document_metadata_when_document_is_in_s3_with_filename(store_with_filename):
+    metadata = store_with_filename.get_document_metadata("service-id", "document-id", "0f0f0f")
+    assert metadata == {
+        "mimetype": "text/plain",
+        "confirm_email": False,
+        "size": 100,
+        "available_until": "2020-04-30",
+        "filename": "✅.pdf",
     }
 
 

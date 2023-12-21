@@ -91,7 +91,8 @@ class DocumentStore:
             )
 
         if filename:
-            extra_kwargs["Metadata"]["filename"] = filename
+            # Convert utf-8 filenames to ASCII suitable for storing in AWS S3 Metadata.
+            extra_kwargs["Metadata"]["filename"] = filename.encode("unicode_escape").decode("ascii")
 
         self.s3.put_object(
             Bucket=self.bucket,
@@ -104,6 +105,18 @@ class DocumentStore:
         )
 
         return {"id": document_id, "encryption_key": encryption_key}
+
+    def _normalise_metadata(self, raw_metadata):
+        normalised_metadata = {}
+
+        if "hashed-recipient-email" in raw_metadata:
+            normalised_metadata["hashed-recipient-email"] = raw_metadata["hashed-recipient-email"]
+
+        if "filename" in raw_metadata:
+            # Undo the ASCII-ficiation that we use to store UTF-8 filenames in AWS S3 metadata.
+            normalised_metadata["filename"] = raw_metadata["filename"].encode("ascii").decode("unicode_escape")
+
+        return normalised_metadata
 
     def get(self, service_id, document_id, decryption_key):
         """
@@ -127,7 +140,7 @@ class DocumentStore:
             "body": document["Body"],
             "mimetype": document["ContentType"],
             "size": document["ContentLength"],
-            "metadata": document["Metadata"],
+            "metadata": self._normalise_metadata(document["Metadata"]),
         }
 
     def get_document_metadata(self, service_id, document_id, decryption_key):
@@ -151,7 +164,7 @@ class DocumentStore:
                 "confirm_email": self.get_email_hash(metadata) is not None,
                 "size": metadata["ContentLength"],
                 "available_until": str(expiry_date),
-                "filename": metadata["Metadata"].get("filename"),
+                "filename": self._normalise_metadata(metadata["Metadata"]).get("filename"),
             }
         except (DocumentBlocked, DocumentExpired):
             return None
