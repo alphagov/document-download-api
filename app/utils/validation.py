@@ -39,6 +39,11 @@ def clean_and_validate_retention_period(retention_period):
 
 
 def validate_filename(filename):
+    if len(filename) > current_app.config["MAX_CUSTOM_FILENAME_LENGTH"]:
+        raise ValueError(
+            f"`filename` cannot be longer than {current_app.config['MAX_CUSTOM_FILENAME_LENGTH']} characters"
+        )
+
     if "." not in filename:
         raise ValueError("`filename` must end with a file extension. For example, filename.csv")
 
