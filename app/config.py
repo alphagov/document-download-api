@@ -29,6 +29,7 @@ class Config(metaclass=MetaFlaskEnv):
 
     MAX_CONTENT_LENGTH = 3 * 1024 * 1024  # 3MiB: Enforced by Flask/Werkzeug to generously allow for b64 size inflation
     MAX_DECODED_FILE_SIZE = (2 * 1024 * 1024) + 1024  # ~2MiB: Enforced by us - max file size after b64decode
+    MAX_CUSTOM_FILENAME_LENGTH = 100
 
     NOTIFY_APP_NAME = None
     NOTIFY_LOG_PATH = "application.log"

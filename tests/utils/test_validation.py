@@ -35,6 +35,15 @@ def test_validate_filename_happy_path(client, filename):
     assert validate_filename(filename) == filename
 
 
+def test_validate_filename_length(client):
+    validate_filename(("a" * 96) + ".csv")
+
+    with pytest.raises(ValueError) as e:
+        validate_filename(("a" * 97) + ".csv")
+
+    assert str(e.value) == "`filename` cannot be longer than 100 characters"
+
+
 def test_validate_filename_needs_dot():
     with pytest.raises(ValueError) as e:
         validate_filename("my-filename")
