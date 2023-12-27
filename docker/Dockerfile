@@ -9,7 +9,7 @@ RUN apt-get update \
     libssl-dev \
     libmagic-dev \
     curl \
-    mime-support \
+    media-types \
     && apt-get -y clean \
     && rm -rf /var/lib/apt/lists/* /tmp/*
 
