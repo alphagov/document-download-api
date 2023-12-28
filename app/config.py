@@ -43,8 +43,8 @@ class Config:
     FRONTEND_HOSTNAME = os.environ.get("FRONTEND_HOSTNAME")
     DOCUMENT_DOWNLOAD_API_HOSTNAME = os.environ.get("DOCUMENT_DOWNLOAD_API_HOSTNAME")
 
-    # use DB 1 to separate logically from Notify - as likely to re-use the same redis instance
-    REDIS_URL = os.getenv("REDIS_URL") + "/1" if os.getenv("REDIS_URL") else None
+    REDIS_URL = os.getenv("REDIS_URL")
+
     REDIS_ENABLED = os.environ.get("REDIS_ENABLED") == "1"
 
     DOCUMENT_AUTHENTICATION_RATE_LIMIT = int(os.getenv("DOCUMENT_AUTHENTICATION_RATE_LIMIT", "50"))
