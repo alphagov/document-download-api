@@ -34,6 +34,8 @@ class Config(metaclass=MetaFlaskEnv):
     NOTIFY_APP_NAME = None
     NOTIFY_LOG_PATH = "application.log"
 
+    NOTIFY_RUNTIME_PLATFORM = os.getenv("NOTIFY_RUNTIME_PLATFORM", "paas")
+
     ANTIVIRUS_API_HOST = None
     ANTIVIRUS_API_KEY = None
 
@@ -69,6 +71,8 @@ class Test(Config):
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/1")
     REDIS_ENABLED = os.environ.get("REDIS_ENABLED") == "1"
 
+    NOTIFY_RUNTIME_PLATFORM = "test"
+
 
 class Development(Config):
     DEBUG = True
@@ -88,6 +92,8 @@ class Development(Config):
 
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/1")
     REDIS_ENABLED = os.environ.get("REDIS_ENABLED") == "1"
+
+    NOTIFY_RUNTIME_PLATFORM = "local"
 
 
 class Preview(Config):

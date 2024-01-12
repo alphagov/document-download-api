@@ -27,7 +27,10 @@ FILE_TYPES_TO_FORCE_DOWNLOAD_FOR = ["csv", "rtf"]
 
 @download_blueprint.route("/services/_status")
 def status():
-    return "ok", 200
+    return {
+        "status": "ok",
+        "platform": current_app.config["NOTIFY_RUNTIME_PLATFORM"],
+    }, 200
 
 
 def get_redirect_url_if_user_not_authenticated(request, document):
