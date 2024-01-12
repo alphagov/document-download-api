@@ -73,6 +73,7 @@ class Test(Config):
 
     NOTIFY_RUNTIME_PLATFORM = "test"
 
+
 class Development(Config):
     DEBUG = True
 

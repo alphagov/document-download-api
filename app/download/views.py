@@ -32,6 +32,7 @@ def status():
         "platform": current_app.config["NOTIFY_RUNTIME_PLATFORM"],
     }, 200
 
+
 def get_redirect_url_if_user_not_authenticated(request, document):
     # if document doesn't have hashed email, always allow unauthed access
     if "hashed-recipient-email" not in document["metadata"]:
