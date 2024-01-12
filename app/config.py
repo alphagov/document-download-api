@@ -34,7 +34,7 @@ class Config(metaclass=MetaFlaskEnv):
     NOTIFY_APP_NAME = None
     NOTIFY_LOG_PATH = "application.log"
 
-    NOTIFY_RUNTIME_PLATFORM = "local"
+    NOTIFY_RUNTIME_PLATFORM = os.getenv("NOTIFY_RUNTIME_PLATFORM", "paas")
 
     ANTIVIRUS_API_HOST = None
     ANTIVIRUS_API_KEY = None
