@@ -80,7 +80,7 @@ def test_download_document_with_authenticated_user(client, store):
         )
     )
 
-    assert response.json == {"status": "ok", "platform": "test"}
+    assert response.status_code == 200
     assert response.get_data() == b"PDF document contents"
     store.get.assert_called_once_with(service_id, document_id, bytes(32))
 
