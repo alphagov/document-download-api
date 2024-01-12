@@ -93,7 +93,7 @@ class Development(Config):
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/1")
     REDIS_ENABLED = os.environ.get("REDIS_ENABLED") == "1"
 
-    NOTIFY_RUNTIME_PLATFORM = "test"
+    NOTIFY_RUNTIME_PLATFORM = "local"
 
 
 class Preview(Config):
