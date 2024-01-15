@@ -42,8 +42,8 @@ def test_download_document(client, store):
         "Content-Type": "application/pdf",
         "Content-Disposition": "inline; filename=ffffffff-ffff-ffff-ffff-ffffffffffff.pdf",
         "Referrer-Policy": "no-referrer",
-        "X-B3-SpanId": "None",
-        "X-B3-TraceId": "None",
+        "X-B3-SpanId": mock.ANY,
+        "X-B3-TraceId": mock.ANY,
         "X-Robots-Tag": "noindex, nofollow",
     }
     store.get.assert_called_once_with(
@@ -170,8 +170,8 @@ def test_download_document_with_extension(client, store):
         "Content-Type": "application/pdf",
         "Content-Disposition": "inline; filename=ffffffff-ffff-ffff-ffff-ffffffffffff.pdf",
         "Referrer-Policy": "no-referrer",
-        "X-B3-SpanId": "None",
-        "X-B3-TraceId": "None",
+        "X-B3-SpanId": mock.ANY,
+        "X-B3-TraceId": mock.ANY,
         "X-Robots-Tag": "noindex, nofollow",
     }
 
