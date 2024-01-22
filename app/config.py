@@ -88,7 +88,6 @@ class Development(Config):
     DOCUMENT_DOWNLOAD_API_HOSTNAME = os.environ.get("DOCUMENT_DOWNLOAD_API_HOSTNAME", "localhost:7000")
 
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/1")
-    REDIS_ENABLED = os.environ.get("REDIS_ENABLED") == "1"
 
     NOTIFY_RUNTIME_PLATFORM = "local"
 
