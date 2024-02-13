@@ -49,4 +49,5 @@ applications:
     SENTRY_DSN: '{{ DOCUMENT_DOWNLOAD_API_SENTRY_DSN }}'
     SENTRY_ERRORS_SAMPLE_RATE: '{{ DOCUMENT_DOWNLOAD_API_SENTRY_ERRORS_SAMPLE_RATE }}'
     SENTRY_TRACES_SAMPLE_RATE: '{{ DOCUMENT_DOWNLOAD_API_SENTRY_TRACES_SAMPLE_RATE }}'
-    REDIS_URL: '{{ REDIS_URL }}'
+    # note the os environment variable name is different to the variable name in the creds repo
+    REDIS_URL: '{{ REDIS_DOCUMENT_DOWNLOAD_URL }}'

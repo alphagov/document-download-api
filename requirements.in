@@ -2,7 +2,6 @@
 # with package version changes made in requirements-app.txt
 
 Flask==3.0.0
-Flask-Env==2.0.0
 werkzeug==3.0.1
 
 python-magic==0.4.25
