@@ -69,6 +69,8 @@ RUN usermod -aG sudo notify
 RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 USER notify
 
+ENV HOME=/home/vcap
+
 # Make sure the app/ directory is there so that "make bootstrap" can create app/version.py
 RUN mkdir -p app
 
