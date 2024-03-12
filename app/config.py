@@ -32,7 +32,7 @@ class Config:
     NOTIFY_APP_NAME = os.environ.get("NOTIFY_APP_NAME")
     NOTIFY_LOG_PATH = os.environ.get("NOTIFY_LOG_PATH", "application.log")
 
-    NOTIFY_RUNTIME_PLATFORM = os.getenv("NOTIFY_RUNTIME_PLATFORM", "paas")
+    NOTIFY_RUNTIME_PLATFORM = os.getenv("NOTIFY_RUNTIME_PLATFORM", "ecs")
 
     ANTIVIRUS_API_HOST = os.environ.get("ANTIVIRUS_API_HOST")
     ANTIVIRUS_API_KEY = os.environ.get("ANTIVIRUS_API_KEY")
