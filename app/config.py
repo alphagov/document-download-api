@@ -30,7 +30,6 @@ class Config:
     MAX_CUSTOM_FILENAME_LENGTH = 100
 
     NOTIFY_APP_NAME = os.environ.get("NOTIFY_APP_NAME")
-    NOTIFY_LOG_PATH = os.environ.get("NOTIFY_LOG_PATH", "application.log")
 
     ANTIVIRUS_API_HOST = os.environ.get("ANTIVIRUS_API_HOST")
     ANTIVIRUS_API_KEY = os.environ.get("ANTIVIRUS_API_KEY")
