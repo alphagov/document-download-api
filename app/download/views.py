@@ -27,7 +27,7 @@ FILE_TYPES_TO_FORCE_DOWNLOAD_FOR = ["csv", "rtf", "txt"]
 
 @download_blueprint.route("/services/_status")
 def status():
-    response = jsonify({"status": "ok", "platform": current_app.config["NOTIFY_RUNTIME_PLATFORM"]})
+    response = jsonify({"status": "ok"})
     response.headers["Cache-Control"] = "no-store, no-cache, private, must-revalidate"
     return response, 200
 
