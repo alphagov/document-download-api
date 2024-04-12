@@ -45,7 +45,7 @@ dnspython==2.4.2
     # via eventlet
 docutils==0.16
     # via awscli
-eventlet==0.34.2
+eventlet==0.35.2
     # via gunicorn
 flask==3.0.0
     # via
@@ -141,7 +141,6 @@ sentry-sdk[flask]==1.39.1
 six==1.16.0
     # via
     #   awscli-cwlogs
-    #   eventlet
     #   python-dateutil
 smartypants==2.0.1
     # via notifications-utils
