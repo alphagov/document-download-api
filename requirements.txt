@@ -66,7 +66,7 @@ gunicorn[eventlet]==21.2.0
     # via
     #   -r requirements.in
     #   notifications-utils
-idna==3.6
+idna==3.7
     # via requests
 itsdangerous==2.1.2
     # via
@@ -135,7 +135,9 @@ s3transfer==0.6.2
 segno==1.6.0
     # via notifications-utils
 sentry-sdk[flask]==1.39.1
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   sentry-sdk
 six==1.16.0
     # via
     #   awscli-cwlogs
