@@ -30,9 +30,6 @@ class Config:
     MAX_CUSTOM_FILENAME_LENGTH = 100
 
     NOTIFY_APP_NAME = os.environ.get("NOTIFY_APP_NAME")
-    NOTIFY_LOG_PATH = os.environ.get("NOTIFY_LOG_PATH", "application.log")
-
-    NOTIFY_RUNTIME_PLATFORM = os.getenv("NOTIFY_RUNTIME_PLATFORM", "ecs")
 
     ANTIVIRUS_API_HOST = os.environ.get("ANTIVIRUS_API_HOST")
     ANTIVIRUS_API_KEY = os.environ.get("ANTIVIRUS_API_KEY")
@@ -68,8 +65,6 @@ class Test(Config):
 
     REDIS_URL = "redis://localhost:6379/1"
 
-    NOTIFY_RUNTIME_PLATFORM = "test"
-
 
 class Development(Config):
     DEBUG = True
@@ -88,8 +83,6 @@ class Development(Config):
     DOCUMENT_DOWNLOAD_API_HOSTNAME = os.environ.get("DOCUMENT_DOWNLOAD_API_HOSTNAME", "localhost:7000")
 
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/1")
-
-    NOTIFY_RUNTIME_PLATFORM = "local"
 
 
 class Preview(Config):
