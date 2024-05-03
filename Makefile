@@ -29,7 +29,7 @@ run-flask: ## Run the app locally
 
 .PHONY: run-flask-with-docker
 run-flask-with-docker: ## Run flask with docker
-	FLASK_APP=application.py FLASK_DEBUG=1 ./scripts/run_locally_with_docker.sh flask run --host 0.0.0.0 -p 7000
+	FLASK_APP=application.py FLASK_DEBUG=1 ./scripts/run_locally_with_docker.sh web-local
 
 .PHONY: test
 test: ## Run all tests
