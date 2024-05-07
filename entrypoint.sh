@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if [ "$1" == "web" ]
+then
+  exec gunicorn --error-logfile - -c /home/vcap/app/gunicorn_config.py application
+
+elif [ "$1" == "web-local" ]
+then
+  exec flask run --host 0.0.0.0 --port $PORT
+else
+  echo "Running custom command"
+  exec $@
+fi
