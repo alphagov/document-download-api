@@ -8,7 +8,7 @@ class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY")
     AUTH_TOKENS = os.environ.get("AUTH_TOKENS")
 
-    DOCUMENTS_BUCKET = None
+    DOCUMENTS_BUCKET = os.getenv("MULTIREGION_ACCESSPOINT_ARN", os.environ.get("DOCUMENTS_BUCKET"))
 
     # map of file extension to MIME TYPE.
     ALLOWED_FILE_TYPES = {
@@ -85,24 +85,7 @@ class Development(Config):
     REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/1")
 
 
-class Preview(Config):
-    # When running on ECS we set the MULTIREGION_ACCESSPOINT_ARN since we access the bucket
-    # through the multiregion accesspoint
-    DOCUMENTS_BUCKET = os.getenv("MULTIREGION_ACCESSPOINT_ARN", "preview-document-download")
-
-
-class Staging(Config):
-    DOCUMENTS_BUCKET = os.getenv("MULTIREGION_ACCESSPOINT_ARN", "staging-document-download")
-
-
-class Production(Config):
-    DOCUMENTS_BUCKET = os.getenv("MULTIREGION_ACCESSPOINT_ARN", "production-document-download")
-
-
 configs = {
     "test": Test,
     "development": Development,
-    "preview": Preview,
-    "staging": Staging,
-    "production": Production,
 }

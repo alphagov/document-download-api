@@ -6,7 +6,7 @@ from gds_metrics import GDSMetrics
 from notifications_utils import logging, request_helper
 from notifications_utils.clients.redis.redis_client import RedisClient
 
-from app.config import configs
+from app.config import Config, configs
 from app.utils.antivirus import AntivirusClient
 from app.utils.store import DocumentStore
 
@@ -24,7 +24,12 @@ mimetypes.init()
 
 def create_app():
     application = Flask("app")
-    application.config.from_object(configs[os.environ["NOTIFY_ENVIRONMENT"]])
+
+    notify_environment = os.environ["NOTIFY_ENVIRONMENT"]
+    if notify_environment in configs:
+        application.config.from_object(configs[notify_environment])
+    else:
+        application.config.from_object(Config)
 
     request_helper.init_app(application)
     logging.init_app(application)
