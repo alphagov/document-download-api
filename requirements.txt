@@ -135,9 +135,7 @@ s3transfer==0.6.2
 segno==1.6.0
     # via notifications-utils
 sentry-sdk[flask]==1.39.1
-    # via
-    #   -r requirements.in
-    #   sentry-sdk
+    # via -r requirements.in
 six==1.16.0
     # via
     #   awscli-cwlogs
