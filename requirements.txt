@@ -135,7 +135,9 @@ s3transfer==0.6.2
 segno==1.6.0
     # via notifications-utils
 sentry-sdk[flask]==1.39.1
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   sentry-sdk
 six==1.16.0
     # via
     #   awscli-cwlogs
@@ -150,7 +152,7 @@ urllib3==1.26.18
     #   botocore
     #   requests
     #   sentry-sdk
-werkzeug==3.0.1
+werkzeug==3.0.3
     # via
     #   -r requirements.in
     #   flask
