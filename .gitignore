@@ -11,3 +11,5 @@ environment.sh
 application.log.json
 
 .hypothesis
+
+pyproject.toml

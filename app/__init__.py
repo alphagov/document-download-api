@@ -10,7 +10,7 @@ from app.config import Config, configs
 from app.utils.antivirus import AntivirusClient
 from app.utils.store import DocumentStore
 
-document_store = DocumentStore()  # noqa, has to be imported before views
+document_store = DocumentStore()  # noqa (has to be imported before views)
 antivirus_client = AntivirusClient()  # noqa
 metrics = GDSMetrics()  # noqa
 redis_client = RedisClient()
