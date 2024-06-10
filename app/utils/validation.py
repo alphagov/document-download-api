@@ -1,10 +1,8 @@
 import re
 
 from flask import current_app
-from notifications_utils.recipients import (
-    InvalidEmailError,
-    validate_and_format_email_address,
-)
+from notifications_utils.recipient_validation.email_address import validate_and_format_email_address
+from notifications_utils.recipient_validation.errors import InvalidEmailError
 
 from app.utils.files import split_filename
 

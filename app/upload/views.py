@@ -3,7 +3,7 @@ from base64 import b64decode, binascii
 from io import BytesIO
 
 from flask import Blueprint, abort, current_app, jsonify, request
-from notifications_utils.recipients import InvalidEmailError
+from notifications_utils.recipient_validation.errors import InvalidEmailError
 from werkzeug.exceptions import BadRequest
 
 from app import antivirus_client, document_store

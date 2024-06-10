@@ -87,7 +87,7 @@ markupsafe==2.1.3
     #   werkzeug
 mistune==0.8.4
     # via notifications-utils
-notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@77.1.1
+notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@78.0.0
     # via -r requirements.in
 ordered-set==4.1.0
     # via notifications-utils
@@ -135,7 +135,9 @@ s3transfer==0.6.2
 segno==1.6.0
     # via notifications-utils
 sentry-sdk[flask]==1.39.1
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   sentry-sdk
 six==1.16.0
     # via
     #   awscli-cwlogs
