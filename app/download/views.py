@@ -8,7 +8,7 @@ from flask import (
     send_file,
 )
 from notifications_utils.base64_uuid import base64_to_bytes
-from notifications_utils.recipients import InvalidEmailError
+from notifications_utils.recipient_validation.errors import InvalidEmailError
 
 from app import document_store, redis_client
 from app.utils.files import split_filename

@@ -1,5 +1,5 @@
 import pytest
-from notifications_utils.recipients import InvalidEmailError
+from notifications_utils.recipient_validation.errors import InvalidEmailError
 
 from app.utils.validation import (
     clean_and_validate_email_address,
