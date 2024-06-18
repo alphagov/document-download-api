@@ -29,6 +29,8 @@ class Config:
     MAX_DECODED_FILE_SIZE = (2 * 1024 * 1024) + 1024  # ~2MiB: Enforced by us - max file size after b64decode
     MAX_CUSTOM_FILENAME_LENGTH = 100
 
+    NOTIFY_REQUEST_LOG_LEVEL = os.getenv("NOTIFY_REQUEST_LOG_LEVEL", "INFO")
+
     NOTIFY_APP_NAME = os.environ.get("NOTIFY_APP_NAME")
 
     ANTIVIRUS_API_HOST = os.environ.get("ANTIVIRUS_API_HOST")
