@@ -193,7 +193,7 @@ class DocumentStore:
         return os.urandom(32)
 
     def get_document_key(self, service_id, document_id):
-        return "{}/{}".format(service_id, document_id)
+        return f"{service_id}/{document_id}"
 
     def authenticate(self, service_id: str, document_id: str, decryption_key: bytes, email_address: str) -> bool:
         """

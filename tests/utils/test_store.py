@@ -143,7 +143,7 @@ def test_document_key_with_uuid(store):
     service_id = uuid.uuid4()
     document_id = uuid.uuid4()
 
-    assert store.get_document_key(service_id, document_id) == "{}/{}".format(str(service_id), str(document_id))
+    assert store.get_document_key(service_id, document_id) == f"{str(service_id)}/{str(document_id)}"
 
 
 @pytest.mark.parametrize(

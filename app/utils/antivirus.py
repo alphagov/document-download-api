@@ -30,13 +30,13 @@ class AntivirusClient:
         self.auth_token = app.config["ANTIVIRUS_API_KEY"]
 
     def scan(self, document_stream):
-        headers = {"Authorization": "Bearer {}".format(self.auth_token)}
+        headers = {"Authorization": f"Bearer {self.auth_token}"}
         if has_request_context() and hasattr(request, "get_onwards_request_headers"):
             headers.update(request.get_onwards_request_headers())
 
         try:
             response = requests.post(
-                "{}/scan".format(self.api_host),
+                f"{self.api_host}/scan",
                 headers=headers,
                 files={"document": document_stream},
             )
