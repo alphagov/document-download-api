@@ -79,7 +79,7 @@ class DocumentStore:
             extra_kwargs["Metadata"]["hashed-recipient-email"] = hashed_recipient_email
             current_app.logger.info(
                 "Enabling email confirmation flow for %(service_id)s/%(document_id)s",
-                dict(service_id=service_id, document_id=document_id),
+                {"service_id": service_id, "document_id": document_id},
             )
 
         if retention_period:
@@ -87,7 +87,7 @@ class DocumentStore:
             extra_kwargs["Tagging"] = urlencode(tags)
             current_app.logger.info(
                 "Setting custom retention period for %(service_id)s/%(document_id)s: %(retention_period)s",
-                dict(service_id=service_id, document_id=document_id, retention_period=retention_period),
+                {"service_id": service_id, "document_id": document_id, "retention_period": retention_period},
             )
 
         if filename:
@@ -193,7 +193,7 @@ class DocumentStore:
         return os.urandom(32)
 
     def get_document_key(self, service_id, document_id):
-        return "{}/{}".format(service_id, document_id)
+        return f"{service_id}/{document_id}"
 
     def authenticate(self, service_id: str, document_id: str, decryption_key: bytes, email_address: str) -> bool:
         """

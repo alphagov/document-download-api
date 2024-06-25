@@ -57,4 +57,4 @@ class Matcher:
         return self.key(other)
 
     def __repr__(self):
-        return "<Matcher: {}>".format(self.description)
+        return f"<Matcher: {self.description}>"

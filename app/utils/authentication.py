@@ -15,7 +15,7 @@ def check_auth():
     if not incoming_token:
         abort(401, "Unauthorized; bearer token must be provided")
     elif not token_is_valid(incoming_token):
-        abort(403, "Forbidden; invalid bearer token provided {}".format(incoming_token))
+        abort(403, f"Forbidden; invalid bearer token provided {incoming_token}")
 
 
 def token_is_valid(incoming_token):
