@@ -14,3 +14,4 @@ gds-metrics==0.2.4
 argon2-cffi==21.3.0
 
 notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@79.0.0
+sentry_sdk[flask]>=1.0.0,<2.0.0
