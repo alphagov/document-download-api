@@ -7,9 +7,7 @@ update: insecure
 
 search: False
 requirements:
-  - requirements-app.txt:
-      update: insecure
-  - requirements-dev.txt:
-      update: insecure
-  - requirements.txt:
-      update: False
+  - requirements.in:
+    update: insecure
+  - requirements_for_test.txt:
+    update: insecure
