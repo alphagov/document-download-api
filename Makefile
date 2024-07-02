@@ -17,8 +17,9 @@ help:
 
 .PHONY: bootstrap
 bootstrap: generate-version-file ## install app dependencies
+	pip install -r requirements.txt
+	python -c "from notifications_utils.version_tools import copy_config; copy_config()"
 	pip install -r requirements_for_test.txt
-	python -c "from notifications_utils.version_tools import copy_pyproject_toml; copy_pyproject_toml()"
 
 .PHONY: bootstrap-with-docker
 bootstrap-with-docker: generate-version-file ## Build the docker image
