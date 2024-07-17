@@ -52,7 +52,8 @@ COPY --from=python_build --chown=notify:notify /home/vcap/app/app/version.py app
 
 RUN chown -R notify:notify /home/vcap/app
 
-RUN chown -R notify:notify /home/vcap/app && \
+RUN python -m compileall . && \
+    chown -R notify:notify /home/vcap/app && \
     chmod +x /home/vcap/app/entrypoint.sh
 
 ENTRYPOINT [ "/home/vcap/app/entrypoint.sh" ]
