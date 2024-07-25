@@ -8,6 +8,10 @@ class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY")
     AUTH_TOKENS = os.environ.get("AUTH_TOKENS")
 
+    # The config option NOTIFY_ENVIRONMENT is purely used for logging.
+    # It should not be used for any logical conditionals in the code.
+    NOTIFY_ENVIRONMENT = os.environ["NOTIFY_ENVIRONMENT"]
+
     DOCUMENTS_BUCKET = os.getenv("MULTIREGION_ACCESSPOINT_ARN", os.environ.get("DOCUMENTS_BUCKET"))
 
     # map of file extension to MIME TYPE.
