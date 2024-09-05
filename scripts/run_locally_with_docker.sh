@@ -24,7 +24,7 @@ docker run -it --rm \
   -e ANTIVIRUS_ENABLED=${ANTIVIRUS_ENABLED:-0} \
   -e WERKZEUG_DEBUG_PIN=${WERKZEUG_DEBUG_PIN:-"off"} \
   -e PORT=${PORT} \
-  -p ${PORT}:${PORT} \
+  -p 127.0.0.1:${PORT}:${PORT} \
   -v $(pwd):/home/vcap/app \
   ${DOCKER_IMAGE_NAME} \
   ${@}
