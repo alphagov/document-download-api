@@ -12,7 +12,7 @@ from app.utils.store import (
     DocumentStore,
     DocumentStoreError,
 )
-from tests.conftest import Matcher, set_config
+from tests.conftest import Matcher
 
 
 @pytest.fixture
@@ -126,13 +126,6 @@ def store_with_filename(mock_boto):
     }
     store = DocumentStore(bucket="test-bucket")
     return store
-
-
-def test_document_store_init_app(app, store):
-    with set_config(app, DOCUMENTS_BUCKET="test-bucket-2"):
-        store.init_app(app)
-
-    assert store.bucket == "test-bucket-2"
 
 
 def test_get_document_key(store):

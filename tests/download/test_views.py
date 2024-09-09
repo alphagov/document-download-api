@@ -13,7 +13,11 @@ from app.utils.store import DocumentStoreError
 
 @pytest.fixture
 def store(mocker):
-    return mocker.patch("app.download.views.document_store")
+    return mocker.patch(
+        "app.download.views.document_store",
+        # prevent LocalProxy being detected as an async function
+        new_callable=mocker.MagicMock,
+    )
 
 
 def test_download_document(client, store):
