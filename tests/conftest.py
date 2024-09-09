@@ -3,7 +3,7 @@ from contextlib import contextmanager
 import pytest
 from flask.testing import FlaskClient
 
-from app import create_app
+from app import create_app, reset_memos
 
 
 @pytest.fixture(scope="session")
@@ -27,6 +27,7 @@ def app():
     yield app
 
     ctx.pop()
+    reset_memos()
 
 
 @pytest.fixture()

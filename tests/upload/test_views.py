@@ -3,11 +3,11 @@ from pathlib import Path
 from unittest import mock
 
 import pytest
+from notifications_utils.clients.antivirus.antivirus_client import AntivirusError
 from werkzeug.exceptions import BadRequest
 
 import app
 from app.upload.views import _get_upload_document_request_data
-from app.utils.antivirus import AntivirusError
 
 
 @pytest.fixture
@@ -17,7 +17,11 @@ def store(mocker):
 
 @pytest.fixture
 def antivirus(mocker):
-    return mocker.patch("app.upload.views.antivirus_client")
+    return mocker.patch(
+        "app.upload.views.antivirus_client",
+        # prevent LocalProxy being detected as an async function
+        new_callable=mocker.MagicMock,
+    )
 
 
 def _document_upload(client, url, file_content, confirmation_email=None, retention_period=None):
