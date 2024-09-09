@@ -12,7 +12,11 @@ from app.upload.views import _get_upload_document_request_data
 
 @pytest.fixture
 def store(mocker):
-    return mocker.patch("app.upload.views.document_store")
+    return mocker.patch(
+        "app.upload.views.document_store",
+        # prevent LocalProxy being detected as an async function
+        new_callable=mocker.MagicMock,
+    )
 
 
 @pytest.fixture

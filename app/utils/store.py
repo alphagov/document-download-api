@@ -25,6 +25,10 @@ class DocumentExpired(Exception):
 
 
 class DocumentStore:
+    """
+    This class is not thread-safe.
+    """
+
     _hasher = Hasher()
 
     def __init__(self, bucket=None):
