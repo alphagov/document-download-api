@@ -3,12 +3,12 @@ from base64 import b64decode, binascii
 from io import BytesIO
 
 from flask import Blueprint, abort, current_app, jsonify, request
+from notifications_utils.clients.antivirus.antivirus_client import AntivirusError
 from notifications_utils.recipient_validation.errors import InvalidEmailError
 from werkzeug.exceptions import BadRequest
 
 from app import antivirus_client, document_store
 from app.utils import get_mime_type
-from app.utils.antivirus import AntivirusError
 from app.utils.authentication import check_auth
 from app.utils.files import split_filename
 from app.utils.urls import get_direct_file_url, get_frontend_download_url
