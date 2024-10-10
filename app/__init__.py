@@ -1,10 +1,11 @@
 import mimetypes
 import os
 
-from flask import Flask
+from flask import Flask, jsonify
 from gds_metrics import GDSMetrics
 from notifications_utils import logging, request_helper
 from notifications_utils.clients.redis.redis_client import RedisClient
+from notifications_utils.eventlet import EventletTimeout
 
 from app.config import Config, configs
 from app.utils.antivirus import AntivirusClient
@@ -44,5 +45,10 @@ def create_app():
 
     application.register_blueprint(download_blueprint)
     application.register_blueprint(upload_blueprint)
+
+    @application.errorhandler(EventletTimeout)
+    def eventlet_timeout(error):
+        application.logger.exception(error)
+        return jsonify(result="error", message="Timeout serving request"), 504
 
     return application
