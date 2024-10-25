@@ -26,6 +26,9 @@ class Config:
         "application/vnd.oasis.opendocument.text": "odt",
         "text/rtf": "rtf",
         "application/rtf": "rtf",
+        "image/jpg": "jpg",
+        "image/jpeg": "jpeg",
+        "image/png": "png",
     }
     FILE_EXTENSIONS_TO_MIMETYPES = {value: key for key, value in ALLOWED_FILE_TYPES.items()}
 

@@ -19,6 +19,9 @@ sample_files_path = Path(__file__).parent.parent / "sample_files"
         ("test.odt", "application/vnd.oasis.opendocument.text"),
         ("test.rtf", "text/rtf"),
         ("test.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+        ("test.jpg", "image/jpg"),
+        ("test.jpeg", "image/jpeg"),
+        ("test.png", "image/png"),
         # not supported by doc dl
         ("test.pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation"),
         ("test.zip", "application/zip"),
