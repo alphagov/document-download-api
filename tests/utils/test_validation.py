@@ -58,5 +58,6 @@ def test_validate_filename_rejects_unknown_file_extensions(client, value, extens
         validate_filename(value)
         assert str(e.value) == (
             f"Unsupported file type '{extension}'. "
-            f"Supported types are: '.csv', '.doc', '.docx', '.json', '.odt', '.pdf', '.rtf', '.txt', '.xlsx'"
+            f"Supported types are: '.csv', '.doc', '.docx', '.jpeg', '.json', '.odt', '.pdf', '.png',"
+            f" '.rtf', '.txt', '.xlsx'"
         )

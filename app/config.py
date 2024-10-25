@@ -14,7 +14,7 @@ class Config:
 
     DOCUMENTS_BUCKET = os.getenv("MULTIREGION_ACCESSPOINT_ARN", os.environ.get("DOCUMENTS_BUCKET"))
 
-    # map of file extension to MIME TYPE.
+    # map of MIME TYPE to file extension.
     ALLOWED_FILE_TYPES = {
         "application/pdf": "pdf",
         "text/csv": "csv",
@@ -26,6 +26,8 @@ class Config:
         "application/vnd.oasis.opendocument.text": "odt",
         "text/rtf": "rtf",
         "application/rtf": "rtf",
+        "image/jpeg": "jpeg",
+        "image/png": "png",
     }
     FILE_EXTENSIONS_TO_MIMETYPES = {value: key for key, value in ALLOWED_FILE_TYPES.items()}
 
