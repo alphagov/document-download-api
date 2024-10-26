@@ -127,5 +127,5 @@ urllib3==1.26.19
     #   botocore
     #   requests
     #   sentry-sdk
-werkzeug==3.0.3
+werkzeug==3.0.6
     # via flask
