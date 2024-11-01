@@ -17,8 +17,6 @@ help:
 
 .PHONY: bootstrap
 bootstrap: generate-version-file ## install app dependencies
-	pip install -r requirements.txt
-	python -c "from notifications_utils.version_tools import copy_config; copy_config()"
 	pip install -r requirements_for_test.txt
 
 .PHONY: bootstrap-with-docker
@@ -47,6 +45,7 @@ test-with-docker: ## Run tests in Docker container
 freeze-requirements: ## create static requirements.txt
 	pip install --upgrade pip-tools
 	pip-compile requirements.in
+	python -c "from notifications_utils.version_tools import copy_config; copy_config()"
 
 .PHONY: bump-utils
 bump-utils:  # Bump notifications-utils package to latest version
