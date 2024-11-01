@@ -11,6 +11,3 @@ environment.sh
 application.log.json
 
 .hypothesis
-
-pyproject.toml
-.pre-commit-config.yaml
