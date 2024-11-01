@@ -113,9 +113,7 @@ s3transfer==0.10.1
 segno==1.6.0
     # via notifications-utils
 sentry-sdk[flask]==1.45.0
-    # via
-    #   -r requirements.in
-    #   sentry-sdk
+    # via -r requirements.in
 six==1.16.0
     # via python-dateutil
 smartypants==2.0.1
