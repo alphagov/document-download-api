@@ -141,7 +141,7 @@ def test_document_upload_unknown_type(client, antivirus):
     assert response.status_code == 400
     assert response.json["error"] == (
         "Unsupported file type 'application/octet-stream'. "
-        "Supported types are: '.csv', '.doc', '.docx', '.jpeg', '.json', '.odt', '.pdf', '.png', '.rtf', "
+        "Supported types are: '.csv', '.doc', '.docx', '.jpeg', '.jpg', '.json', '.odt', '.pdf', '.png', '.rtf', "
         "'.txt', '.xlsx'"
     )
 
