@@ -87,7 +87,7 @@ def download_document(service_id, document_id, extension=None):
         mimetype = current_app.config["FILE_EXTENSIONS_TO_MIMETYPES"][extension]
     else:
         mimetype = document["mimetype"]
-        extension = current_app.config["ALLOWED_FILE_TYPES"][mimetype]
+        extension = current_app.config["MIME_TYPES_TO_FILE_EXTENSIONS"][mimetype]
         filename = f"{document_id}.{extension}"
 
     send_file_kwargs = {
@@ -142,7 +142,7 @@ def get_document_metadata(service_id, document_id):
             ),
             "confirm_email": metadata["confirm_email"],
             "size_in_bytes": metadata["size"],
-            "file_extension": current_app.config["ALLOWED_FILE_TYPES"][metadata["mimetype"]],
+            "file_extension": current_app.config["MIME_TYPES_TO_FILE_EXTENSIONS"][metadata["mimetype"]],
             "filename": metadata["filename"],
             "available_until": metadata["available_until"],
         }

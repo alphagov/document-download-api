@@ -56,8 +56,9 @@ def test_validate_filename_needs_dot():
 def test_validate_filename_rejects_unknown_file_extensions(client, value, extension):
     with pytest.raises(ValueError) as e:
         validate_filename(value)
-        assert str(e.value) == (
-            f"Unsupported file type '{extension}'. "
-            f"Supported types are: '.csv', '.doc', '.docx', '.jpeg', '.json', '.odt', '.pdf', '.png',"
-            f" '.rtf', '.txt', '.xlsx'"
-        )
+
+    assert str(e.value) == (
+        f"Unsupported file type '{extension}'. "
+        f"Supported types are: '.csv', '.doc', '.docx', '.jpeg', '.jpg', '.json', '.odt', '.pdf', '.png',"
+        f" '.rtf', '.txt', '.xlsx'"
+    )
