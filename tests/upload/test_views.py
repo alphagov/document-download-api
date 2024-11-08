@@ -141,7 +141,8 @@ def test_document_upload_unknown_type(client, antivirus):
     assert response.status_code == 400
     assert response.json["error"] == (
         "Unsupported file type 'application/octet-stream'. "
-        "Supported types are: '.csv', '.doc', '.docx', '.json', '.odt', '.pdf', '.rtf', '.txt', '.xlsx'"
+        "Supported types are: '.csv', '.doc', '.docx', '.jpeg', '.jpg', '.json', '.odt', '.pdf', '.png', '.rtf', "
+        "'.txt', '.xlsx'"
     )
 
 
@@ -323,7 +324,7 @@ def test_document_upload_csv_handling(
                     "http://download.document-download-frontend-test",
                     "/services/00000000-0000-0000-0000-000000000000",
                     "/documents/ffffffff-ffff-ffff-ffff-ffffffffffff",
-                    f'.{app.config["ALLOWED_FILE_TYPES"][expected_mimetype]}',
+                    f'.{app.config["MIME_TYPES_TO_FILE_EXTENSIONS"][expected_mimetype]}',
                     "?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
                 ]
             ),
@@ -362,6 +363,9 @@ def test_document_upload_filename_handling(
         )
 
     assert response.status_code == 201
+
+    if extension == "jpg":
+        extension = "jpeg"  # for .jpg we automatically change extension to .jpeg
     assert response.json == {
         "document": {
             "id": "ffffffff-ffff-ffff-ffff-ffffffffffff",
@@ -427,7 +431,8 @@ def test_document_upload_bad_is_csv_value(client):
             {"document": "YQoxLAo=", "filename": "rejected-file-extension.gif"},
             (
                 "Unsupported file type '.gif'. "
-                "Supported types are: '.csv', '.doc', '.docx', '.json', '.odt', '.pdf', '.rtf', '.txt', '.xlsx'"
+                "Supported types are: '.csv', '.doc', '.docx', '.jpeg', '.jpg', '.json', '.odt', '.pdf', '.png',"
+                " '.rtf', '.txt', '.xlsx'"
             ),
         ),
     ),

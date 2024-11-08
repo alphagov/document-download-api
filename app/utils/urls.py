@@ -10,7 +10,7 @@ def get_direct_file_url(service_id, document_id, key, mimetype):
         service_id=service_id,
         document_id=document_id,
         key=bytes_to_base64(key),
-        extension=current_app.config["ALLOWED_FILE_TYPES"][mimetype],
+        extension=current_app.config["MIME_TYPES_TO_FILE_EXTENSIONS"][mimetype],
         _external=False,
     )
 

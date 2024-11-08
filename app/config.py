@@ -14,20 +14,28 @@ class Config:
 
     DOCUMENTS_BUCKET = os.getenv("MULTIREGION_ACCESSPOINT_ARN", os.environ.get("DOCUMENTS_BUCKET"))
 
-    # map of file extension to MIME TYPE.
-    ALLOWED_FILE_TYPES = {
-        "application/pdf": "pdf",
-        "text/csv": "csv",
-        "text/plain": "txt",
-        "application/json": "json",
-        "application/msword": "doc",
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
-        "application/vnd.oasis.opendocument.text": "odt",
-        "text/rtf": "rtf",
-        "application/rtf": "rtf",
-    }
-    FILE_EXTENSIONS_TO_MIMETYPES = {value: key for key, value in ALLOWED_FILE_TYPES.items()}
+    # map of MIME TYPE to file extension.
+    # warning! order matters here - when we convert this tuple of tuples to a dict, and the program runs into identical
+    # keys, it will choose the last pair from the top.
+    # So right now it will choose "application/rtf" for "rtf" extension, and "jpeg" for "image/jpeg" mimetype.
+    ALLOWED_FILE_TYPES = (
+        ("application/pdf", "pdf"),
+        ("text/csv", "csv"),
+        ("text/plain", "txt"),
+        ("application/json", "json"),
+        ("application/msword", "doc"),
+        ("application/vnd.openxmlformats-officedocument.wordprocessingml.document", "docx"),
+        ("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "xlsx"),
+        ("application/vnd.oasis.opendocument.text", "odt"),
+        ("text/rtf", "rtf"),
+        ("application/rtf", "rtf"),
+        ("image/jpeg", "jpg"),
+        ("image/jpeg", "jpeg"),
+        ("image/png", "png"),
+    )
+
+    FILE_EXTENSIONS_TO_MIMETYPES = {v: k for k, v in ALLOWED_FILE_TYPES}
+    MIME_TYPES_TO_FILE_EXTENSIONS = dict(ALLOWED_FILE_TYPES)
 
     MAX_CONTENT_LENGTH = 3 * 1024 * 1024  # 3MiB: Enforced by Flask/Werkzeug to generously allow for b64 size inflation
     MAX_DECODED_FILE_SIZE = (2 * 1024 * 1024) + 1024  # ~2MiB: Enforced by us - max file size after b64decode

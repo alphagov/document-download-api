@@ -91,8 +91,10 @@ def upload_document(service_id):
         if is_csv and mimetype == "text/plain":
             mimetype = "text/csv"
 
-    if mimetype not in current_app.config["ALLOWED_FILE_TYPES"]:
-        allowed_file_types = ", ".join(sorted({f"'.{x}'" for x in current_app.config["ALLOWED_FILE_TYPES"].values()}))
+    if mimetype not in current_app.config["MIME_TYPES_TO_FILE_EXTENSIONS"]:
+        allowed_file_types = ", ".join(
+            sorted({f"'.{x}'" for x in current_app.config["FILE_EXTENSIONS_TO_MIMETYPES"].keys()})
+        )
         return jsonify(error=f"Unsupported file type '{mimetype}'. Supported types are: {allowed_file_types}"), 400
 
     document = document_store.put(
