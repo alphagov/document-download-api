@@ -15,9 +15,9 @@ attrs==24.2.0
 awscrt==0.22.0
     # via botocore
 beautifulsoup4==4.11.1
-    # via -r requirements_for_test_common.txt
+    # via -r requirements_for_test_common.in
 black==24.4.0
-    # via -r requirements_for_test_common.txt
+    # via -r requirements_for_test_common.in
 blinker==1.9.0
     # via
     #   flask
@@ -64,7 +64,7 @@ flask==3.0.3
 flask-redis==0.4.0
     # via notifications-utils
 freezegun==1.2.2
-    # via -r requirements_for_test_common.txt
+    # via -r requirements_for_test_common.in
 gds-metrics==0.2.4
     # via -r requirements.in
 govuk-bank-holidays==0.15
@@ -100,7 +100,7 @@ mistune==0.8.4
     # via notifications-utils
 mypy-extensions==1.0.0
     # via black
-notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@88.1.0
+notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@89.0.0
     # via -r requirements.in
 ordered-set==4.1.0
     # via notifications-utils
@@ -127,22 +127,22 @@ pypdf==5.1.0
     # via notifications-utils
 pytest==7.2.0
     # via
-    #   -r requirements_for_test_common.txt
+    #   -r requirements_for_test_common.in
     #   pytest-env
     #   pytest-mock
     #   pytest-testmon
     #   pytest-watch
     #   pytest-xdist
 pytest-env==0.8.1
-    # via -r requirements_for_test_common.txt
+    # via -r requirements_for_test_common.in
 pytest-mock==3.9.0
-    # via -r requirements_for_test_common.txt
+    # via -r requirements_for_test_common.in
 pytest-testmon==2.1.0
-    # via -r requirements_for_test_common.txt
+    # via -r requirements_for_test_common.in
 pytest-watch==4.2.0
-    # via -r requirements_for_test_common.txt
+    # via -r requirements_for_test_common.in
 pytest-xdist==3.0.2
-    # via -r requirements_for_test_common.txt
+    # via -r requirements_for_test_common.in
 python-dateutil==2.9.0.post0
     # via
     #   botocore
@@ -163,11 +163,11 @@ requests==2.32.3
     #   notifications-utils
     #   requests-mock
 requests-mock==1.10.0
-    # via -r requirements_for_test_common.txt
+    # via -r requirements_for_test_common.in
 rsa==4.9
     # via -r requirements.in
 ruff==0.3.7
-    # via -r requirements_for_test_common.txt
+    # via -r requirements_for_test_common.in
 s3transfer==0.10.3
     # via boto3
 segno==1.6.1
