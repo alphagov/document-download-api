@@ -5,11 +5,12 @@ from contextvars import ContextVar
 
 from flask import Flask, current_app, jsonify
 from gds_metrics import GDSMetrics
-from notifications_utils import logging, request_helper
+from notifications_utils import request_helper
 from notifications_utils.clients.antivirus.antivirus_client import AntivirusClient
 from notifications_utils.clients.redis.redis_client import RedisClient
 from notifications_utils.eventlet import EventletTimeout
 from notifications_utils.local_vars import LazyLocalGetter
+from notifications_utils.logging import flask as utils_logging
 from werkzeug.local import LocalProxy
 
 from app.config import Config, configs
@@ -63,7 +64,7 @@ def create_app():
         application.config.from_object(Config)
 
     request_helper.init_app(application)
-    logging.init_app(application)
+    utils_logging.init_app(application)
 
     metrics.init_app(application)
     redis_client.init_app(application)

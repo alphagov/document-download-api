@@ -324,7 +324,7 @@ def test_document_upload_csv_handling(
                     "http://download.document-download-frontend-test",
                     "/services/00000000-0000-0000-0000-000000000000",
                     "/documents/ffffffff-ffff-ffff-ffff-ffffffffffff",
-                    f'.{app.config["MIME_TYPES_TO_FILE_EXTENSIONS"][expected_mimetype]}',
+                    f".{app.config['MIME_TYPES_TO_FILE_EXTENSIONS'][expected_mimetype]}",
                     "?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
                 ]
             ),

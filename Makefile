@@ -31,7 +31,7 @@ run-flask-with-docker: ## Run flask with docker
 .PHONY: test
 test: ## Run all tests
 	ruff check .
-	black --check .
+	ruff format --check .
 	py.test tests/
 
 .PHONY: test-with-docker
