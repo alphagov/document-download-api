@@ -100,7 +100,7 @@ itsdangerous==2.2.0
     #   -r requirements.txt
     #   flask
     #   notifications-utils
-jinja2==3.1.5
+jinja2==3.1.6
     # via
     #   -r requirements.txt
     #   flask
@@ -119,7 +119,7 @@ mistune==0.8.4
     # via
     #   -r requirements.txt
     #   notifications-utils
-notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@361486ff4960b5d02c162118b1fd64b097f9cb96
+notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@3fb3caf0efc9ccbebfe79b3269f84bfd66fc90d5
     # via -r requirements.txt
 ordered-set==4.1.0
     # via
