@@ -8,7 +8,7 @@ from flask.sessions import SecureCookieSessionInterface
 
 from app.download.views import get_redirect_url_if_user_not_authenticated
 from app.utils.signed_data import sign_service_and_document_id
-from app.utils.store import DocumentStoreError
+from app.utils.store import DocumentNotFound, DocumentStoreError
 
 
 @pytest.fixture
@@ -332,7 +332,7 @@ def test_get_document_metadata_when_document_is_in_s3(client, store, mimetype, e
 
 
 def test_get_document_metadata_when_document_is_not_in_s3(client, store):
-    store.get_document_metadata.return_value = None
+    store.get_document_metadata.side_effect = DocumentNotFound("no such document")
     response = client.get(
         url_for(
             "download.get_document_metadata",
@@ -342,9 +342,8 @@ def test_get_document_metadata_when_document_is_not_in_s3(client, store):
         )
     )
 
-    assert response.status_code == 200
-    assert response.json == {"document": None}
-    assert response.headers["X-Robots-Tag"] == "noindex, nofollow"
+    assert response.status_code == 404
+    assert response.json == {"error": "no such document"}
 
 
 class TestAuthenticateDocument:

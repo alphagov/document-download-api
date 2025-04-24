@@ -9,6 +9,7 @@ from botocore.exceptions import ClientError as BotoClientError
 from app.utils.store import (
     DocumentBlocked,
     DocumentExpired,
+    DocumentNotFound,
     DocumentStore,
     DocumentStoreError,
 )
@@ -60,20 +61,6 @@ def expired_document(mock_boto):
                 "Message": "The specified method is not allowed against this resource.",
                 "Method": "GET",
                 "ResourceType": "DeleteMarker",
-            }
-        },
-        "GetObjectTagging",
-    )
-
-
-@pytest.fixture
-def missing_document(mock_boto):
-    mock_boto.client.return_value.get_object_tagging.side_effect = botocore.exceptions.ClientError(
-        {
-            "Error": {
-                "Code": "NoSuchKey",
-                "Message": "The specified key does not exist.",
-                "Key": "object-key",
             }
         },
         "GetObjectTagging",
@@ -174,7 +161,32 @@ def test_check_for_blocked_document_raises_expired_error(store, expired_document
         store.check_for_blocked_document("service-id", "doc-id")
 
 
-def test_check_for_blocked_document_reraises_other_boto_error(store, missing_document):
+def test_check_for_blocked_document_missing_raises_document_not_found_error(store):
+    store.s3.get_object_tagging.side_effect = botocore.exceptions.ClientError(
+        {
+            "Error": {
+                "Code": "NoSuchKey",
+                "Message": "The specified key does not exist.",
+                "Key": "object-key",
+            }
+        },
+        "GetObjectTagging",
+    )
+
+    with pytest.raises(DocumentNotFound):
+        store.check_for_blocked_document("service-id", "doc-id")
+
+
+def test_check_for_blocked_document_random_error_propagated(store):
+    store.s3.get_object_tagging.side_effect = botocore.exceptions.ClientError(
+        {
+            "Error": {
+                "Code": "NotEnoughBananas",
+            }
+        },
+        "GetObjectTagging",
+    )
+
     with pytest.raises(BotoClientError):
         store.check_for_blocked_document("service-id", "doc-id")
 
@@ -295,17 +307,13 @@ def test_get_document_with_boto_error(store):
 
 
 def test_get_blocked_document(store, blocked_document):
-    with pytest.raises(DocumentStoreError) as e:
+    with pytest.raises(DocumentBlocked):
         store.get("service-id", "document-id", bytes(32))
-
-    assert str(e.value) == "Access to the document has been blocked"
 
 
 def test_get_expired_document(store, expired_document):
-    with pytest.raises(DocumentStoreError) as e:
+    with pytest.raises(DocumentExpired):
         store.get("service-id", "document-id", bytes(32))
-
-    assert str(e.value) == "The document is no longer available"
 
 
 def test_get_document_metadata_when_document_is_in_s3(store):
@@ -346,7 +354,8 @@ def test_get_document_metadata_when_document_is_not_in_s3(store):
         side_effect=BotoClientError({"Error": {"Code": "404", "Message": "Not Found"}}, "HeadObject")
     )
 
-    assert store.get_document_metadata("service-id", "document-id", "0f0f0f") is None
+    with pytest.raises(DocumentNotFound):
+        store.get_document_metadata("service-id", "document-id", "0f0f0f")
 
 
 def test_get_document_metadata_with_unexpected_boto_error(store):
@@ -359,19 +368,28 @@ def test_get_document_metadata_with_unexpected_boto_error(store):
 
 
 def test_get_document_metadata_with_blocked_document(store_with_email, blocked_document):
-    assert store_with_email.get_document_metadata("service-id", "document-id", "0f0f0f") is None
+    with pytest.raises(DocumentBlocked):
+        store_with_email.get_document_metadata("service-id", "document-id", "0f0f0f")
 
 
 def test_get_document_metadata_with_expired_document(store_with_email, expired_document):
-    assert store_with_email.get_document_metadata("service-id", "document-id", "0f0f0f") is None
+    with pytest.raises(DocumentExpired):
+        store_with_email.get_document_metadata("service-id", "document-id", "0f0f0f")
+
+
+def test_get_document_metadata_when_missing(store):
+    store.s3.head_object = mock.Mock(
+        side_effect=BotoClientError({"Error": {"Code": "404", "Message": "Not Found"}}, "HeadObject")
+    )
+
+    with pytest.raises(DocumentNotFound):
+        store.get_document_metadata("service-id", "document-id", "0f0f0f")
 
 
 def test_authenticate_document_when_missing(store):
     store.s3.head_object = mock.Mock(
         side_effect=BotoClientError({"Error": {"Code": "404", "Message": "Not Found"}}, "HeadObject")
     )
-
-    assert store.get_document_metadata("service-id", "document-id", "0f0f0f") is None
 
     assert store.authenticate("service-id", "document-id", b"0f0f0f", "test@notify.example") is False
 

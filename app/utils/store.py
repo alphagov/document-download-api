@@ -13,15 +13,19 @@ from app.utils.hasher import Hasher
 
 
 class DocumentStoreError(Exception):
-    pass
+    suggested_status_code = 400
 
 
-class DocumentBlocked(Exception):
-    pass
+class DocumentBlocked(DocumentStoreError):
+    suggested_status_code = 403
 
 
-class DocumentExpired(Exception):
-    pass
+class DocumentExpired(DocumentStoreError):
+    suggested_status_code = 410
+
+
+class DocumentNotFound(DocumentStoreError):
+    suggested_status_code = 404
 
 
 class DocumentStore:
@@ -56,8 +60,10 @@ class DocumentStore:
         except BotoClientError as e:
             if e.response["Error"].get("ResourceType") == "DeleteMarker":
                 # The S3 object has been marked as expired (eg by our retention period lifecycle policy)
-                # We should treat is as not existing
                 raise DocumentExpired("The document is no longer available") from e
+
+            if e.response["Error"].get("Code") == "NoSuchKey":
+                raise DocumentNotFound("The requested document could not be found") from e
 
             raise e
 
@@ -135,9 +141,10 @@ class DocumentStore:
                 SSECustomerAlgorithm="AES256",
             )
 
-        except (DocumentBlocked, DocumentExpired) as e:
-            raise DocumentStoreError(str(e)) from e
         except BotoClientError as e:
+            if e.response["Error"]["Code"] == "404":
+                raise DocumentNotFound("The requested document could not be found") from e
+
             raise DocumentStoreError(e.response["Error"]) from e
 
         return {
@@ -170,11 +177,10 @@ class DocumentStore:
                 "available_until": str(expiry_date),
                 "filename": self._normalise_metadata(metadata["Metadata"]).get("filename"),
             }
-        except (DocumentBlocked, DocumentExpired):
-            return None
         except BotoClientError as e:
             if e.response["Error"]["Code"] == "404":
-                return None
+                raise DocumentNotFound("The requested document could not be found") from e
+
             raise DocumentStoreError(e.response["Error"]) from e
 
     @staticmethod
