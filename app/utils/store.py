@@ -70,6 +70,19 @@ class DocumentStore:
         if tags.get("blocked", "false").lower() in {"true", "yes"}:
             raise DocumentBlocked("Access to the document has been blocked")
 
+    def check_for_expired_document(self, s3_response):
+        if not s3_response.get("Expiration"):
+            current_app.logger.warning("Expiration information not available for document")
+            # in case we're having a maintenance issue/outage with our s3 bucket
+            # we'd prefer to serve some files that should have been deleted (hopefully <14
+            # days ago) instead of being unable to serve any documents to any users
+            return
+
+        expiry_date = self._convert_expiry_date_to_date_object(s3_response["Expiration"])
+
+        if expiry_date < date.today():
+            raise DocumentExpired("The document is no longer available")
+
     def put(
         self, service_id, document_stream, *, mimetype, confirmation_email=None, retention_period=None, filename=None
     ):
@@ -134,12 +147,13 @@ class DocumentStore:
         """
         try:
             self.check_for_blocked_document(service_id, document_id)
-            document = self.s3.get_object(
+            s3_response = self.s3.get_object(
                 Bucket=self.bucket,
                 Key=self.get_document_key(service_id, document_id),
                 SSECustomerKey=decryption_key,
                 SSECustomerAlgorithm="AES256",
             )
+            self.check_for_expired_document(s3_response)
 
         except BotoClientError as e:
             if e.response["Error"]["Code"] == "404":
@@ -148,10 +162,10 @@ class DocumentStore:
             raise DocumentStoreError(e.response["Error"]) from e
 
         return {
-            "body": document["Body"],
-            "mimetype": document["ContentType"],
-            "size": document["ContentLength"],
-            "metadata": self._normalise_metadata(document["Metadata"]),
+            "body": s3_response["Body"],
+            "mimetype": s3_response["ContentType"],
+            "size": s3_response["ContentLength"],
+            "metadata": self._normalise_metadata(s3_response["Metadata"]),
         }
 
     def get_document_metadata(self, service_id, document_id, decryption_key):
@@ -161,21 +175,22 @@ class DocumentStore:
 
         try:
             self.check_for_blocked_document(service_id, document_id)
-            metadata = self.s3.head_object(
+            s3_response = self.s3.head_object(
                 Bucket=self.bucket,
                 Key=self.get_document_key(service_id, document_id),
                 SSECustomerKey=decryption_key,
                 SSECustomerAlgorithm="AES256",
             )
+            self.check_for_expired_document(s3_response)
 
             return {
-                "mimetype": metadata["ContentType"],
-                "confirm_email": self.get_email_hash(metadata) is not None,
-                "size": metadata["ContentLength"],
-                "available_until": str(self._convert_expiry_date_to_date_object(metadata["Expiration"]))
-                if metadata.get("Expiration")
+                "mimetype": s3_response["ContentType"],
+                "confirm_email": self.get_email_hash(s3_response) is not None,
+                "size": s3_response["ContentLength"],
+                "available_until": str(self._convert_expiry_date_to_date_object(s3_response["Expiration"]))
+                if s3_response.get("Expiration")
                 else None,
-                "filename": self._normalise_metadata(metadata["Metadata"]).get("filename"),
+                "filename": self._normalise_metadata(s3_response["Metadata"]).get("filename"),
             }
         except BotoClientError as e:
             if e.response["Error"]["Code"] == "404":
@@ -211,12 +226,13 @@ class DocumentStore:
         """
         try:
             self.check_for_blocked_document(service_id, document_id)
-            response = self.s3.head_object(
+            s3_response = self.s3.head_object(
                 Bucket=self.bucket,
                 Key=self.get_document_key(service_id, document_id),
                 SSECustomerKey=decryption_key,
                 SSECustomerAlgorithm="AES256",
             )
+            self.check_for_expired_document(s3_response)
         except (DocumentBlocked, DocumentExpired):
             return False
         except BotoClientError as e:
@@ -224,7 +240,7 @@ class DocumentStore:
                 return False
             raise DocumentStoreError(e.response["Error"]) from e
 
-        hashed_email = self.get_email_hash(response)
+        hashed_email = self.get_email_hash(s3_response)
 
         if not hashed_email:
             return False
