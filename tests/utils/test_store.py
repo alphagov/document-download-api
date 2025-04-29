@@ -327,6 +327,18 @@ def test_get_document_metadata_when_document_is_in_s3(store):
     }
 
 
+def test_get_document_metadata_when_document_is_in_s3_but_missing_expiration(store):
+    del store.s3.head_object.return_value["Expiration"]
+    metadata = store.get_document_metadata("service-id", "document-id", "0f0f0f")
+    assert metadata == {
+        "mimetype": "text/plain",
+        "confirm_email": False,
+        "size": 100,
+        "available_until": None,
+        "filename": None,
+    }
+
+
 def test_get_document_metadata_when_document_is_in_s3_with_hashed_email(store_with_email):
     metadata = store_with_email.get_document_metadata("service-id", "document-id", "0f0f0f")
     assert metadata == {
