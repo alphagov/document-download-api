@@ -55,7 +55,7 @@ dnspython==2.6.1
     # via
     #   -r requirements.txt
     #   eventlet
-eventlet==0.35.2
+eventlet==0.39.1
     # via
     #   -r requirements.txt
     #   gunicorn
