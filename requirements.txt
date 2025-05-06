@@ -31,7 +31,7 @@ click==8.1.7
     # via flask
 dnspython==2.6.1
     # via eventlet
-eventlet==0.35.2
+eventlet==0.39.1
     # via gunicorn
 flask==3.1.0
     # via
@@ -47,7 +47,7 @@ govuk-bank-holidays==0.15
     # via notifications-utils
 greenlet==3.0.3
     # via eventlet
-gunicorn==21.2.0
+gunicorn==23.0.0
     # via notifications-utils
 idna==3.7
     # via requests

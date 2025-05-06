@@ -55,7 +55,7 @@ dnspython==2.6.1
     # via
     #   -r requirements.txt
     #   eventlet
-eventlet==0.35.2
+eventlet==0.39.1
     # via
     #   -r requirements.txt
     #   gunicorn
@@ -83,7 +83,7 @@ greenlet==3.0.3
     # via
     #   -r requirements.txt
     #   eventlet
-gunicorn==21.2.0
+gunicorn==23.0.0
     # via
     #   -r requirements.txt
     #   notifications-utils
