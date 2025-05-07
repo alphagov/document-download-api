@@ -5,10 +5,12 @@ from unittest import mock
 import botocore
 import pytest
 from botocore.exceptions import ClientError as BotoClientError
+from freezegun import freeze_time
 
 from app.utils.store import (
     DocumentBlocked,
     DocumentExpired,
+    DocumentNotFound,
     DocumentStore,
     DocumentStoreError,
 )
@@ -25,6 +27,7 @@ def mock_boto(mocker):
 def store(mock_boto):
     mock_boto.client.return_value.get_object.return_value = {
         "Body": mock.Mock(),
+        "Expiration": 'expiry-date="Fri, 01 May 2020 00:00:00 GMT", expiry-rule="custom-retention-1-weeks"',
         "ContentType": "application/pdf",
         "ContentLength": 100,
         "Metadata": {},
@@ -52,7 +55,7 @@ def blocked_document(mock_boto):
 
 
 @pytest.fixture
-def expired_document(mock_boto):
+def delete_markered_document(mock_boto):
     mock_boto.client.return_value.get_object_tagging.side_effect = botocore.exceptions.ClientError(
         {
             "Error": {
@@ -60,20 +63,6 @@ def expired_document(mock_boto):
                 "Message": "The specified method is not allowed against this resource.",
                 "Method": "GET",
                 "ResourceType": "DeleteMarker",
-            }
-        },
-        "GetObjectTagging",
-    )
-
-
-@pytest.fixture
-def missing_document(mock_boto):
-    mock_boto.client.return_value.get_object_tagging.side_effect = botocore.exceptions.ClientError(
-        {
-            "Error": {
-                "Code": "NoSuchKey",
-                "Message": "The specified key does not exist.",
-                "Key": "object-key",
             }
         },
         "GetObjectTagging",
@@ -169,14 +158,75 @@ def test_check_for_blocked_document_raises_error(store, mock_boto, blocked_value
         store.check_for_blocked_document("service-id", "doc-id")
 
 
-def test_check_for_blocked_document_raises_expired_error(store, expired_document):
+def test_check_for_blocked_document_delete_marker_document_expired_error(store, delete_markered_document):
     with pytest.raises(DocumentExpired):
         store.check_for_blocked_document("service-id", "doc-id")
 
 
-def test_check_for_blocked_document_reraises_other_boto_error(store, missing_document):
+def test_check_for_blocked_document_missing_raises_document_not_found_error(store):
+    store.s3.get_object_tagging.side_effect = botocore.exceptions.ClientError(
+        {
+            "Error": {
+                "Code": "NoSuchKey",
+                "Message": "The specified key does not exist.",
+                "Key": "object-key",
+            }
+        },
+        "GetObjectTagging",
+    )
+
+    with pytest.raises(DocumentNotFound):
+        store.check_for_blocked_document("service-id", "doc-id")
+
+
+def test_check_for_blocked_document_random_error_propagated(store):
+    store.s3.get_object_tagging.side_effect = botocore.exceptions.ClientError(
+        {
+            "Error": {
+                "Code": "NotEnoughBananas",
+            }
+        },
+        "GetObjectTagging",
+    )
+
     with pytest.raises(BotoClientError):
         store.check_for_blocked_document("service-id", "doc-id")
+
+
+@pytest.mark.parametrize(
+    "expiration",
+    (
+        'expiry-date="Fri, 01 May 2020 00:00:00 GMT", expiry-rule="custom-retention-1-weeks"',
+        'expiry-date="Sat, 02 May 2020 00:00:00 GMT", expiry-rule="custom-retention-3-weeks"',
+    ),
+)
+def test_check_for_expired_document_expired(store, expiration):
+    with freeze_time("2020-05-02 10:00:00"):
+        with pytest.raises(DocumentExpired):
+            store.check_for_expired_document(
+                {
+                    "Expiration": expiration,
+                }
+            )
+
+
+@pytest.mark.parametrize(
+    "expiration",
+    (
+        'expiry-date="Sun, 03 May 2020 00:00:00 GMT", expiry-rule="custom-retention-1-weeks"',
+        None,
+    ),
+)
+def test_check_for_expired_document_not_expired(store, expiration):
+    with freeze_time("2020-05-02 10:00:00"):
+        assert (
+            store.check_for_expired_document(
+                {
+                    "Expiration": expiration,
+                }
+            )
+            is None
+        )
 
 
 def test_put_document(store):
@@ -269,12 +319,13 @@ def test_put_document_records_filename_if_set(store, filename, expected_filename
 
 
 def test_get_document(store):
-    assert store.get("service-id", "document-id", bytes(32)) == {
-        "body": mock.ANY,
-        "mimetype": "application/pdf",
-        "size": 100,
-        "metadata": {},
-    }
+    with freeze_time("2020-04-28 10:00:00"):
+        assert store.get("service-id", "document-id", bytes(32)) == {
+            "body": mock.ANY,
+            "mimetype": "application/pdf",
+            "size": 100,
+            "metadata": {},
+        }
 
     store.s3.get_object.assert_called_once_with(
         Bucket="test-bucket",
@@ -295,21 +346,19 @@ def test_get_document_with_boto_error(store):
 
 
 def test_get_blocked_document(store, blocked_document):
-    with pytest.raises(DocumentStoreError) as e:
+    with pytest.raises(DocumentBlocked):
         store.get("service-id", "document-id", bytes(32))
 
-    assert str(e.value) == "Access to the document has been blocked"
 
-
-def test_get_expired_document(store, expired_document):
-    with pytest.raises(DocumentStoreError) as e:
+def test_get_delete_markered_document(store, delete_markered_document):
+    with pytest.raises(DocumentExpired):
         store.get("service-id", "document-id", bytes(32))
-
-    assert str(e.value) == "The document is no longer available"
 
 
 def test_get_document_metadata_when_document_is_in_s3(store):
-    metadata = store.get_document_metadata("service-id", "document-id", "0f0f0f")
+    with freeze_time("2020-04-28 10:00:00"):
+        metadata = store.get_document_metadata("service-id", "document-id", "0f0f0f")
+
     assert metadata == {
         "mimetype": "text/plain",
         "confirm_email": False,
@@ -319,8 +368,22 @@ def test_get_document_metadata_when_document_is_in_s3(store):
     }
 
 
+def test_get_document_metadata_when_document_is_in_s3_but_missing_expiration(store):
+    del store.s3.head_object.return_value["Expiration"]
+    metadata = store.get_document_metadata("service-id", "document-id", "0f0f0f")
+    assert metadata == {
+        "mimetype": "text/plain",
+        "confirm_email": False,
+        "size": 100,
+        "available_until": None,
+        "filename": None,
+    }
+
+
 def test_get_document_metadata_when_document_is_in_s3_with_hashed_email(store_with_email):
-    metadata = store_with_email.get_document_metadata("service-id", "document-id", "0f0f0f")
+    with freeze_time("2020-04-28 10:00:00"):
+        metadata = store_with_email.get_document_metadata("service-id", "document-id", "0f0f0f")
+
     assert metadata == {
         "mimetype": "text/plain",
         "confirm_email": True,
@@ -331,7 +394,9 @@ def test_get_document_metadata_when_document_is_in_s3_with_hashed_email(store_wi
 
 
 def test_get_document_metadata_when_document_is_in_s3_with_filename(store_with_filename):
-    metadata = store_with_filename.get_document_metadata("service-id", "document-id", "0f0f0f")
+    with freeze_time("2020-04-28 10:00:00"):
+        metadata = store_with_filename.get_document_metadata("service-id", "document-id", "0f0f0f")
+
     assert metadata == {
         "mimetype": "text/plain",
         "confirm_email": False,
@@ -341,12 +406,19 @@ def test_get_document_metadata_when_document_is_in_s3_with_filename(store_with_f
     }
 
 
+def test_get_document_metadata_when_document_is_in_s3_but_expired(store):
+    with pytest.raises(DocumentExpired):
+        with freeze_time("2020-05-12 10:00:00"):
+            store.get_document_metadata("service-id", "document-id", "0f0f0f")
+
+
 def test_get_document_metadata_when_document_is_not_in_s3(store):
     store.s3.head_object = mock.Mock(
         side_effect=BotoClientError({"Error": {"Code": "404", "Message": "Not Found"}}, "HeadObject")
     )
 
-    assert store.get_document_metadata("service-id", "document-id", "0f0f0f") is None
+    with pytest.raises(DocumentNotFound):
+        store.get_document_metadata("service-id", "document-id", "0f0f0f")
 
 
 def test_get_document_metadata_with_unexpected_boto_error(store):
@@ -359,19 +431,28 @@ def test_get_document_metadata_with_unexpected_boto_error(store):
 
 
 def test_get_document_metadata_with_blocked_document(store_with_email, blocked_document):
-    assert store_with_email.get_document_metadata("service-id", "document-id", "0f0f0f") is None
+    with pytest.raises(DocumentBlocked):
+        store_with_email.get_document_metadata("service-id", "document-id", "0f0f0f")
 
 
-def test_get_document_metadata_with_expired_document(store_with_email, expired_document):
-    assert store_with_email.get_document_metadata("service-id", "document-id", "0f0f0f") is None
+def test_get_document_metadata_with_delete_markered_document(store_with_email, delete_markered_document):
+    with pytest.raises(DocumentExpired):
+        store_with_email.get_document_metadata("service-id", "document-id", "0f0f0f")
+
+
+def test_get_document_metadata_when_missing(store):
+    store.s3.head_object = mock.Mock(
+        side_effect=BotoClientError({"Error": {"Code": "404", "Message": "Not Found"}}, "HeadObject")
+    )
+
+    with pytest.raises(DocumentNotFound):
+        store.get_document_metadata("service-id", "document-id", "0f0f0f")
 
 
 def test_authenticate_document_when_missing(store):
     store.s3.head_object = mock.Mock(
         side_effect=BotoClientError({"Error": {"Code": "404", "Message": "Not Found"}}, "HeadObject")
     )
-
-    assert store.get_document_metadata("service-id", "document-id", "0f0f0f") is None
 
     assert store.authenticate("service-id", "document-id", b"0f0f0f", "test@notify.example") is False
 
@@ -384,7 +465,13 @@ def test_authenticate_document_when_missing(store):
     ),
 )
 def test_authenticate_document_email_address_check(store_with_email, email_address, expected_result):
-    assert store_with_email.authenticate("service-id", "document-id", b"0f0f0f", email_address) is expected_result
+    with freeze_time("2020-04-28 10:00:00"):
+        assert store_with_email.authenticate("service-id", "document-id", b"0f0f0f", email_address) is expected_result
+
+
+def test_authenticate_document_expired(store_with_email):
+    with freeze_time("2020-05-28 10:00:00"):
+        assert store_with_email.authenticate("service-id", "document-id", b"0f0f0f", "test@notify.example") is False
 
 
 def test_authenticate_fails_if_document_does_not_have_hash(store):
@@ -409,7 +496,7 @@ def test_authenticate_with_blocked_document(store, blocked_document):
     assert store.authenticate("service-id", "document-id", b"0f0f0f", "test@notify.example") is False
 
 
-def test_authenticate_with_expired_document(store, expired_document):
+def test_authenticate_with_delete_markered_document(store, delete_markered_document):
     assert store.authenticate("service-id", "document-id", b"0f0f0f", "test@notify.example") is False
 
 

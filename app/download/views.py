@@ -77,7 +77,7 @@ def download_document(service_id, document_id, extension=None):
                 "document_id": document_id,
             },
         )
-        return jsonify(error=str(e)), 400
+        return jsonify(error=str(e)), e.suggested_status_code
 
     if redirect := get_redirect_url_if_user_not_authenticated(request, document):
         return redirect
@@ -130,24 +130,21 @@ def get_document_metadata(service_id, document_id):
                 "document_id": document_id,
             },
         )
-        return jsonify(error=str(e)), 400
+        return jsonify(error=str(e)), e.suggested_status_code
 
-    if metadata:
-        document = {
-            "direct_file_url": get_direct_file_url(
-                service_id=service_id,
-                document_id=document_id,
-                key=key,
-                mimetype=metadata["mimetype"],
-            ),
-            "confirm_email": metadata["confirm_email"],
-            "size_in_bytes": metadata["size"],
-            "file_extension": current_app.config["MIME_TYPES_TO_FILE_EXTENSIONS"][metadata["mimetype"]],
-            "filename": metadata["filename"],
-            "available_until": metadata["available_until"],
-        }
-    else:
-        document = None
+    document = {
+        "direct_file_url": get_direct_file_url(
+            service_id=service_id,
+            document_id=document_id,
+            key=key,
+            mimetype=metadata["mimetype"],
+        ),
+        "confirm_email": metadata["confirm_email"],
+        "size_in_bytes": metadata["size"],
+        "file_extension": current_app.config["MIME_TYPES_TO_FILE_EXTENSIONS"][metadata["mimetype"]],
+        "filename": metadata["filename"],
+        "available_until": metadata["available_until"],
+    }
 
     response = make_response({"document": document})
     response.headers["X-Robots-Tag"] = "noindex, nofollow"
