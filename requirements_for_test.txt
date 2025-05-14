@@ -6,6 +6,10 @@ argon2-cffi-bindings==21.2.0
     # via
     #   -r requirements.txt
     #   argon2-cffi
+async-timeout==5.0.1
+    # via
+    #   -r requirements.txt
+    #   redis
 attrs==24.2.0
     # via hypothesis
 awscrt==0.20.11
@@ -19,11 +23,12 @@ blinker==1.9.0
     #   -r requirements.txt
     #   flask
     #   gds-metrics
-boto3==1.34.129
+    #   sentry-sdk
+boto3[crt]==1.34.129
     # via
     #   -r requirements.txt
     #   notifications-utils
-botocore==1.34.129
+botocore[crt]==1.34.129
     # via
     #   -r requirements.txt
     #   boto3
@@ -59,14 +64,19 @@ eventlet==0.39.1
     # via
     #   -r requirements.txt
     #   gunicorn
+exceptiongroup==1.3.0
+    # via
+    #   hypothesis
+    #   pytest
 execnet==2.1.1
     # via pytest-xdist
-flask==3.1.0
+flask==3.1.1
     # via
     #   -r requirements.txt
     #   flask-redis
     #   gds-metrics
     #   notifications-utils
+    #   sentry-sdk
 flask-redis==0.4.0
     # via
     #   -r requirements.txt
@@ -83,7 +93,7 @@ greenlet==3.0.3
     # via
     #   -r requirements.txt
     #   eventlet
-gunicorn==23.0.0
+gunicorn[eventlet]==23.0.0
     # via
     #   -r requirements.txt
     #   notifications-utils
@@ -93,6 +103,11 @@ idna==3.7
     # via
     #   -r requirements.txt
     #   requests
+importlib-metadata==8.7.0
+    # via
+    #   -r requirements.txt
+    #   flask
+    #   segno
 iniconfig==2.0.0
     # via pytest
 itsdangerous==2.2.0
@@ -113,13 +128,15 @@ jmespath==1.0.1
 markupsafe==2.1.3
     # via
     #   -r requirements.txt
+    #   flask
     #   jinja2
+    #   sentry-sdk
     #   werkzeug
 mistune==0.8.4
     # via
     #   -r requirements.txt
     #   notifications-utils
-notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@3fb3caf0efc9ccbebfe79b3269f84bfd66fc90d5
+notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@97.0.3
     # via -r requirements.txt
 ordered-set==4.1.0
     # via
@@ -210,7 +227,7 @@ segno==1.6.1
     # via
     #   -r requirements.txt
     #   notifications-utils
-sentry-sdk==1.45.1
+sentry-sdk[flask]==1.45.1
     # via -r requirements.txt
 six==1.16.0
     # via
@@ -228,6 +245,15 @@ statsd==4.0.1
     # via
     #   -r requirements.txt
     #   notifications-utils
+tomli==2.2.1
+    # via
+    #   pytest
+    #   pytest-env
+typing-extensions==4.13.2
+    # via
+    #   -r requirements.txt
+    #   exceptiongroup
+    #   pypdf
 urllib3==1.26.19
     # via
     #   -r requirements.txt
@@ -238,3 +264,7 @@ werkzeug==3.1.3
     # via
     #   -r requirements.txt
     #   flask
+zipp==3.21.0
+    # via
+    #   -r requirements.txt
+    #   importlib-metadata
