@@ -1,7 +1,7 @@
 import os
 import re
 import uuid
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 from urllib.parse import urlencode
 
 import boto3
@@ -105,13 +105,19 @@ class DocumentStore:
                 {"service_id": service_id, "document_id": document_id},
             )
 
+        tags = {
+            # in case we lose S3's native timestamp for some reason
+            "created-at": datetime.now(UTC).isoformat(timespec="seconds"),
+        }
+
         if retention_period:
-            tags = {"retention-period": retention_period}
-            extra_kwargs["Tagging"] = urlencode(tags)
+            tags["retention-period"] = retention_period
             current_app.logger.info(
                 "Setting custom retention period for %(service_id)s/%(document_id)s: %(retention_period)s",
                 {"service_id": service_id, "document_id": document_id, "retention_period": retention_period},
             )
+
+        extra_kwargs["Tagging"] = urlencode(tags)
 
         if filename:
             # Convert utf-8 filenames to ASCII suitable for storing in AWS S3 Metadata.
