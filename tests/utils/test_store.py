@@ -229,6 +229,7 @@ def test_check_for_expired_document_not_expired(store, expiration):
         )
 
 
+@freeze_time("2021-02-03T04:05:06")
 def test_put_document(store):
     ret = store.put(
         "service-id", mock.Mock(), mimetype="application/pdf", confirmation_email=None, retention_period=None
@@ -247,9 +248,11 @@ def test_put_document(store):
         SSECustomerKey=ret["encryption_key"],
         SSECustomerAlgorithm="AES256",
         Metadata={},
+        Tagging="created-at=2021-02-03T04%3A05%3A06%2B00%3A00",
     )
 
 
+@freeze_time("2021-02-03T04:05:06")
 def test_put_document_sends_hashed_recipient_email_to_s3_as_metadata_if_confirmation_email_present(store):
     ret = store.put("service-id", mock.Mock(), mimetype="application/pdf", confirmation_email="email@example.com")
 
@@ -266,9 +269,11 @@ def test_put_document_sends_hashed_recipient_email_to_s3_as_metadata_if_confirma
         SSECustomerKey=ret["encryption_key"],
         SSECustomerAlgorithm="AES256",
         Metadata={"hashed-recipient-email": mock.ANY},
+        Tagging="created-at=2021-02-03T04%3A05%3A06%2B00%3A00",
     )
 
 
+@freeze_time("2021-02-03T04:05:06")
 def test_put_document_tags_document_if_retention_period_set(store):
     ret = store.put("service-id", mock.Mock(), mimetype="application/pdf", retention_period="4 weeks")
 
@@ -284,7 +289,7 @@ def test_put_document_tags_document_if_retention_period_set(store):
         Key=Matcher("document key", lambda x: x.startswith("service-id/") and len(x) == 11 + 36),
         SSECustomerKey=ret["encryption_key"],
         SSECustomerAlgorithm="AES256",
-        Tagging="retention-period=4+weeks",
+        Tagging="created-at=2021-02-03T04%3A05%3A06%2B00%3A00&retention-period=4+weeks",
         Metadata={},
     )
 
@@ -299,6 +304,7 @@ def test_put_document_tags_document_if_retention_period_set(store):
         (r"\u2705.pdf", r"\\u2705.pdf"),
     ),
 )
+@freeze_time("2021-02-03T04:05:06")
 def test_put_document_records_filename_if_set(store, filename, expected_filename_for_s3):
     ret = store.put("service-id", mock.Mock(), mimetype="application/pdf", filename=filename)
 
@@ -315,6 +321,7 @@ def test_put_document_records_filename_if_set(store, filename, expected_filename
         SSECustomerKey=ret["encryption_key"],
         SSECustomerAlgorithm="AES256",
         Metadata={"filename": expected_filename_for_s3},
+        Tagging="created-at=2021-02-03T04%3A05%3A06%2B00%3A00",
     )
 
 
