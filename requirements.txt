@@ -23,7 +23,7 @@ certifi==2024.7.4
     # via
     #   requests
     #   sentry-sdk
-cffi==1.16.0
+cffi==1.17.1
     # via argon2-cffi-bindings
 charset-normalizer==3.3.2
     # via requests
@@ -45,7 +45,7 @@ gds-metrics==0.2.4
     # via -r requirements.in
 govuk-bank-holidays==0.15
     # via notifications-utils
-greenlet==3.0.3
+greenlet==3.2.2
     # via eventlet
 gunicorn==23.0.0
     # via notifications-utils
