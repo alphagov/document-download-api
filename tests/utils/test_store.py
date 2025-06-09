@@ -1,5 +1,5 @@
 import uuid
-from datetime import date
+from datetime import date, datetime
 from unittest import mock
 
 import botocore
@@ -510,24 +510,123 @@ def test_authenticate_with_delete_markered_document(store, delete_markered_docum
 
 
 @pytest.mark.parametrize(
-    "expiry_str,expected_date",
+    "s3_response,tags,expected_date",
     [
         # An expiry date in winter time (GMT) - date in GMT ISO 8601 format
-        ('expiry-date="Mon, 31 Oct 2022 00:00:00 GMT", rule-id="remove-old-documents"', date(2022, 10, 30)),
+        (
+            {"Expiration": 'expiry-date="Mon, 31 Oct 2022 00:00:00 GMT", rule-id="remove-old-documents"'},
+            {},
+            date(2022, 10, 30),
+        ),
         # An expiry date in summer time (BST) - still sent by AWS in GMT ISO 8601 format.
-        ('expiry-date="Wed, 26 Oct 2022 00:00:00 GMT", rule-id="remove-old-documents"', date(2022, 10, 25)),
+        (
+            {"Expiration": 'expiry-date="Wed, 26 Oct 2022 00:00:00 GMT", rule-id="remove-old-documents"'},
+            {},
+            date(2022, 10, 25),
+        ),
         # Swap the order of the key-value pairs
-        ('rule-id="remove-old-documents", expiry-date="Mon, 31 Oct 2022 00:00:00 GMT"', date(2022, 10, 30)),
+        (
+            {"Expiration": 'rule-id="remove-old-documents", expiry-date="Mon, 31 Oct 2022 00:00:00 GMT"'},
+            {},
+            date(2022, 10, 30),
+        ),
         # Expiry date should handle month borders just fine
-        ('rule-id="remove-old-documents", expiry-date="Tue, 01 Nov 2022 00:00:00 GMT"', date(2022, 10, 31)),
+        (
+            {"Expiration": 'rule-id="remove-old-documents", expiry-date="Tue, 01 Nov 2022 00:00:00 GMT"'},
+            {},
+            date(2022, 10, 31),
+        ),
+        # tag-based expiry is earlier so should be preferred
+        (
+            {"Expiration": 'expiry-date="Mon, 31 Oct 2022 00:00:00 GMT", rule-id="remove-old-documents"'},
+            {
+                "created-at": "2022-10-12T12:34:56+0000",
+                "retention-period": "2 weeks",
+            },
+            date(2022, 10, 26),
+        ),
+        # retention-period tag corrupt, preventing tag use & causing fallback to Expiration header
+        (
+            {"Expiration": 'expiry-date="Mon, 31 Oct 2022 00:00:00 GMT", rule-id="remove-old-documents"'},
+            {
+                "created-at": "2022-10-12T12:34:56+0000",
+                "retention-period": "2.0 apples",
+            },
+            date(2022, 10, 30),
+        ),
+        # created-at tag corrupt, preventing tag use & causing fallback to LastModified header used with
+        # retention-period tag
+        (
+            {
+                "Expiration": 'expiry-date="Mon, 31 Oct 2022 00:00:00 GMT", rule-id="remove-old-documents"',
+                "LastModified": datetime(2022, 9, 12, 12, 34, 56),
+            },
+            {
+                "created-at": "20222-10-122T12:34:56+0000",
+                "retention-period": "2 weeks",
+            },
+            date(2022, 9, 26),
+        ),
+        # created-at tag missing, preventing tag use & causing fallback to LastModified header used with
+        # retention-period tag
+        (
+            {
+                "Expiration": 'expiry-date="Mon, 31 Oct 2022 00:00:00 GMT", rule-id="remove-old-documents"',
+                "LastModified": datetime(2022, 9, 12, 12, 34, 56),
+            },
+            {
+                "retention-period": "2 weeks",
+            },
+            date(2022, 9, 26),
+        ),
+        # Expiration header is non-GMT so ignored in favour of (later) tag-based expiry date
+        (
+            {"Expiration": 'expiry-date="Mon, 31 Oct 2022 00:00:00 EST", rule-id="remove-old-documents"'},
+            {
+                "created-at": "2022-11-12T12:34:56+0000",
+                "retention-period": "2 weeks",
+            },
+            date(2022, 11, 26),
+        ),
+        # Expiration header is missing expiry-date so ignored in favour of tag-based expiry date,
+        # though not disregarding LastModified
+        (
+            {
+                "Expiration": 'rule-id="remove-old-documents"',
+                "LastModified": datetime(2022, 9, 12, 12, 34, 56),
+            },
+            {
+                "retention-period": "30 weeks",
+            },
+            date(2023, 4, 10),
+        ),
+        # Expiration header missing, tags used
+        (
+            {},
+            {
+                "created-at": "2022-10-12T12:34:56+0000",
+                "retention-period": "2 weeks",
+            },
+            date(2022, 10, 26),
+        ),
+        # Expiration header unparseable, tags used
+        (
+            {"Expiration": "blah"},
+            {
+                "created-at": "2022-10-12T12:34:56+0000",
+                "retention-period": "2 weeks",
+            },
+            date(2022, 10, 26),
+        ),
+        # Both methods unusable
+        (
+            {"Expiration": "blah"},
+            {
+                "created-at": "2022-10-12T12:34:56+0000",
+            },
+            None,
+        ),
     ],
 )
-def test__get_expiry_date_from_expiration_header(expiry_str, expected_date):
-    assert DocumentStore._get_expiry_date_from_expiration_header({"Expiration": expiry_str}) == expected_date
-
-
-def test__get_expiry_date_from_expiration_header(app, caplog):
-    with pytest.raises(CannotDetermineExpiration):
-        DocumentStore._get_expiry_date_from_expiration_header(
-            {"Expiration": 'expiry-date="Mon, 31 Oct 2022 00:00:00 EST", rule-id="remove-old-documents"'}
-        )
+def test__get_effective_expiry_date(s3_response, tags, expected_date):
+    assert DocumentStore._get_effective_expiry_date(s3_response, tags) == expected_date
