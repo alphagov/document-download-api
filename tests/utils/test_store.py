@@ -155,12 +155,12 @@ def test_check_for_blocked_document_raises_error(store, mock_boto, blocked_value
     }
 
     with pytest.raises(DocumentBlocked):
-        store.check_for_blocked_document("service-id", "doc-id")
+        store.check_for_blocked_document(store._get_document_tags("service-id", "doc-id"))
 
 
 def test_check_for_blocked_document_delete_marker_document_expired_error(store, delete_markered_document):
     with pytest.raises(DocumentExpired):
-        store.check_for_blocked_document("service-id", "doc-id")
+        store.check_for_blocked_document(store._get_document_tags("service-id", "doc-id"))
 
 
 def test_check_for_blocked_document_missing_raises_document_not_found_error(store):
@@ -176,7 +176,7 @@ def test_check_for_blocked_document_missing_raises_document_not_found_error(stor
     )
 
     with pytest.raises(DocumentNotFound):
-        store.check_for_blocked_document("service-id", "doc-id")
+        store.check_for_blocked_document(store._get_document_tags("service-id", "doc-id"))
 
 
 def test_check_for_blocked_document_random_error_propagated(store):
@@ -190,7 +190,7 @@ def test_check_for_blocked_document_random_error_propagated(store):
     )
 
     with pytest.raises(BotoClientError):
-        store.check_for_blocked_document("service-id", "doc-id")
+        store.check_for_blocked_document(store._get_document_tags("service-id", "doc-id"))
 
 
 @pytest.mark.parametrize(
@@ -206,7 +206,8 @@ def test_check_for_expired_document_expired(store, expiration):
             store.check_for_expired_document(
                 {
                     "Expiration": expiration,
-                }
+                },
+                {},
             )
 
 
@@ -223,7 +224,8 @@ def test_check_for_expired_document_not_expired(store, expiration):
             store.check_for_expired_document(
                 {
                     "Expiration": expiration,
-                }
+                },
+                {},
             )
             is None
         )
@@ -508,7 +510,7 @@ def test_authenticate_with_delete_markered_document(store, delete_markered_docum
 
 
 @pytest.mark.parametrize(
-    "raw_expiry_rule,expected_date",
+    "expiry_str,expected_date",
     [
         # An expiry date in winter time (GMT) - date in GMT ISO 8601 format
         ('expiry-date="Mon, 31 Oct 2022 00:00:00 GMT", rule-id="remove-old-documents"', date(2022, 10, 30)),
@@ -520,15 +522,12 @@ def test_authenticate_with_delete_markered_document(store, delete_markered_docum
         ('rule-id="remove-old-documents", expiry-date="Tue, 01 Nov 2022 00:00:00 GMT"', date(2022, 10, 31)),
     ],
 )
-def test___convert_expiry_date_to_date_object(raw_expiry_rule, expected_date):
-    result = DocumentStore._convert_expiry_date_to_date_object(raw_expiry_rule)
-    assert result == expected_date
+def test__get_expiry_date_from_expiration_header(expiry_str, expected_date):
+    assert DocumentStore._get_expiry_date_from_expiration_header({"Expiration": expiry_str}) == expected_date
 
 
-def test_convert_expiry_date_to_date_object_logs_on_non_gmt_expiration(app, caplog):
-    DocumentStore._convert_expiry_date_to_date_object(
-        'expiry-date="Mon, 31 Oct 2022 00:00:00 EST", rule-id="remove-old-documents"'
-    )
-
-    assert len(caplog.records) == 1
-    assert caplog.records[0].message == "AWS S3 object expiration has unhandled timezone: EST"
+def test__get_expiry_date_from_expiration_header(app, caplog):
+    with pytest.raises(CannotDetermineExpiration):
+        DocumentStore._get_expiry_date_from_expiration_header(
+            {"Expiration": 'expiry-date="Mon, 31 Oct 2022 00:00:00 EST", rule-id="remove-old-documents"'}
+        )
