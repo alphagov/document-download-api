@@ -28,6 +28,10 @@ class DocumentNotFound(DocumentStoreError):
     suggested_status_code = 404
 
 
+class CannotDetermineExpiration(Exception):
+    pass
+
+
 class DocumentStore:
     """
     This class is not thread-safe.
@@ -42,16 +46,9 @@ class DocumentStore:
     def init_app(self, app):
         self.bucket = app.config["DOCUMENTS_BUCKET"]
 
-    def check_for_blocked_document(self, service_id, document_id):
-        """Raises an exception if access to the document has been blocked after creation
-
-        This should be checked before any document access. This might be used to quickly prevent anyone from accessing
-        a file that a service has sent out accidentally.
-
-        Note that the `blocked` tag key MUST be in lowercase.
-        """
+    def _get_document_tags(self, service_id, document_id):
         try:
-            tags = {
+            return {
                 item["Key"]: item["Value"]
                 for item in self.s3.get_object_tagging(
                     Bucket=self.bucket, Key=self.get_document_key(service_id, document_id)
@@ -67,20 +64,29 @@ class DocumentStore:
 
             raise e
 
+    def check_for_blocked_document(self, tags):
+        """Raises an exception if access to the document has been blocked after creation
+
+        This should be checked before any document access. This might be used to quickly prevent anyone from accessing
+        a file that a service has sent out accidentally.
+
+        Note that the `blocked` tag key MUST be in lowercase.
+        """
+
         if tags.get("blocked", "false").lower() in {"true", "yes"}:
             raise DocumentBlocked("Access to the document has been blocked")
 
-    def check_for_expired_document(self, s3_response):
-        if not s3_response.get("Expiration"):
-            current_app.logger.warning("Expiration information not available for document")
-            # in case we're having a maintenance issue/outage with our s3 bucket
-            # we'd prefer to serve some files that should have been deleted (hopefully <14
-            # days ago) instead of being unable to serve any documents to any users
+    @classmethod
+    def check_for_expired_document(cls, s3_response, tags):
+        effective_expiry_date = cls._get_effective_expiry_date(s3_response, tags)
+
+        if not effective_expiry_date:
+            current_app.logger.error(
+                "Expiration information not available for document, attempting to serve it anyway.."
+            )
             return
 
-        expiry_date = self._convert_expiry_date_to_date_object(s3_response["Expiration"])
-
-        if expiry_date < date.today():
+        if effective_expiry_date < date.today():
             raise DocumentExpired("The document is no longer available")
 
     def put(
@@ -152,14 +158,15 @@ class DocumentStore:
         decryption_key should be raw bytes
         """
         try:
-            self.check_for_blocked_document(service_id, document_id)
+            tags = self._get_document_tags(service_id, document_id)
+            self.check_for_blocked_document(tags)
             s3_response = self.s3.get_object(
                 Bucket=self.bucket,
                 Key=self.get_document_key(service_id, document_id),
                 SSECustomerKey=decryption_key,
                 SSECustomerAlgorithm="AES256",
             )
-            self.check_for_expired_document(s3_response)
+            self.check_for_expired_document(s3_response, tags)
 
         except BotoClientError as e:
             if e.response["Error"]["Code"] == "404":
@@ -180,22 +187,22 @@ class DocumentStore:
         """
 
         try:
-            self.check_for_blocked_document(service_id, document_id)
+            tags = self._get_document_tags(service_id, document_id)
+            self.check_for_blocked_document(tags)
             s3_response = self.s3.head_object(
                 Bucket=self.bucket,
                 Key=self.get_document_key(service_id, document_id),
                 SSECustomerKey=decryption_key,
                 SSECustomerAlgorithm="AES256",
             )
-            self.check_for_expired_document(s3_response)
+            self.check_for_expired_document(s3_response, tags)
 
+            available_until = self._get_effective_expiry_date(s3_response, tags)
             return {
                 "mimetype": s3_response["ContentType"],
                 "confirm_email": self.get_email_hash(s3_response) is not None,
                 "size": s3_response["ContentLength"],
-                "available_until": str(self._convert_expiry_date_to_date_object(s3_response["Expiration"]))
-                if s3_response.get("Expiration")
-                else None,
+                "available_until": str(available_until) if available_until else None,
                 "filename": self._normalise_metadata(s3_response["Metadata"]).get("filename"),
             }
         except BotoClientError as e:
@@ -204,21 +211,70 @@ class DocumentStore:
 
             raise DocumentStoreError(e.response["Error"]) from e
 
+    @classmethod
+    def _get_effective_expiry_date(cls, s3_response, tags):
+        potential_expiry_dates = []
+
+        try:
+            potential_expiry_dates.append(cls._get_expiry_date_from_expiration_header(s3_response))
+        except CannotDetermineExpiration as err:
+            current_app.logger.warning("Cannot determine document expiration through Expiration header: %s", str(err))
+
+        try:
+            potential_expiry_dates.append(cls._get_expiry_date_from_tags(s3_response, tags))
+        except CannotDetermineExpiration as err:
+            current_app.logger.warning("Cannot determine document expiration through tags: %s", str(err))
+
+        if potential_expiry_dates:
+            return min(potential_expiry_dates)
+
+        # in case we're having a maintenance issue/outage with our s3 bucket
+        # we'd prefer to serve some files that should have been deleted (hopefully <14
+        # days ago) instead of being unable to serve any documents to any users
+        return None
+
     @staticmethod
-    def _convert_expiry_date_to_date_object(raw_expiry_date: str) -> date:
+    def _get_expiry_date_from_expiration_header(s3_response) -> date:
         pattern = re.compile(r'([^=\s]+?)="(.+?)"')
-        expiry_date_as_dict = dict(pattern.findall(raw_expiry_date))
+        expiry_date_as_dict = dict(pattern.findall(s3_response.get("Expiration") or "") or {})
+
+        if "expiry-date" not in expiry_date_as_dict:
+            raise CannotDetermineExpiration("No expiry-date found")
 
         expiry_date_string = expiry_date_as_dict["expiry-date"]
 
         timezone = expiry_date_string.split()[-1]
         if timezone != "GMT":
-            current_app.logger.warning("AWS S3 object expiration has unhandled timezone: %s", timezone)
+            raise CannotDetermineExpiration(f"AWS S3 object expiration has unhandled timezone: {timezone}")
 
-        expiry_date = parser.parse(expiry_date_string)
-        expiry_date = expiry_date.date() - timedelta(days=1)
+        try:
+            expiry_date = parser.parse(expiry_date_string)
+        except parser.ParserError as err:
+            raise CannotDetermineExpiration from err
 
-        return expiry_date
+        return expiry_date.date() - timedelta(days=1)
+
+    @staticmethod
+    def _get_expiry_date_from_tags(s3_response, tags):
+        try:
+            retention_period_match = re.fullmatch(r"(\d+) weeks", tags["retention-period"])
+        except KeyError as err:
+            raise CannotDetermineExpiration from err
+
+        if retention_period_match is None:
+            raise CannotDetermineExpiration("Cannot parse retention-period header")
+
+        try:
+            retention_period_days = int(retention_period_match.group(1), base=10) * 7
+        except ValueError as err:
+            raise CannotDetermineExpiration from err
+
+        try:
+            created_at = datetime.fromisoformat(tags["created-at"])
+        except (KeyError, ValueError):
+            created_at = s3_response["LastModified"]
+
+        return created_at.date() + timedelta(days=retention_period_days)
 
     def generate_encryption_key(self):
         return os.urandom(32)
@@ -231,14 +287,15 @@ class DocumentStore:
         email_address needs to be in a validated and known-good format before being passed to this method
         """
         try:
-            self.check_for_blocked_document(service_id, document_id)
+            tags = self._get_document_tags(service_id, document_id)
+            self.check_for_blocked_document(tags)
             s3_response = self.s3.head_object(
                 Bucket=self.bucket,
                 Key=self.get_document_key(service_id, document_id),
                 SSECustomerKey=decryption_key,
                 SSECustomerAlgorithm="AES256",
             )
-            self.check_for_expired_document(s3_response)
+            self.check_for_expired_document(s3_response, tags)
         except (DocumentBlocked, DocumentExpired):
             return False
         except BotoClientError as e:
