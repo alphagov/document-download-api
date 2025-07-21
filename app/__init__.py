@@ -7,6 +7,7 @@ from flask import Flask, current_app, jsonify
 from gds_metrics import GDSMetrics
 from notifications_utils import request_helper
 from notifications_utils.clients.antivirus.antivirus_client import AntivirusClient
+from notifications_utils.clients.otel.otel_client import init_otel_app
 from notifications_utils.clients.redis.redis_client import RedisClient
 from notifications_utils.eventlet import EventletTimeout
 from notifications_utils.local_vars import LazyLocalGetter
@@ -62,6 +63,8 @@ def create_app():
         application.config.from_object(configs[notify_environment])
     else:
         application.config.from_object(Config)
+
+    init_otel_app(application)
 
     request_helper.init_app(application)
     utils_logging.init_app(application)

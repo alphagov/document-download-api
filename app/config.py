@@ -1,7 +1,9 @@
 import os
 
+from notifications_utils.config import BaseConfig
 
-class Config:
+
+class Config(BaseConfig):
     SERVER_NAME = os.getenv("SERVER_NAME")
     DEBUG = False
 
@@ -11,6 +13,8 @@ class Config:
     # The config option NOTIFY_ENVIRONMENT is purely used for logging.
     # It should not be used for any logical conditionals in the code.
     NOTIFY_ENVIRONMENT = os.environ["NOTIFY_ENVIRONMENT"]
+
+    OTEL_EXPORT_TYPE = os.environ.get("OTEL_EXPORT_TYPE", "otlp").lower().strip()
 
     DOCUMENTS_BUCKET = os.getenv("MULTIREGION_ACCESSPOINT_ARN", os.environ.get("DOCUMENTS_BUCKET"))
 

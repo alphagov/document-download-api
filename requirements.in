@@ -9,6 +9,6 @@ gds-metrics==0.2.4
 argon2-cffi==21.3.0
 
 # Run `make bump-utils` to update to the latest version
-notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@99.5.1
+notifications-utils[otel-flask,otel-requests,otel-redis,otel-botocore] @ git+https://github.com/alphagov/notifications-utils.git@c59a85f44ad83ee0d4e4f09499b5b58b5239cf2c
 
 sentry-sdk[flask]==1.45.1
