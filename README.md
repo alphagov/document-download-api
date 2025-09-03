@@ -4,7 +4,7 @@
 
 ### Python version
 
-Check the version is [runtime.txt](runtime.txt)
+Check the version is the same as at the top of [Dockerfile](docker/Dockerfile)
 
 
 ### uv
