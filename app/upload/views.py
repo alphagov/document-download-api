@@ -7,7 +7,7 @@ from notifications_utils.clients.antivirus.antivirus_client import AntivirusErro
 from notifications_utils.recipient_validation.errors import InvalidEmailError
 from werkzeug.exceptions import BadRequest
 
-from app import antivirus_client, document_store
+from app import document_store
 from app.utils import get_mime_type
 from app.utils.authentication import check_auth
 from app.utils.file_checks import run_antivirus_checks
@@ -64,29 +64,6 @@ def _get_upload_document_request_data(data):  # noqa: C901
     return file_data, is_csv, confirmation_email, retention_period, filename
 
 
-# @upload_blueprint.route("/antivirus_and_mimetype_check", methods=["POST"])
-# def get_mime_type_and_run_antivirus_scan():
-#     try:
-#         file_data, is_csv, confirmation_email, retention_period, filename = _get_upload_document_request_data(
-#             request.json
-#         )
-#     except BadRequest as e:
-#         return jsonify(error=e.description), 400
-#     try:
-#         virus_free = antivirus_client.scan(file_data)
-#     except AntivirusError:
-#         return jsonify(error="Antivirus API error"), 503
-
-#     if not virus_free:
-#         return jsonify(error="File did not pass the virus scan"), 400
-#     mimetype = get_mime_type(file_data)
-#     # Our mimetype auto-detection sometimes resolves CSV content as text/plain, so we use
-#     # an explicit POST body parameter `is_csv` from the caller to resolve it as text/csv
-#     if is_csv and mimetype == "text/plain":
-#         mimetype = "text/csv"
-#     return jsonify(virus_free=virus_free, mimetype=mimetype), 200
-
-
 @upload_blueprint.route("/services/<uuid:service_id>/documents", methods=["POST"])
 def upload_document(service_id):
     try:
@@ -98,7 +75,7 @@ def upload_document(service_id):
 
     if current_app.config["ANTIVIRUS_ENABLED"]:
         try:
-            virus_free = run_antivirus_checks(file_data)
+            run_antivirus_checks(file_data)
         except AntivirusError as e:
             return jsonify(error=e.message), e.status_code
 
