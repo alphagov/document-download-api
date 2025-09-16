@@ -27,4 +27,4 @@ docker run -it --rm \
   -p 127.0.0.1:${PORT}:${PORT} \
   -v $(pwd):/home/vcap/app \
   ${DOCKER_IMAGE_NAME} \
-  ${@}
+  make test
