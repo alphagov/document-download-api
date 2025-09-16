@@ -63,6 +63,29 @@ def _get_upload_document_request_data(data):  # noqa: C901
     return file_data, is_csv, confirmation_email, retention_period, filename
 
 
+# @upload_blueprint.route("/antivirus_and_mimetype_check", methods=["POST"])
+# def get_mime_type_and_run_antivirus_scan():
+#     try:
+#         file_data, is_csv, confirmation_email, retention_period, filename = _get_upload_document_request_data(
+#             request.json
+#         )
+#     except BadRequest as e:
+#         return jsonify(error=e.description), 400
+#     try:
+#         virus_free = antivirus_client.scan(file_data)
+#     except AntivirusError:
+#         return jsonify(error="Antivirus API error"), 503
+
+#     if not virus_free:
+#         return jsonify(error="File did not pass the virus scan"), 400
+#     mimetype = get_mime_type(file_data)
+#     # Our mimetype auto-detection sometimes resolves CSV content as text/plain, so we use
+#     # an explicit POST body parameter `is_csv` from the caller to resolve it as text/csv
+#     if is_csv and mimetype == "text/plain":
+#         mimetype = "text/csv"
+#     return jsonify(virus_free=virus_free, mimetype=mimetype), 200
+
+
 @upload_blueprint.route("/services/<uuid:service_id>/documents", methods=["POST"])
 def upload_document(service_id):
     try:
