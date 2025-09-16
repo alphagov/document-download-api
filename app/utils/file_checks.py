@@ -30,10 +30,10 @@ def run_mimetype_checks(file_data, is_csv, filename=None):
         mimetype = mimetypes.types_map[split_filename(filename, dotted=True)[1]]
     else:
         mimetype = get_mime_type(file_data)
-    # Our mimetype auto-detection sometimes resolves CSV content as text/plain, so we use
-    # an explicit POST body parameter `is_csv` from the caller to resolve it as text/csv
-    if is_csv and mimetype == "text/plain":
-        mimetype = "text/csv"
+        # Our mimetype auto-detection sometimes resolves CSV content as text/plain, so we use
+        # an explicit POST body parameter `is_csv` from the caller to resolve it as text/csv
+        if is_csv and mimetype == "text/plain":
+            mimetype = "text/csv"
     if mimetype not in current_app.config["MIME_TYPES_TO_FILE_EXTENSIONS"]:
         allowed_file_types = ", ".join(
             sorted({f"'.{x}'" for x in current_app.config["FILE_EXTENSIONS_TO_MIMETYPES"].keys()})
