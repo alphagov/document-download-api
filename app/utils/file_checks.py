@@ -1,8 +1,11 @@
+import mimetypes
+
 from flask import current_app
 from notifications_utils.clients.antivirus.antivirus_client import AntivirusError
 
 from app import antivirus_client
 from app.utils import get_mime_type
+from app.utils.files import split_filename
 
 
 class FiletypeError(Exception):
@@ -22,8 +25,11 @@ def run_antivirus_checks(file_data):
     return virus_free
 
 
-def run_mimetype_checks(file_data, is_csv):
-    mimetype = get_mime_type(file_data)
+def run_mimetype_checks(file_data, is_csv, filename=None):
+    if filename:
+        mimetype = mimetypes.types_map[split_filename(filename, dotted=True)[1]]
+    else:
+        mimetype = get_mime_type(file_data)
     # Our mimetype auto-detection sometimes resolves CSV content as text/plain, so we use
     # an explicit POST body parameter `is_csv` from the caller to resolve it as text/csv
     if is_csv and mimetype == "text/plain":

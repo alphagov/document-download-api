@@ -1,4 +1,3 @@
-import mimetypes
 from base64 import b64decode, binascii
 from io import BytesIO
 
@@ -8,10 +7,8 @@ from notifications_utils.recipient_validation.errors import InvalidEmailError
 from werkzeug.exceptions import BadRequest
 
 from app import document_store
-from app.utils import get_mime_type
 from app.utils.authentication import check_auth
-from app.utils.file_checks import run_antivirus_checks
-from app.utils.files import split_filename
+from app.utils.file_checks import FiletypeError, run_antivirus_checks, run_mimetype_checks
 from app.utils.urls import get_direct_file_url, get_frontend_download_url
 from app.utils.validation import (
     clean_and_validate_email_address,
@@ -79,21 +76,10 @@ def upload_document(service_id):
         except AntivirusError as e:
             return jsonify(error=e.message), e.status_code
 
-    if filename:
-        mimetype = mimetypes.types_map[split_filename(filename, dotted=True)[1]]
-    else:
-        mimetype = get_mime_type(file_data)
-
-        # Our mimetype auto-detection sometimes resolves CSV content as text/plain, so we use
-        # an explicit POST body parameter `is_csv` from the caller to resolve it as text/csv
-        if is_csv and mimetype == "text/plain":
-            mimetype = "text/csv"
-
-    if mimetype not in current_app.config["MIME_TYPES_TO_FILE_EXTENSIONS"]:
-        allowed_file_types = ", ".join(
-            sorted({f"'.{x}'" for x in current_app.config["FILE_EXTENSIONS_TO_MIMETYPES"].keys()})
-        )
-        return jsonify(error=f"Unsupported file type '{mimetype}'. Supported types are: {allowed_file_types}"), 400
+    try:
+        mimetype = run_mimetype_checks(file_data, is_csv, filename)
+    except FiletypeError as e:
+        return jsonify(error=e.error_message), e.status_code
 
     document = document_store.put(
         service_id,
