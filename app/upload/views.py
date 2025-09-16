@@ -10,6 +10,7 @@ from werkzeug.exceptions import BadRequest
 from app import antivirus_client, document_store
 from app.utils import get_mime_type
 from app.utils.authentication import check_auth
+from app.utils.file_checks import run_antivirus_checks
 from app.utils.files import split_filename
 from app.utils.urls import get_direct_file_url, get_frontend_download_url
 from app.utils.validation import (
@@ -97,12 +98,9 @@ def upload_document(service_id):
 
     if current_app.config["ANTIVIRUS_ENABLED"]:
         try:
-            virus_free = antivirus_client.scan(file_data)
-        except AntivirusError:
-            return jsonify(error="Antivirus API error"), 503
-
-        if not virus_free:
-            return jsonify(error="File did not pass the virus scan"), 400
+            virus_free = run_antivirus_checks(file_data)
+        except AntivirusError as e:
+            return jsonify(error=e.message), e.status_code
 
     if filename:
         mimetype = mimetypes.types_map[split_filename(filename, dotted=True)[1]]
