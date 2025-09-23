@@ -75,7 +75,7 @@ freezegun==1.5.1
     # via -r requirements_for_test_common.in
 gds-metrics==0.2.4
     # via -r requirements.txt
-govuk-bank-holidays==0.15
+govuk-bank-holidays==0.17
     # via
     #   -r requirements.txt
     #   notifications-utils
@@ -120,7 +120,7 @@ mistune==0.8.4
     # via
     #   -r requirements.txt
     #   notifications-utils
-notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@bb31f41dd194802ced5ea814f84cc25855467234
+notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@156071828741c0ccee53bb348fdb9a0f0128e726
     # via -r requirements.txt
 ordered-set==4.1.0
     # via
