@@ -14,15 +14,23 @@ class FiletypeError(Exception):
         self.status_code = status_code
 
 
-def run_antivirus_checks(file_data):
-    try:
-        virus_free = antivirus_client.scan(file_data)
-    except AntivirusError as e:
-        raise AntivirusError(message="Antivirus API error", status_code=503) from e
+def run_antivirus_and_mimetype_checks(file_data):
+    pass
 
-    if not virus_free:
-        raise AntivirusError(message="File did not pass the virus scan", status_code=400)
-    return virus_free
+
+def run_antivirus_checks(file_data):
+    if current_app.config["ANTIVIRUS_ENABLED"]:
+        results = {}
+        try:
+            virus_free = antivirus_client.scan(file_data)
+        except AntivirusError as e:
+            raise AntivirusError(message="Antivirus API error", status_code=503) from e
+        if virus_free:
+            results["virus_free"] = True
+        else:
+            results["virus_free"] = False
+        return results
+    return
 
 
 def run_mimetype_checks(file_data, is_csv, filename=None):

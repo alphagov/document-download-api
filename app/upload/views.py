@@ -2,7 +2,6 @@ from base64 import b64decode, binascii
 from io import BytesIO
 
 from flask import Blueprint, abort, current_app, jsonify, request
-from notifications_utils.clients.antivirus.antivirus_client import AntivirusError
 from notifications_utils.recipient_validation.errors import InvalidEmailError
 from werkzeug.exceptions import BadRequest
 
@@ -70,11 +69,10 @@ def upload_document(service_id):
     except BadRequest as e:
         return jsonify(error=e.description), 400
 
-    if current_app.config["ANTIVIRUS_ENABLED"]:
-        try:
-            run_antivirus_checks(file_data)
-        except AntivirusError as e:
-            return jsonify(error=e.message), e.status_code
+    virus_scan_results = run_antivirus_checks(file_data)
+    if "virus_free" in virus_scan_results.keys():
+        if not virus_scan_results.get("virus_free"):
+            return jsonify(error="File did not pass the virus scan"), 400
 
     try:
         mimetype = run_mimetype_checks(file_data, is_csv, filename)
