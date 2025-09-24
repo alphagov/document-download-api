@@ -50,10 +50,6 @@ def get_mime_type_and_run_antivirus_scan(filename=None):
     virus_free = virus_scan_results.get("virus_free")
     if not virus_free:
         return jsonify(error="File did not pass the virus scan"), 400
-    # try:
-    #     mimetype = run_mimetype_checks(file_data, is_csv)
-    # except FiletypeError as e:
-    #     return jsonify(error=e.error_message), e.status_code
     if filename:
         mimetype = mimetypes.types_map[split_filename(filename, dotted=True)[1]]
     else:
@@ -66,8 +62,5 @@ def get_mime_type_and_run_antivirus_scan(filename=None):
         allowed_file_types = ", ".join(
             sorted({f"'.{x}'" for x in current_app.config["FILE_EXTENSIONS_TO_MIMETYPES"].keys()})
         )
-        # raise FiletypeError(
-        #     error_message=f"Unsupported file type '{mimetype}'. Supported types are: {allowed_file_types}",
-        #     status_code=400,
         return jsonify(error=f"Unsupported file type '{mimetype}'. Supported types are: {allowed_file_types}"), 400
     return jsonify(virus_free=virus_free, mimetype=mimetype), 200
