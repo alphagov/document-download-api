@@ -42,10 +42,11 @@ def get_mime_type_and_run_antivirus_scan():
         return jsonify(error=e.description), 400
     virus_free = False
     virus_scan_results = run_antivirus_checks(file_data)
-    if "virus_free" in virus_scan_results.keys():
-        virus_free = virus_scan_results.get("virus_free")
-        if not virus_free:
-            return jsonify(error="File did not pass the virus scan"), 400
+    if "virus_free" not in virus_scan_results.keys():
+        return jsonify(error=virus_scan_results.get("message")), virus_scan_results.get("status_code")
+    virus_free = virus_scan_results.get("virus_free")
+    if not virus_free:
+        return jsonify(error="File did not pass the virus scan"), 400
     try:
         mimetype = run_mimetype_checks(file_data, is_csv)
     except FiletypeError as e:

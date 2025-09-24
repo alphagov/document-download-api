@@ -23,8 +23,8 @@ def run_antivirus_checks(file_data):
         results = {}
         try:
             virus_free = antivirus_client.scan(file_data)
-        except AntivirusError as e:
-            raise AntivirusError(message="Antivirus API error", status_code=503) from e
+        except AntivirusError:
+            return {"message": "Antivirus API error", "status_code": 503}
         if virus_free:
             results["virus_free"] = True
         else:

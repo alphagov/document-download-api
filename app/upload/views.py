@@ -70,9 +70,10 @@ def upload_document(service_id):
         return jsonify(error=e.description), 400
 
     virus_scan_results = run_antivirus_checks(file_data)
-    if "virus_free" in virus_scan_results.keys():
-        if not virus_scan_results.get("virus_free"):
-            return jsonify(error="File did not pass the virus scan"), 400
+    if "virus_free" not in virus_scan_results.keys():
+        return jsonify(error=virus_scan_results.get("message")), virus_scan_results.get("status_code")
+    if not virus_scan_results.get("virus_free"):
+        return jsonify(error="File did not pass the virus scan"), 400
 
     try:
         mimetype = run_mimetype_checks(file_data, is_csv, filename)
