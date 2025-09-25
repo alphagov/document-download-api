@@ -3,11 +3,12 @@ from base64 import b64decode, binascii
 from io import BytesIO
 
 from flask import Blueprint, abort, current_app, jsonify, request
+from notifications_utils.clients.antivirus.antivirus_client import AntivirusError
 from werkzeug.exceptions import BadRequest
 
+from app import antivirus_client
 from app.utils import get_mime_type
 from app.utils.authentication import check_auth
-from app.utils.file_checks import run_antivirus_checks
 from app.utils.files import split_filename
 
 file_checks_blueprint = Blueprint("file_checks", __name__, url_prefix="")
@@ -44,12 +45,13 @@ def get_mime_type_and_run_antivirus_scan(filename=None):
     except BadRequest as e:
         return jsonify(error=e.description), 400
     virus_free = False
-    virus_scan_results = run_antivirus_checks(file_data)
-    if "virus_free" not in virus_scan_results.keys():
-        return jsonify(error=virus_scan_results.get("message")), virus_scan_results.get("status_code")
-    virus_free = virus_scan_results.get("virus_free")
-    if not virus_free:
-        return jsonify(error="File did not pass the virus scan"), 400
+    if current_app.config["ANTIVIRUS_ENABLED"]:
+        try:
+            virus_free = antivirus_client.scan(file_data)
+        except AntivirusError:
+            return jsonify(error="Antivirus API error"), 503
+        if not virus_free:
+            return jsonify(error="File did not pass the virus scan"), 400
     if filename:
         mimetype = mimetypes.types_map[split_filename(filename, dotted=True)[1]]
     else:
