@@ -15,6 +15,12 @@ file_checks_blueprint = Blueprint("file_checks", __name__, url_prefix="")
 file_checks_blueprint.before_request(check_auth)
 
 
+class FiletypeError(Exception):
+    def __init__(self, message=None, status_code=None):
+        self.message = message
+        self.status_code = status_code
+
+
 def _get_upload_document_request_data(data):
     if "document" not in data:
         raise BadRequest("No document upload")
@@ -35,23 +41,15 @@ def _get_upload_document_request_data(data):
     return file_data, is_csv
 
 
-@file_checks_blueprint.route("/antivirus_and_mimetype_check", methods=["POST"])
-def get_mime_type_and_run_antivirus_scan(filename=None):
-    try:
-        (
-            file_data,
-            is_csv,
-        ) = _get_upload_document_request_data(request.json)
-    except BadRequest as e:
-        return jsonify(error=e.description), 400
+def _run_mime_type_check_and_antivirus_scan(file_data, is_csv, filename=None):
     virus_free = False
     if current_app.config["ANTIVIRUS_ENABLED"]:
         try:
             virus_free = antivirus_client.scan(file_data)
-        except AntivirusError:
-            return jsonify(error="Antivirus API error"), 503
+        except AntivirusError as e:
+            raise AntivirusError(message="Antivirus API error", status_code=503) from e
         if not virus_free:
-            return jsonify(error="File did not pass the virus scan"), 400
+            raise AntivirusError(message="File did not pass the virus scan", status_code=400)
     if filename:
         mimetype = mimetypes.types_map[split_filename(filename, dotted=True)[1]]
     else:
@@ -64,5 +62,23 @@ def get_mime_type_and_run_antivirus_scan(filename=None):
         allowed_file_types = ", ".join(
             sorted({f"'.{x}'" for x in current_app.config["FILE_EXTENSIONS_TO_MIMETYPES"].keys()})
         )
-        return jsonify(error=f"Unsupported file type '{mimetype}'. Supported types are: {allowed_file_types}"), 400
-    return jsonify(virus_free=virus_free, mimetype=mimetype), 200
+        raise FiletypeError(
+            message=f"Unsupported file type '{mimetype}'. Supported types are: {allowed_file_types}", status_code=400
+        )
+    return virus_free, mimetype
+
+
+@file_checks_blueprint.route("/antivirus_and_mimetype_check", methods=["POST"])
+def get_mime_type_and_run_antivirus_scan(filename=None):
+    try:
+        (
+            file_data,
+            is_csv,
+        ) = _get_upload_document_request_data(request.json)
+    except BadRequest as e:
+        return jsonify(error=e.description), 400
+    try:
+        virus_free, mimetype = _run_mime_type_check_and_antivirus_scan(file_data, is_csv, filename)
+        return jsonify(virus_free=virus_free, mimetype=mimetype)
+    except Exception as e:
+        return jsonify(error=e.message), e.status_code
