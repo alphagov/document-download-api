@@ -126,7 +126,7 @@ class UploadedFile:
             raise RuntimeError("Wrong hash value passed to cache")
         try:
             return {"success": {"virus_free": self._virus_free, "mimetype": self._mimetype}}
-        except Exception as e:
+        except (AntivirusError, FiletypeError) as e:
             return {"failure": {"error": e.message, "status_code": e.status_code}}
 
     @property
