@@ -127,25 +127,22 @@ class UploadedFile:
         except Exception as e:
             return {"failure": {"error": e.message, "status_code": e.status_code}}
 
-    @property
-    def virus_free(self):
+    def get_check(self, check):
         result = self.get_mime_type_and_run_antivirus_scan_json()
         if "failure" in result:
             raise AntivirusAndMimeTypeCheckError(
                 message=result["failure"]["error"],
                 status_code=result["failure"]["status_code"],
             )
-        return result["success"]["virus_free"]
+        return result["success"][check]
+
+    @property
+    def virus_free(self):
+        return self.get_check("virus_free")
 
     @property
     def mimetype(self):
-        result = self.get_mime_type_and_run_antivirus_scan_json()
-        if "failure" in result:
-            raise AntivirusAndMimeTypeCheckError(
-                message=result.message,
-                status_code=result.status_code,
-            )
-        return result["success"]["mimetype"]
+        return self.get_check("mimetype")
 
     @property
     def _virus_free(self):
