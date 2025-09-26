@@ -97,37 +97,37 @@ class UploadedFile:
 
     def get_mime_type_and_run_antivirus_scan_json(self):
         try:
-            virus_free, mimetype = _run_mime_type_check_and_antivirus_scan(self.file_data, self.is_csv, self.filename)
+            virus_free, mimetype = self._run_mime_type_check_and_antivirus_scan()
             return {"success": {"virus_free": virus_free, "mimetype": mimetype}}
         except Exception as e:
             return {"failure": {"error": e.message, "status_code": e.status_code}}
 
-
-def _run_mime_type_check_and_antivirus_scan(file_data, is_csv, filename=None):
-    virus_free = False
-    if current_app.config["ANTIVIRUS_ENABLED"]:
-        try:
-            virus_free = antivirus_client.scan(file_data)
-        except AntivirusError as e:
-            raise AntivirusError(message="Antivirus API error", status_code=503) from e
-        if not virus_free:
-            raise AntivirusError(message="File did not pass the virus scan", status_code=400)
-    if filename:
-        mimetype = mimetypes.types_map[split_filename(filename, dotted=True)[1]]
-    else:
-        mimetype = get_mime_type(file_data)
-        # Our mimetype auto-detection sometimes resolves CSV content as text/plain, so we use
-        # an explicit POST body parameter `is_csv` from the caller to resolve it as text/csv
-        if is_csv and mimetype == "text/plain":
-            mimetype = "text/csv"
-    if mimetype not in current_app.config["MIME_TYPES_TO_FILE_EXTENSIONS"]:
-        allowed_file_types = ", ".join(
-            sorted({f"'.{x}'" for x in current_app.config["FILE_EXTENSIONS_TO_MIMETYPES"].keys()})
-        )
-        raise FiletypeError(
-            message=f"Unsupported file type '{mimetype}'. Supported types are: {allowed_file_types}", status_code=400
-        )
-    return virus_free, mimetype
+    def _run_mime_type_check_and_antivirus_scan(self):
+        virus_free = False
+        if current_app.config["ANTIVIRUS_ENABLED"]:
+            try:
+                virus_free = antivirus_client.scan(self.file_data)
+            except AntivirusError as e:
+                raise AntivirusError(message="Antivirus API error", status_code=503) from e
+            if not virus_free:
+                raise AntivirusError(message="File did not pass the virus scan", status_code=400)
+        if self.filename:
+            mimetype = mimetypes.types_map[split_filename(self.filename, dotted=True)[1]]
+        else:
+            mimetype = get_mime_type(self.file_data)
+            # Our mimetype auto-detection sometimes resolves CSV content as text/plain, so we use
+            # an explicit POST body parameter `is_csv` from the caller to resolve it as text/csv
+            if self.is_csv and mimetype == "text/plain":
+                mimetype = "text/csv"
+        if mimetype not in current_app.config["MIME_TYPES_TO_FILE_EXTENSIONS"]:
+            allowed_file_types = ", ".join(
+                sorted({f"'.{x}'" for x in current_app.config["FILE_EXTENSIONS_TO_MIMETYPES"].keys()})
+            )
+            raise FiletypeError(
+                message=f"Unsupported file type '{mimetype}'. Supported types are: {allowed_file_types}",
+                status_code=400,
+            )
+        return virus_free, mimetype
 
 
 @file_checks_blueprint.route("/antivirus_and_mimetype_check", methods=["POST"])
