@@ -27,7 +27,7 @@ class FiletypeError(Exception):
 
 
 class AntivirusAndMimeTypeCheckError(Exception):
-    def __init__(self, message=None, status_code=400):
+    def __init__(self, message, status_code=400):
         self.message = message
         self.status_code = status_code
 
@@ -39,7 +39,7 @@ class UploadedFile:
         self.filename = filename
         self.confirmation_email = confirmation_email
         self.retention_period = retention_period
-        self.mimetype = self.mimetype_deserialised
+        self.mimetype = self.mimetype_deserialised()
 
     @classmethod
     def from_request_json(cls, data):
@@ -123,16 +123,6 @@ class UploadedFile:
 
         return sha1(contents).hexdigest()
 
-    @cache.set("file-checks-{file_data_hash}", ttl_in_seconds=86_400)
-    def mimetype_serialised(self, file_data_hash):
-        if file_data_hash != self.file_data_hash:
-            raise RuntimeError("Wrong hash value passed to cache")
-        try:
-            return {"success": {"mimetype": self._mimetype}}
-        except (AntivirusError, FiletypeError) as e:
-            return {"failure": {"error": e.message, "status_code": e.status_code}}
-
-    @property
     def mimetype_deserialised(self):
         result = self.mimetype_serialised(self.file_data_hash)
         if "failure" in result:
@@ -142,17 +132,14 @@ class UploadedFile:
             )
         return result["success"]["mimetype"]
 
-    @property
-    def virus_free(self):
-        if not current_app.config["ANTIVIRUS_ENABLED"]:
-            return False
+    @cache.set("file-checks-{file_data_hash}", ttl_in_seconds=86_400)
+    def mimetype_serialised(self, file_data_hash):
+        if file_data_hash != self.file_data_hash:
+            raise RuntimeError("Wrong hash value passed to cache")
         try:
-            virus_free = antivirus_client.scan(self.file_data)
-        except AntivirusError as e:
-            raise AntivirusError(message="Antivirus API error", status_code=503) from e
-        if not virus_free:
-            raise AntivirusError(message="File did not pass the virus scan", status_code=400)
-        return virus_free
+            return {"success": {"mimetype": self._mimetype}}
+        except (AntivirusError, FiletypeError) as e:
+            return {"failure": {"error": e.message, "status_code": e.status_code}}
 
     @property
     def _mimetype(self):
@@ -174,3 +161,15 @@ class UploadedFile:
                 message=f"Unsupported file type '{mimetype}'. Supported types are: {allowed_file_types}"
             )
         return mimetype
+
+    @property
+    def virus_free(self):
+        if not current_app.config["ANTIVIRUS_ENABLED"]:
+            return False
+        try:
+            virus_free = antivirus_client.scan(self.file_data)
+        except AntivirusError as e:
+            raise AntivirusError(message="Antivirus API error", status_code=503) from e
+        if not virus_free:
+            raise AntivirusError(message="File did not pass the virus scan", status_code=400)
+        return virus_free
