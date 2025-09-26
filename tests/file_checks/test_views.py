@@ -1,4 +1,5 @@
 import base64
+from unittest.mock import call
 
 import pytest
 from notifications_utils.clients.antivirus.antivirus_client import AntivirusError
@@ -68,3 +69,50 @@ def test_file_checks_unknown_type(client, antivirus):
         "Supported types are: '.csv', '.doc', '.docx', '.jpeg', '.jpg', '.json', '.odt', '.pdf', '.png', '.rtf', "
         "'.txt', '.xlsx'"
     )
+
+
+def test_virus_check_puts_value_in_cache(client, mocker, antivirus):
+    antivirus.scan.return_value = True
+    mock_redis_set = mocker.patch("app.redis_client.set")
+
+    _file_checks(client, b"%PDF-1.4 first file contents")
+    _file_checks(client, b"second file contents")
+
+    assert mock_redis_set.call_args_list == [
+        call(
+            "file-checks-d90dbad3ec3d280ac1190458b692d56661f7410a",
+            '{"success": {"virus_free": true, "mimetype": "application/pdf"}}',
+            ex=2419200,
+        ),
+        call(
+            "file-checks-85336573f4f627cefb440bc2140c9a6b4925355b",
+            '{"success": {"virus_free": true, "mimetype": "text/plain"}}',
+            ex=2419200,
+        ),
+    ]
+
+
+def test_virus_check_returns_value_from_cache(client, mocker):
+    mock_redis_get = mocker.patch(
+        "app.redis_client.get",
+        return_value='{"failure": {"error": "I’m a teapot", "status_code": 418}}'.encode(),
+    )
+
+    file_1_content = b"%PDF-1.4 first file contents"
+    file_2_content = b"%PDF-1.4 second file contents"
+
+    for _ in range(3):
+        response_1 = _file_checks(client, file_1_content)
+        response_2 = _file_checks(client, file_2_content)
+
+        assert response_1.status_code == response_2.status_code == 418
+        assert response_1.json == response_2.json == {"error": "I’m a teapot"}
+
+    assert mock_redis_get.call_args_list == [
+        call("file-checks-d90dbad3ec3d280ac1190458b692d56661f7410a"),
+        call("file-checks-93fb06037e8211f2fe7fbffe31b69ec0df48789e"),
+        call("file-checks-d90dbad3ec3d280ac1190458b692d56661f7410a"),
+        call("file-checks-93fb06037e8211f2fe7fbffe31b69ec0df48789e"),
+        call("file-checks-d90dbad3ec3d280ac1190458b692d56661f7410a"),
+        call("file-checks-93fb06037e8211f2fe7fbffe31b69ec0df48789e"),
+    ]

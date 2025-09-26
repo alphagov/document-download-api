@@ -5,10 +5,11 @@ from io import BytesIO
 
 from flask import abort, current_app
 from notifications_utils.clients.antivirus.antivirus_client import AntivirusError
+from notifications_utils.clients.redis import RequestCache
 from notifications_utils.recipient_validation.errors import InvalidEmailError
 from werkzeug.exceptions import BadRequest
 
-from app import antivirus_client
+from app import antivirus_client, redis_client
 from app.utils import get_mime_type
 from app.utils.files import split_filename
 from app.utils.validation import (
@@ -16,6 +17,8 @@ from app.utils.validation import (
     clean_and_validate_retention_period,
     validate_filename,
 )
+
+cache = RequestCache(redis_client)
 
 
 class FiletypeError(Exception):
@@ -37,8 +40,7 @@ class UploadedFile:
         self.filename = filename
         self.confirmation_email = confirmation_email
         self.retention_period = retention_period
-        self.virus_free = self.get_check("virus_free")
-        self.mimetype = self.get_check("mimetype")
+        self.virus_free, self.mimetype = self.virus_free_and_mimetype
 
     @property
     def is_csv(self):
@@ -118,6 +120,7 @@ class UploadedFile:
         self.file_data.seek(0)
         return file_data_hash
 
+    @cache.set("file-checks-{file_data_hash}")
     def get_mime_type_and_run_antivirus_scan_json(self, file_data_hash):
         if file_data_hash != self.file_data_hash:
             raise RuntimeError("Wrong hash value passed to cache")
@@ -126,14 +129,15 @@ class UploadedFile:
         except Exception as e:
             return {"failure": {"error": e.message, "status_code": e.status_code}}
 
-    def get_check(self, check):
+    @property
+    def virus_free_and_mimetype(self):
         result = self.get_mime_type_and_run_antivirus_scan_json(self.file_data_hash)
         if "failure" in result:
             raise AntivirusAndMimeTypeCheckError(
                 message=result["failure"]["error"],
                 status_code=result["failure"]["status_code"],
             )
-        return result["success"][check]
+        return result["success"]["virus_free"], result["success"]["mimetype"]
 
     @property
     def _virus_free(self):
