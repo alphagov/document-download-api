@@ -1,6 +1,5 @@
 import mimetypes
 from base64 import b64decode, binascii
-from dataclasses import dataclass
 from io import BytesIO
 
 from flask import Blueprint, abort, current_app, jsonify, request
@@ -21,18 +20,6 @@ from app.utils.validation import (
 
 file_checks_blueprint = Blueprint("file_checks", __name__, url_prefix="")
 file_checks_blueprint.before_request(check_auth)
-
-
-@dataclass
-class ErrorResponse:
-    error: str
-    status_code: int
-
-
-@dataclass
-class SuccessResponse:
-    virus_free: bool
-    mimetype: str
 
 
 class AntivirusAndMimeTypeCheckError(Exception):
