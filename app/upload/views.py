@@ -2,8 +2,8 @@ from flask import Blueprint, jsonify, request
 from werkzeug.exceptions import BadRequest
 
 from app import document_store
-from app.file_checks.views import AntivirusAndMimeTypeCheckError, UploadedFile
 from app.utils.authentication import check_auth
+from app.utils.file_checks import AntivirusAndMimeTypeCheckError, UploadedFile
 from app.utils.urls import get_direct_file_url, get_frontend_download_url
 
 upload_blueprint = Blueprint("upload", __name__, url_prefix="")
