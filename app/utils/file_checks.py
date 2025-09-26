@@ -9,8 +9,8 @@ from app.utils.files import split_filename
 
 
 class FiletypeError(Exception):
-    def __init__(self, error_message=None, status_code=None):
-        self.error_message = error_message
+    def __init__(self, message=None, status_code=None):
+        self.message = message
         self.status_code = status_code
 
 
