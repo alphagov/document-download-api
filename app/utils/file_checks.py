@@ -115,9 +115,13 @@ class UploadedFile:
 
     @property
     def file_data_hash(self):
-        file_data_hash = sha1(self.file_data.read()).hexdigest()
+        contents = bytearray(self.file_data.read())
         self.file_data.seek(0)
-        return file_data_hash
+
+        contents += bytes(self.is_csv)
+        contents += str(self.filename).encode()
+
+        return sha1(contents).hexdigest()
 
     @cache.set("file-checks-{file_data_hash}")
     def get_mime_type_and_run_antivirus_scan_json(self, file_data_hash):
