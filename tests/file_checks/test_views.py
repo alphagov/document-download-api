@@ -86,12 +86,12 @@ def test_virus_check_puts_value_in_cache(client, mocker, antivirus):
         call(
             "file-checks-74cc0669d6b61ff7efa2416a51eb1a6ed17b23d5",
             '{"success": {"virus_free": true, "mimetype": "application/pdf"}}',
-            ex=2419200,
+            ex=86_400,
         ),
         call(
             "file-checks-9c8b0f33cd678ce620fced273bbc9950bd3350e7",
             '{"success": {"virus_free": true, "mimetype": "text/plain"}}',
-            ex=2419200,
+            ex=86_400,
         ),
     ]
 

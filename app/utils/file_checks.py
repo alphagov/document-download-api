@@ -123,7 +123,7 @@ class UploadedFile:
 
         return sha1(contents).hexdigest()
 
-    @cache.set("file-checks-{file_data_hash}")
+    @cache.set("file-checks-{file_data_hash}", ttl_in_seconds=86_400)
     def get_mime_type_and_run_antivirus_scan_json(self, file_data_hash):
         if file_data_hash != self.file_data_hash:
             raise RuntimeError("Wrong hash value passed to cache")
