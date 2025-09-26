@@ -34,12 +34,11 @@ class AntivirusAndMimeTypeCheckError(Exception):
 
 class UploadedFile:
     def __init__(self, file_data, is_csv, confirmation_email, retention_period, filename):
-        self.file_data = file_data
         self.is_csv = is_csv
         self.filename = filename
         self.confirmation_email = confirmation_email
         self.retention_period = retention_period
-        self.mimetype = self.mimetype_deserialised()
+        self.file_data = file_data
 
     @classmethod
     def from_request_json(cls, data):
@@ -112,6 +111,15 @@ class UploadedFile:
             self._filename = validate_filename(value)
         except ValueError as e:
             raise AntivirusAndMimeTypeCheckError(str(e)) from e
+
+    @property
+    def file_data(self):
+        return self._file_data
+
+    @file_data.setter
+    def file_data(self, value):
+        self._file_data = value
+        self.mimetype = self.mimetype_deserialised()
 
     @property
     def file_data_hash(self):
