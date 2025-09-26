@@ -97,12 +97,12 @@ class UploadedFile:
 
     def get_mime_type_and_run_antivirus_scan_json(self):
         try:
-            virus_free, mimetype = self._run_mime_type_check_and_antivirus_scan()
-            return {"success": {"virus_free": virus_free, "mimetype": mimetype}}
+            return {"success": {"virus_free": self.virus_free, "mimetype": self.mimetype}}
         except Exception as e:
             return {"failure": {"error": e.message, "status_code": e.status_code}}
 
-    def _run_mime_type_check_and_antivirus_scan(self):
+    @property
+    def virus_free(self):
         virus_free = False
         if current_app.config["ANTIVIRUS_ENABLED"]:
             try:
@@ -111,6 +111,10 @@ class UploadedFile:
                 raise AntivirusError(message="Antivirus API error", status_code=503) from e
             if not virus_free:
                 raise AntivirusError(message="File did not pass the virus scan", status_code=400)
+        return virus_free
+
+    @property
+    def mimetype(self):
         if self.filename:
             mimetype = mimetypes.types_map[split_filename(self.filename, dotted=True)[1]]
         else:
@@ -127,7 +131,7 @@ class UploadedFile:
                 message=f"Unsupported file type '{mimetype}'. Supported types are: {allowed_file_types}",
                 status_code=400,
             )
-        return virus_free, mimetype
+        return mimetype
 
 
 @file_checks_blueprint.route("/antivirus_and_mimetype_check", methods=["POST"])
