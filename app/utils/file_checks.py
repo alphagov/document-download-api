@@ -42,6 +42,27 @@ class UploadedFile:
         self.retention_period = retention_period
         self.virus_free, self.mimetype = self.virus_free_and_mimetype
 
+    @classmethod
+    def from_request_json(cls, data):
+        if "document" not in data:
+            raise BadRequest("No document upload")
+
+        try:
+            raw_content = b64decode(data["document"])
+        except (binascii.Error, ValueError) as e:
+            raise BadRequest("Document is not base64 encoded") from e
+
+        if len(raw_content) > current_app.config["MAX_DECODED_FILE_SIZE"]:
+            abort(413)
+
+        return cls(
+            file_data=BytesIO(raw_content),
+            is_csv=data.get("is_csv"),
+            confirmation_email=data.get("confirmation_email"),
+            retention_period=data.get("retention_period"),
+            filename=data.get("filename", None),
+        )
+
     @property
     def is_csv(self):
         return self._is_csv
@@ -92,27 +113,6 @@ class UploadedFile:
             self._filename = validate_filename(value)
         except ValueError as e:
             raise BadRequest(str(e)) from e
-
-    @classmethod
-    def from_request_json(cls, data):
-        if "document" not in data:
-            raise BadRequest("No document upload")
-
-        try:
-            raw_content = b64decode(data["document"])
-        except (binascii.Error, ValueError) as e:
-            raise BadRequest("Document is not base64 encoded") from e
-
-        if len(raw_content) > current_app.config["MAX_DECODED_FILE_SIZE"]:
-            abort(413)
-
-        return cls(
-            file_data=BytesIO(raw_content),
-            is_csv=data.get("is_csv"),
-            confirmation_email=data.get("confirmation_email"),
-            retention_period=data.get("retention_period"),
-            filename=data.get("filename", None),
-        )
 
     @property
     def file_data_hash(self):
