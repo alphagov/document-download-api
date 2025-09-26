@@ -1,5 +1,6 @@
 import mimetypes
 from base64 import b64decode, binascii
+from hashlib import sha1
 from io import BytesIO
 
 from flask import abort, current_app
@@ -111,14 +112,22 @@ class UploadedFile:
             filename=data.get("filename", None),
         )
 
-    def get_mime_type_and_run_antivirus_scan_json(self):
+    @property
+    def file_data_hash(self):
+        file_data_hash = sha1(self.file_data.read()).hexdigest()
+        self.file_data.seek(0)
+        return file_data_hash
+
+    def get_mime_type_and_run_antivirus_scan_json(self, file_data_hash):
+        if file_data_hash != self.file_data_hash:
+            raise RuntimeError("Wrong hash value passed to cache")
         try:
             return {"success": {"virus_free": self._virus_free, "mimetype": self._mimetype}}
         except Exception as e:
             return {"failure": {"error": e.message, "status_code": e.status_code}}
 
     def get_check(self, check):
-        result = self.get_mime_type_and_run_antivirus_scan_json()
+        result = self.get_mime_type_and_run_antivirus_scan_json(self.file_data_hash)
         if "failure" in result:
             raise AntivirusAndMimeTypeCheckError(
                 message=result["failure"]["error"],
@@ -157,4 +166,3 @@ class UploadedFile:
                 status_code=400,
             )
         return mimetype
-
