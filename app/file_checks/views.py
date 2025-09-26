@@ -5,6 +5,7 @@ from io import BytesIO
 
 from flask import Blueprint, abort, current_app, jsonify, request
 from notifications_utils.clients.antivirus.antivirus_client import AntivirusError
+from notifications_utils.recipient_validation.errors import InvalidEmailError
 from werkzeug.exceptions import BadRequest
 
 from app import antivirus_client
@@ -12,6 +13,8 @@ from app.utils import get_mime_type
 from app.utils.authentication import check_auth
 from app.utils.files import split_filename
 from app.utils.validation import (
+    clean_and_validate_email_address,
+    clean_and_validate_retention_period,
     validate_filename,
 )
 
@@ -37,31 +40,67 @@ class FiletypeError(Exception):
         self.status_code = status_code
 
 
-def _get_file_content_and_is_csv_from_document_request_data(data):
-    if "document" not in data:
-        raise BadRequest("No document upload")
+class UploadedFile:
+    def __init__(self, file_data, is_csv, confirmation_email, retention_period, filename):
+        self.file_data = file_data
+        self.is_csv = is_csv
+        self.filename = filename
+        self.confirmation_email = confirmation_email
+        self.retention_period = retention_period
 
-    try:
-        raw_content = b64decode(data["document"])
-    except (binascii.Error, ValueError) as e:
-        raise BadRequest("Document is not base64 encoded") from e
+    @classmethod
+    def from_request_json(cls, data):  # noqa: C901
+        if "document" not in data:
+            raise BadRequest("No document upload")
 
-    if len(raw_content) > current_app.config["MAX_DECODED_FILE_SIZE"]:
-        abort(413)
-    file_data = BytesIO(raw_content)
-    is_csv = data.get("is_csv", False)
-
-    if not isinstance(is_csv, bool):
-        raise BadRequest("Value for is_csv must be a boolean")
-
-    filename = data.get("filename", None)
-    if filename:
         try:
-            filename = validate_filename(filename)
-        except ValueError as e:
-            raise BadRequest(str(e)) from e
+            raw_content = b64decode(data["document"])
+        except (binascii.Error, ValueError) as e:
+            raise BadRequest("Document is not base64 encoded") from e
 
-    return file_data, is_csv, filename
+        if len(raw_content) > current_app.config["MAX_DECODED_FILE_SIZE"]:
+            abort(413)
+        file_data = BytesIO(raw_content)
+        is_csv = data.get("is_csv", False)
+
+        if not isinstance(is_csv, bool):
+            raise BadRequest("Value for is_csv must be a boolean")
+
+        confirmation_email = data.get("confirmation_email", None)
+        if confirmation_email is not None:
+            try:
+                confirmation_email = clean_and_validate_email_address(confirmation_email)
+            except InvalidEmailError as e:
+                raise BadRequest(str(e)) from e
+
+        retention_period = data.get("retention_period", None)
+        if retention_period is not None:
+            try:
+                retention_period = clean_and_validate_retention_period(retention_period)
+            except ValueError as e:
+                raise BadRequest(str(e)) from e
+
+        filename = data.get("filename", None)
+        if filename:
+            try:
+                filename = validate_filename(filename)
+            except ValueError as e:
+                raise BadRequest(str(e)) from e
+
+        return cls(
+            file_data=file_data,
+            is_csv=is_csv,
+            confirmation_email=confirmation_email,
+            retention_period=retention_period,
+            filename=filename,
+        )
+
+    def get_mime_type_and_run_antivirus_scan_json(self):
+        try:
+            virus_free, mimetype = _run_mime_type_check_and_antivirus_scan(self.file_data, self.is_csv, self.filename)
+            return {"success": {"virus_free": virus_free, "mimetype": mimetype}}
+        except Exception as e:
+            return {"failure": {"error": e.message, "status_code": e.status_code}}
 
 
 def _run_mime_type_check_and_antivirus_scan(file_data, is_csv, filename=None):
@@ -94,14 +133,10 @@ def _run_mime_type_check_and_antivirus_scan(file_data, is_csv, filename=None):
 @file_checks_blueprint.route("/antivirus_and_mimetype_check", methods=["POST"])
 def get_mime_type_and_run_antivirus_scan():
     try:
-        (
-            file_data,
-            is_csv,
-            filename,
-        ) = _get_file_content_and_is_csv_from_document_request_data(request.json)
+        uploaded_file = UploadedFile.from_request_json(request.json)
     except BadRequest as e:
         return jsonify(error=e.description), 400
-    result = get_mime_type_and_run_antivirus_scan_json(file_data, is_csv, filename)
+    result = uploaded_file.get_mime_type_and_run_antivirus_scan_json()
     if "success" in result.keys():
         virus_free = result.get("success").get("virus_free")
         mimetype = result.get("success").get("mimetype")
@@ -110,11 +145,3 @@ def get_mime_type_and_run_antivirus_scan():
         error = result.get("failure").get("error")
         status_code = result.get("failure").get("status_code")
         return jsonify(error=error), status_code
-
-
-def get_mime_type_and_run_antivirus_scan_json(file_data, is_csv, filename=None):
-    try:
-        virus_free, mimetype = _run_mime_type_check_and_antivirus_scan(file_data, is_csv, filename)
-        return {"success": {"virus_free": virus_free, "mimetype": mimetype}}
-    except Exception as e:
-        return {"failure": {"error": e.message, "status_code": e.status_code}}
