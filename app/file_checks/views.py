@@ -1,5 +1,6 @@
 import mimetypes
 from base64 import b64decode, binascii
+from dataclasses import dataclass
 from io import BytesIO
 
 from flask import Blueprint, abort, current_app, jsonify, request
@@ -13,6 +14,18 @@ from app.utils.files import split_filename
 
 file_checks_blueprint = Blueprint("file_checks", __name__, url_prefix="")
 file_checks_blueprint.before_request(check_auth)
+
+
+@dataclass
+class ErrorResponse:
+    error: str
+    status_code: int
+
+
+@dataclass
+class SuccessResponse:
+    virus_free: bool
+    mimetype: str
 
 
 class FiletypeError(Exception):
@@ -77,8 +90,20 @@ def get_mime_type_and_run_antivirus_scan(filename=None):
         ) = _get_upload_document_request_data(request.json)
     except BadRequest as e:
         return jsonify(error=e.description), 400
+    result = get_mime_type_and_run_antivirus_scan_json(file_data, is_csv)
+    if "success" in result.keys():
+        virus_free = result.get("success").get("virus_free")
+        mimetype = result.get("success").get("mimetype")
+        return jsonify(virus_free=virus_free, mimetype=mimetype), 200
+    if "failure" in result.keys():
+        error = result.get("failure").get("error")
+        status_code = result.get("failure").get("status_code")
+        return jsonify(error=error), status_code
+
+
+def get_mime_type_and_run_antivirus_scan_json(file_data, is_csv, filename=None):
     try:
         virus_free, mimetype = _run_mime_type_check_and_antivirus_scan(file_data, is_csv, filename)
-        return jsonify(virus_free=virus_free, mimetype=mimetype)
+        return {"success": {"virus_free": virus_free, "mimetype": mimetype}}
     except Exception as e:
-        return jsonify(error=e.message), e.status_code
+        return {"failure": {"error": e.message, "status_code": e.status_code}}
