@@ -21,7 +21,7 @@ def store(mocker):
 @pytest.fixture
 def antivirus(mocker):
     return mocker.patch(
-        "app.file_checks.views.antivirus_client",
+        "app.utils.file_checks.antivirus_client",
         # prevent LocalProxy being detected as an async function
         new_callable=mocker.MagicMock,
     )
