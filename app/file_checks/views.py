@@ -11,6 +11,9 @@ from app import antivirus_client
 from app.utils import get_mime_type
 from app.utils.authentication import check_auth
 from app.utils.files import split_filename
+from app.utils.validation import (
+    validate_filename,
+)
 
 file_checks_blueprint = Blueprint("file_checks", __name__, url_prefix="")
 file_checks_blueprint.before_request(check_auth)
@@ -51,7 +54,14 @@ def _get_file_content_and_is_csv_from_document_request_data(data):
     if not isinstance(is_csv, bool):
         raise BadRequest("Value for is_csv must be a boolean")
 
-    return file_data, is_csv
+    filename = data.get("filename", None)
+    if filename:
+        try:
+            filename = validate_filename(filename)
+        except ValueError as e:
+            raise BadRequest(str(e)) from e
+
+    return file_data, is_csv, filename
 
 
 def _run_mime_type_check_and_antivirus_scan(file_data, is_csv, filename=None):
@@ -82,15 +92,16 @@ def _run_mime_type_check_and_antivirus_scan(file_data, is_csv, filename=None):
 
 
 @file_checks_blueprint.route("/antivirus_and_mimetype_check", methods=["POST"])
-def get_mime_type_and_run_antivirus_scan(filename=None):
+def get_mime_type_and_run_antivirus_scan():
     try:
         (
             file_data,
             is_csv,
+            filename,
         ) = _get_file_content_and_is_csv_from_document_request_data(request.json)
     except BadRequest as e:
         return jsonify(error=e.description), 400
-    result = get_mime_type_and_run_antivirus_scan_json(file_data, is_csv)
+    result = get_mime_type_and_run_antivirus_scan_json(file_data, is_csv, filename)
     if "success" in result.keys():
         virus_free = result.get("success").get("virus_free")
         mimetype = result.get("success").get("mimetype")

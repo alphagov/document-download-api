@@ -6,8 +6,8 @@ from notifications_utils.recipient_validation.errors import InvalidEmailError
 from werkzeug.exceptions import BadRequest
 
 from app import document_store
+from app.file_checks.views import get_mime_type_and_run_antivirus_scan_json
 from app.utils.authentication import check_auth
-from app.utils.file_checks import FiletypeError, run_antivirus_checks, run_mimetype_checks
 from app.utils.urls import get_direct_file_url, get_frontend_download_url
 from app.utils.validation import (
     clean_and_validate_email_address,
@@ -69,16 +69,16 @@ def upload_document(service_id):
     except BadRequest as e:
         return jsonify(error=e.description), 400
 
-    virus_scan_results = run_antivirus_checks(file_data)
-    if "virus_free" not in virus_scan_results.keys():
-        return jsonify(error=virus_scan_results.get("message")), virus_scan_results.get("status_code")
-    if not virus_scan_results.get("virus_free"):
-        return jsonify(error="File did not pass the virus scan"), 400
-
-    try:
-        mimetype = run_mimetype_checks(file_data, is_csv, filename)
-    except FiletypeError as e:
-        return jsonify(error=e.error_message), e.status_code
+    result = get_mime_type_and_run_antivirus_scan_json(file_data, is_csv, filename)
+    if "success" in result.keys():
+        virus_free = result.get("success").get("virus_free")
+        mimetype = result.get("success").get("mimetype")
+        if not virus_free:
+            return jsonify(error="File did not pass the virus scan"), 400
+    if "failure" in result.keys():
+        error = result.get("failure").get("error")
+        status_code = result.get("failure").get("status_code")
+        return jsonify(error=error), status_code
 
     document = document_store.put(
         service_id,
