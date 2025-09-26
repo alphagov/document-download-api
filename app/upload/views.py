@@ -16,12 +16,11 @@ def upload_document(service_id):
         uploaded_file = UploadedFile.from_request_json(request.json)
     except BadRequest as e:
         return jsonify(error=e.description), 400
-
-    try:
-        if not uploaded_file.virus_free:
-            return jsonify(error="File did not pass the virus scan"), 400
     except AntivirusAndMimeTypeCheckError as e:
         return jsonify(error=e.message), e.status_code
+
+    if not uploaded_file.virus_free:
+        return jsonify(error="File did not pass the virus scan"), 400
 
     document = document_store.put(
         service_id,
