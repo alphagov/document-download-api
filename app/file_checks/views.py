@@ -48,6 +48,8 @@ class UploadedFile:
         self.filename = filename
         self.confirmation_email = confirmation_email
         self.retention_period = retention_period
+        self.virus_free = self.get_check("virus_free")
+        self.mimetype = self.get_check("mimetype")
 
     @property
     def is_csv(self):
@@ -137,14 +139,6 @@ class UploadedFile:
         return result["success"][check]
 
     @property
-    def virus_free(self):
-        return self.get_check("virus_free")
-
-    @property
-    def mimetype(self):
-        return self.get_check("mimetype")
-
-    @property
     def _virus_free(self):
         if not current_app.config["ANTIVIRUS_ENABLED"]:
             return False
@@ -183,7 +177,7 @@ def get_mime_type_and_run_antivirus_scan():
         uploaded_file = UploadedFile.from_request_json(request.json)
     except BadRequest as e:
         return jsonify(error=e.description), 400
-    try:
-        return jsonify(virus_free=uploaded_file.virus_free, mimetype=uploaded_file.mimetype), 200
     except AntivirusAndMimeTypeCheckError as e:
         return jsonify(error=e.message), e.status_code
+
+    return jsonify(virus_free=uploaded_file.virus_free, mimetype=uploaded_file.mimetype), 200
