@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request
 from werkzeug.exceptions import BadRequest
 
 from app import document_store
-from app.file_checks.views import UploadedFile
+from app.file_checks.views import AntivirusAndMimeTypeCheckError, UploadedFile
 from app.utils.authentication import check_auth
 from app.utils.urls import get_direct_file_url, get_frontend_download_url
 
@@ -17,21 +17,16 @@ def upload_document(service_id):
     except BadRequest as e:
         return jsonify(error=e.description), 400
 
-    result = uploaded_file.get_mime_type_and_run_antivirus_scan_json()
-    if "success" in result.keys():
-        virus_free = result.get("success").get("virus_free")
-        mimetype = result.get("success").get("mimetype")
-        if not virus_free:
+    try:
+        if not uploaded_file.virus_free:
             return jsonify(error="File did not pass the virus scan"), 400
-    if "failure" in result.keys():
-        error = result.get("failure").get("error")
-        status_code = result.get("failure").get("status_code")
-        return jsonify(error=error), status_code
+    except AntivirusAndMimeTypeCheckError as e:
+        return jsonify(error=e.message), e.status_code
 
     document = document_store.put(
         service_id,
         uploaded_file.file_data,
-        mimetype=mimetype,
+        mimetype=uploaded_file.mimetype,
         confirmation_email=uploaded_file.confirmation_email,
         retention_period=uploaded_file.retention_period,
         filename=uploaded_file.filename,
@@ -46,14 +41,14 @@ def upload_document(service_id):
                     service_id=service_id,
                     document_id=document["id"],
                     key=document["encryption_key"],
-                    mimetype=mimetype,
+                    mimetype=uploaded_file.mimetype,
                 ),
                 "url": get_frontend_download_url(
                     service_id=service_id,
                     document_id=document["id"],
                     key=document["encryption_key"],
                 ),
-                "mimetype": mimetype,
+                "mimetype": uploaded_file.mimetype,
             },
         ),
         201,

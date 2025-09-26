@@ -11,6 +11,7 @@ from werkzeug.exceptions import BadRequest
 from app import antivirus_client
 from app.utils import get_mime_type
 from app.utils.authentication import check_auth
+from app.utils.file_checks import FiletypeError
 from app.utils.files import split_filename
 from app.utils.validation import (
     clean_and_validate_email_address,
@@ -34,7 +35,7 @@ class SuccessResponse:
     mimetype: str
 
 
-class FiletypeError(Exception):
+class AntivirusAndMimeTypeCheckError(Exception):
     def __init__(self, message=None, status_code=None):
         self.message = message
         self.status_code = status_code
@@ -97,12 +98,32 @@ class UploadedFile:
 
     def get_mime_type_and_run_antivirus_scan_json(self):
         try:
-            return {"success": {"virus_free": self.virus_free, "mimetype": self.mimetype}}
+            return {"success": {"virus_free": self._virus_free, "mimetype": self._mimetype}}
         except Exception as e:
             return {"failure": {"error": e.message, "status_code": e.status_code}}
 
     @property
     def virus_free(self):
+        result = self.get_mime_type_and_run_antivirus_scan_json()
+        if "failure" in result:
+            raise AntivirusAndMimeTypeCheckError(
+                message=result["failure"]["error"],
+                status_code=result["failure"]["status_code"],
+            )
+        return result["success"]["virus_free"]
+
+    @property
+    def mimetype(self):
+        result = self.get_mime_type_and_run_antivirus_scan_json()
+        if "failure" in result:
+            raise AntivirusAndMimeTypeCheckError(
+                message=result.message,
+                status_code=result.status_code,
+            )
+        return result["success"]["mimetype"]
+
+    @property
+    def _virus_free(self):
         if not current_app.config["ANTIVIRUS_ENABLED"]:
             return False
         try:
@@ -111,9 +132,10 @@ class UploadedFile:
             raise AntivirusError(message="Antivirus API error", status_code=503) from e
         if not virus_free:
             raise AntivirusError(message="File did not pass the virus scan", status_code=400)
+        return virus_free
 
     @property
-    def mimetype(self):
+    def _mimetype(self):
         if self.filename:
             mimetype = mimetypes.types_map[split_filename(self.filename, dotted=True)[1]]
         else:
@@ -139,12 +161,7 @@ def get_mime_type_and_run_antivirus_scan():
         uploaded_file = UploadedFile.from_request_json(request.json)
     except BadRequest as e:
         return jsonify(error=e.description), 400
-    result = uploaded_file.get_mime_type_and_run_antivirus_scan_json()
-    if "success" in result.keys():
-        virus_free = result.get("success").get("virus_free")
-        mimetype = result.get("success").get("mimetype")
-        return jsonify(virus_free=virus_free, mimetype=mimetype), 200
-    if "failure" in result.keys():
-        error = result.get("failure").get("error")
-        status_code = result.get("failure").get("status_code")
-        return jsonify(error=error), status_code
+    try:
+        return jsonify(virus_free=uploaded_file.virus_free, mimetype=uploaded_file.mimetype), 200
+    except AntivirusAndMimeTypeCheckError as e:
+        return jsonify(error=e.message), e.status_code
