@@ -49,8 +49,59 @@ class UploadedFile:
         self.confirmation_email = confirmation_email
         self.retention_period = retention_period
 
+    @property
+    def is_csv(self):
+        return self._is_csv
+
+    @is_csv.setter
+    def is_csv(self, value):
+        if value is None:
+            value = False
+        if not isinstance(value, bool):
+            raise BadRequest("Value for is_csv must be a boolean")
+        self._is_csv = value
+
+    @property
+    def confirmation_email(self):
+        return getattr(self, "_confirmation_email", None)
+
+    @confirmation_email.setter
+    def confirmation_email(self, value):
+        if value is None:
+            return
+        try:
+            self._confirmation_email = clean_and_validate_email_address(value)
+        except InvalidEmailError as e:
+            raise BadRequest(str(e)) from e
+
+    @property
+    def retention_period(self):
+        return getattr(self, "_retention_period", None)
+
+    @retention_period.setter
+    def retention_period(self, value):
+        if value is None:
+            return
+        try:
+            self._retention_period = clean_and_validate_retention_period(value)
+        except ValueError as e:
+            raise BadRequest(str(e)) from e
+
+    @property
+    def filename(self):
+        return getattr(self, "_filename", None)
+
+    @filename.setter
+    def filename(self, value):
+        if value is None:
+            return
+        try:
+            self._filename = validate_filename(value)
+        except ValueError as e:
+            raise BadRequest(str(e)) from e
+
     @classmethod
-    def from_request_json(cls, data):  # noqa: C901
+    def from_request_json(cls, data):
         if "document" not in data:
             raise BadRequest("No document upload")
 
@@ -61,39 +112,13 @@ class UploadedFile:
 
         if len(raw_content) > current_app.config["MAX_DECODED_FILE_SIZE"]:
             abort(413)
-        file_data = BytesIO(raw_content)
-        is_csv = data.get("is_csv", False)
-
-        if not isinstance(is_csv, bool):
-            raise BadRequest("Value for is_csv must be a boolean")
-
-        confirmation_email = data.get("confirmation_email", None)
-        if confirmation_email is not None:
-            try:
-                confirmation_email = clean_and_validate_email_address(confirmation_email)
-            except InvalidEmailError as e:
-                raise BadRequest(str(e)) from e
-
-        retention_period = data.get("retention_period", None)
-        if retention_period is not None:
-            try:
-                retention_period = clean_and_validate_retention_period(retention_period)
-            except ValueError as e:
-                raise BadRequest(str(e)) from e
-
-        filename = data.get("filename", None)
-        if filename:
-            try:
-                filename = validate_filename(filename)
-            except ValueError as e:
-                raise BadRequest(str(e)) from e
 
         return cls(
-            file_data=file_data,
-            is_csv=is_csv,
-            confirmation_email=confirmation_email,
-            retention_period=retention_period,
-            filename=filename,
+            file_data=BytesIO(raw_content),
+            is_csv=data.get("is_csv"),
+            confirmation_email=data.get("confirmation_email"),
+            retention_period=data.get("retention_period"),
+            filename=data.get("filename", None),
         )
 
     def get_mime_type_and_run_antivirus_scan_json(self):
