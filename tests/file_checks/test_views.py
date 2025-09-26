@@ -75,8 +75,30 @@ def test_file_checks_unknown_type(client, antivirus):
     )
 
 
-def test_virus_check_puts_value_in_cache(client, mocker, antivirus):
-    antivirus.scan.return_value = True
+@pytest.mark.parametrize(
+    "antivirus_scan_result, expected_first_cache_value, expected_second_cache_value",
+    (
+        (
+            True,
+            '{"success": {"virus_free": true, "mimetype": "application/pdf"}}',
+            '{"success": {"virus_free": true, "mimetype": "text/plain"}}',
+        ),
+        (
+            False,
+            '{"failure": {"error": "File did not pass the virus scan", "status_code": 400}}',
+            '{"failure": {"error": "File did not pass the virus scan", "status_code": 400}}',
+        ),
+    ),
+)
+def test_virus_check_puts_value_in_cache(
+    client,
+    mocker,
+    antivirus,
+    antivirus_scan_result,
+    expected_first_cache_value,
+    expected_second_cache_value,
+):
+    antivirus.scan.return_value = antivirus_scan_result
     mock_redis_set = mocker.patch("app.redis_client.set")
 
     _file_checks(client, b"%PDF-1.4 first file contents")
@@ -85,12 +107,12 @@ def test_virus_check_puts_value_in_cache(client, mocker, antivirus):
     assert mock_redis_set.call_args_list == [
         call(
             "file-checks-74cc0669d6b61ff7efa2416a51eb1a6ed17b23d5",
-            '{"success": {"virus_free": true, "mimetype": "application/pdf"}}',
+            expected_first_cache_value,
             ex=86_400,
         ),
         call(
             "file-checks-9c8b0f33cd678ce620fced273bbc9950bd3350e7",
-            '{"success": {"virus_free": true, "mimetype": "text/plain"}}',
+            expected_second_cache_value,
             ex=86_400,
         ),
     ]
@@ -139,3 +161,27 @@ def test_different_cache_keys_for_different_filename_and_is_csv(client, mocker):
         call("file-checks-3c7955f4f94c940efa494dd4cc9a5c171b8f863a"),
         call("file-checks-e5734036f6ab95fade9d49a4ff8496489cf03293"),
     ]
+
+
+@pytest.mark.parametrize(
+    "json_string, expected_status_code, expected_response_json",
+    (
+        (
+            '{"success": {"virus_free": true, "mimetype": "application/pdf"}}',
+            200,
+            {"mimetype": "application/pdf", "virus_free": True},
+        ),
+        (
+            '{"success": {"virus_free": false, "mimetype": "application/pdf"}}',
+            400,
+            {"error": "File did not pass the virus scan"},
+        ),
+    ),
+)
+def test_success_response_from_cache(client, mocker, json_string, expected_status_code, expected_response_json):
+    mocker.patch("app.redis_client.get", return_value=json_string.encode())
+
+    response = _file_checks(client, b"Anything")
+
+    assert response.status_code == expected_status_code
+    assert response.json == expected_response_json

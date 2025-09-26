@@ -140,6 +140,11 @@ class UploadedFile:
                 message=result["failure"]["error"],
                 status_code=result["failure"]["status_code"],
             )
+        if not result["success"]["virus_free"]:
+            raise AntivirusAndMimeTypeCheckError(
+                message="File did not pass the virus scan",
+                status_code=400,
+            )
         return result["success"]["virus_free"], result["success"]["mimetype"]
 
     @property
