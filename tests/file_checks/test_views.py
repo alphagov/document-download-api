@@ -42,7 +42,7 @@ def test_file_checks_returns_json_object_with_expected_results(client, antivirus
     file_content = b"%PDF-1.4 file contents"
     response = _file_checks(client, file_content)
     assert response.status_code == 200
-    assert response.json == {"mimetype": "application/pdf", "virus_free": True}
+    assert response.json == {"mimetype": "application/pdf"}
 
 
 def test_file_checks_virus_scan_error(client, antivirus):
@@ -80,8 +80,8 @@ def test_file_checks_unknown_type(client, antivirus):
     (
         (
             True,
-            '{"success": {"virus_free": true, "mimetype": "application/pdf"}}',
-            '{"success": {"virus_free": true, "mimetype": "text/plain"}}',
+            '{"success": {"mimetype": "application/pdf"}}',
+            '{"success": {"mimetype": "text/plain"}}',
         ),
         (
             False,
@@ -163,25 +163,13 @@ def test_different_cache_keys_for_different_filename_and_is_csv(client, mocker):
     ]
 
 
-@pytest.mark.parametrize(
-    "json_string, expected_status_code, expected_response_json",
-    (
-        (
-            '{"success": {"virus_free": true, "mimetype": "application/pdf"}}',
-            200,
-            {"mimetype": "application/pdf", "virus_free": True},
-        ),
-        (
-            '{"success": {"virus_free": false, "mimetype": "application/pdf"}}',
-            400,
-            {"error": "File did not pass the virus scan"},
-        ),
-    ),
-)
-def test_success_response_from_cache(client, mocker, json_string, expected_status_code, expected_response_json):
-    mocker.patch("app.redis_client.get", return_value=json_string.encode())
+def test_success_response_from_cache(client, mocker):
+    mocker.patch(
+        "app.redis_client.get",
+        return_value=b'{"success": {"mimetype": "application/pdf"}}',
+    )
 
     response = _file_checks(client, b"Anything")
 
-    assert response.status_code == expected_status_code
-    assert response.json == expected_response_json
+    assert response.status_code == 200
+    assert response.json == {"mimetype": "application/pdf"}

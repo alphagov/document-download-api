@@ -14,4 +14,4 @@ def get_mime_type_and_run_antivirus_scan():
     except AntivirusAndMimeTypeCheckError as e:
         return jsonify(error=e.message), e.status_code
 
-    return jsonify(virus_free=uploaded_file.virus_free, mimetype=uploaded_file.mimetype), 200
+    return jsonify(mimetype=uploaded_file.mimetype), 200

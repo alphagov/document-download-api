@@ -39,7 +39,7 @@ class UploadedFile:
         self.filename = filename
         self.confirmation_email = confirmation_email
         self.retention_period = retention_period
-        self.virus_free, self.mimetype = self.virus_free_and_mimetype
+        self.mimetype = self.mimetype_deserialised
 
     @classmethod
     def from_request_json(cls, data):
@@ -124,31 +124,26 @@ class UploadedFile:
         return sha1(contents).hexdigest()
 
     @cache.set("file-checks-{file_data_hash}", ttl_in_seconds=86_400)
-    def get_mime_type_and_run_antivirus_scan_json(self, file_data_hash):
+    def mimetype_serialised(self, file_data_hash):
         if file_data_hash != self.file_data_hash:
             raise RuntimeError("Wrong hash value passed to cache")
         try:
-            return {"success": {"virus_free": self._virus_free, "mimetype": self._mimetype}}
+            return {"success": {"mimetype": self._mimetype}}
         except (AntivirusError, FiletypeError) as e:
             return {"failure": {"error": e.message, "status_code": e.status_code}}
 
     @property
-    def virus_free_and_mimetype(self):
-        result = self.get_mime_type_and_run_antivirus_scan_json(self.file_data_hash)
+    def mimetype_deserialised(self):
+        result = self.mimetype_serialised(self.file_data_hash)
         if "failure" in result:
             raise AntivirusAndMimeTypeCheckError(
                 message=result["failure"]["error"],
                 status_code=result["failure"]["status_code"],
             )
-        if not result["success"]["virus_free"]:
-            raise AntivirusAndMimeTypeCheckError(
-                message="File did not pass the virus scan",
-                status_code=400,
-            )
-        return result["success"]["virus_free"], result["success"]["mimetype"]
+        return result["success"]["mimetype"]
 
     @property
-    def _virus_free(self):
+    def virus_free(self):
         if not current_app.config["ANTIVIRUS_ENABLED"]:
             return False
         try:
@@ -161,6 +156,8 @@ class UploadedFile:
 
     @property
     def _mimetype(self):
+        if not self.virus_free:
+            return
         if self.filename:
             mimetype = mimetypes.types_map[split_filename(self.filename, dotted=True)[1]]
         else:
