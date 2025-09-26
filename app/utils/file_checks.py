@@ -7,7 +7,6 @@ from flask import abort, current_app
 from notifications_utils.clients.antivirus.antivirus_client import AntivirusError
 from notifications_utils.clients.redis import RequestCache
 from notifications_utils.recipient_validation.errors import InvalidEmailError
-from werkzeug.exceptions import BadRequest
 
 from app import antivirus_client, redis_client
 from app.utils import get_mime_type
@@ -22,13 +21,13 @@ cache = RequestCache(redis_client)
 
 
 class FiletypeError(Exception):
-    def __init__(self, message=None, status_code=None):
+    def __init__(self, message=None, status_code=400):
         self.message = message
         self.status_code = status_code
 
 
 class AntivirusAndMimeTypeCheckError(Exception):
-    def __init__(self, message=None, status_code=None):
+    def __init__(self, message=None, status_code=400):
         self.message = message
         self.status_code = status_code
 
@@ -45,12 +44,12 @@ class UploadedFile:
     @classmethod
     def from_request_json(cls, data):
         if "document" not in data:
-            raise BadRequest("No document upload")
+            raise AntivirusAndMimeTypeCheckError("No document upload")
 
         try:
             raw_content = b64decode(data["document"])
         except (binascii.Error, ValueError) as e:
-            raise BadRequest("Document is not base64 encoded") from e
+            raise AntivirusAndMimeTypeCheckError("Document is not base64 encoded") from e
 
         if len(raw_content) > current_app.config["MAX_DECODED_FILE_SIZE"]:
             abort(413)
@@ -72,7 +71,7 @@ class UploadedFile:
         if value is None:
             value = False
         if not isinstance(value, bool):
-            raise BadRequest("Value for is_csv must be a boolean")
+            raise AntivirusAndMimeTypeCheckError("Value for is_csv must be a boolean")
         self._is_csv = value
 
     @property
@@ -86,7 +85,7 @@ class UploadedFile:
         try:
             self._confirmation_email = clean_and_validate_email_address(value)
         except InvalidEmailError as e:
-            raise BadRequest(str(e)) from e
+            raise AntivirusAndMimeTypeCheckError(str(e)) from e
 
     @property
     def retention_period(self):
@@ -99,7 +98,7 @@ class UploadedFile:
         try:
             self._retention_period = clean_and_validate_retention_period(value)
         except ValueError as e:
-            raise BadRequest(str(e)) from e
+            raise AntivirusAndMimeTypeCheckError(str(e)) from e
 
     @property
     def filename(self):
@@ -112,7 +111,7 @@ class UploadedFile:
         try:
             self._filename = validate_filename(value)
         except ValueError as e:
-            raise BadRequest(str(e)) from e
+            raise AntivirusAndMimeTypeCheckError(str(e)) from e
 
     @property
     def file_data_hash(self):
@@ -166,7 +165,6 @@ class UploadedFile:
                 sorted({f"'.{x}'" for x in current_app.config["FILE_EXTENSIONS_TO_MIMETYPES"].keys()})
             )
             raise FiletypeError(
-                message=f"Unsupported file type '{mimetype}'. Supported types are: {allowed_file_types}",
-                status_code=400,
+                message=f"Unsupported file type '{mimetype}'. Supported types are: {allowed_file_types}"
             )
         return mimetype

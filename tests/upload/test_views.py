@@ -3,10 +3,10 @@ from pathlib import Path
 
 import pytest
 from notifications_utils.clients.antivirus.antivirus_client import AntivirusError
-from werkzeug.exceptions import BadRequest
 
 import app
 from app.upload.views import UploadedFile
+from app.utils.file_checks import AntivirusAndMimeTypeCheckError
 
 
 @pytest.fixture
@@ -430,7 +430,7 @@ def test_document_upload_bad_is_csv_value(client):
     ),
 )
 def test_get_upload_document_request_data_errors(app, data, expected_error):
-    with pytest.raises(BadRequest) as e:
+    with pytest.raises(AntivirusAndMimeTypeCheckError) as e:
         UploadedFile.from_request_json(data)
 
-    assert e.value.description == expected_error
+    assert e.value.message == expected_error

@@ -1,5 +1,4 @@
 from flask import Blueprint, jsonify, request
-from werkzeug.exceptions import BadRequest
 
 from app import document_store
 from app.utils.authentication import check_auth
@@ -14,8 +13,6 @@ upload_blueprint.before_request(check_auth)
 def upload_document(service_id):
     try:
         uploaded_file = UploadedFile.from_request_json(request.json)
-    except BadRequest as e:
-        return jsonify(error=e.description), 400
     except AntivirusAndMimeTypeCheckError as e:
         return jsonify(error=e.message), e.status_code
 
