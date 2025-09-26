@@ -6,7 +6,7 @@ from notifications_utils.clients.antivirus.antivirus_client import AntivirusErro
 
 
 def _file_checks(client, file_content, is_csv=None, filename=None):
-    url = "/antivirus_and_mimetype_check"
+    url = "/antivirus-and-mimetype-check"
     data = {
         "document": base64.b64encode(file_content).decode("utf-8"),
     }
@@ -56,7 +56,7 @@ def test_file_checks_virus_scan_error(client, antivirus):
 
 
 def test_file_checks_invalid_encoding(client):
-    response = client.post("/antivirus_and_mimetype_check", json={"document": "foo"})
+    response = client.post("/antivirus-and-mimetype-check", json={"document": "foo"})
 
     assert response.status_code == 400
     assert response.json == {"error": "Document is not base64 encoded"}
