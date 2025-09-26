@@ -34,7 +34,7 @@ class FiletypeError(Exception):
         self.status_code = status_code
 
 
-def _get_upload_document_request_data(data):
+def _get_file_content_and_is_csv_from_document_request_data(data):
     if "document" not in data:
         raise BadRequest("No document upload")
 
@@ -87,7 +87,7 @@ def get_mime_type_and_run_antivirus_scan(filename=None):
         (
             file_data,
             is_csv,
-        ) = _get_upload_document_request_data(request.json)
+        ) = _get_file_content_and_is_csv_from_document_request_data(request.json)
     except BadRequest as e:
         return jsonify(error=e.description), 400
     result = get_mime_type_and_run_antivirus_scan_json(file_data, is_csv)
