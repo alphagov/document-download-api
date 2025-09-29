@@ -160,28 +160,27 @@ def test_document_file_size_just_right_after_b64decode(client, store, antivirus)
     assert response.status_code == 201
 
 
-def test_document_file_size_too_large_werkzeug_content_length(client, mocker):
-    mock_uploaded_file = mocker.patch("app.upload.views.UploadedFile.from_request_json")
+@pytest.mark.parametrize(
+    "file_size_in_bytes, application_code_call_expected",
+    (
+        # Gets hit by Werkzeug's 3MiB content length limit automatically (before our app logic).
+        ((3 * 1024 * 1024 + 1), False),
+        # Gets through Werkzeug's 3MiB content length limit, but too big for our python ~2MiB check.
+        ((2 * 1024 * 1024 + 1025), True),
+    ),
+)
+def test_document_file_size_too_large(client, mocker, file_size_in_bytes, application_code_call_expected):
+    mock_uploaded_file = mocker.patch(
+        "app.upload.views.UploadedFile.from_request_json", wraps=UploadedFile.from_request_json
+    )
     url = "/services/12345678-1111-1111-1111-123456789012/documents"
 
-    # Gets hit by Werkzeug's 3MiB content length limit automatically (before our app logic).
-    file_content = b"a" * (3 * 1024 * 1024 + 1)
+    file_content = b"a" * file_size_in_bytes
     response = _document_upload(client, url, file_content)
 
     assert response.status_code == 413
     assert response.json == {"error": "Uploaded file exceeds file size limit"}
-    assert mock_uploaded_file.called is False
-
-
-def test_document_file_size_too_large_b64_decoded_content(client):
-    url = "/services/12345678-1111-1111-1111-123456789012/documents"
-
-    # Gets through Werkzeug's 3MiB content length limit, but too big for our python ~2MiB check.
-    file_content = b"a" * (2 * 1024 * 1024 + 1025)
-    response = _document_upload(client, url, file_content)
-
-    assert response.status_code == 413
-    assert response.json == {"error": "Uploaded file exceeds file size limit"}
+    assert mock_uploaded_file.called is application_code_call_expected
 
 
 def test_document_upload_no_document(client):
