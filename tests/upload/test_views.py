@@ -160,7 +160,8 @@ def test_document_file_size_just_right_after_b64decode(client, store, antivirus)
     assert response.status_code == 201
 
 
-def test_document_file_size_too_large_werkzeug_content_length(client):
+def test_document_file_size_too_large_werkzeug_content_length(client, mocker):
+    mock_uploaded_file = mocker.patch("app.upload.views.UploadedFile.from_request_json")
     url = "/services/12345678-1111-1111-1111-123456789012/documents"
 
     # Gets hit by Werkzeug's 3MiB content length limit automatically (before our app logic).
@@ -169,7 +170,7 @@ def test_document_file_size_too_large_werkzeug_content_length(client):
 
     assert response.status_code == 413
     assert response.json == {"error": "Uploaded file exceeds file size limit"}
-    # Mock assertion missing here
+    assert mock_uploaded_file.called is False
 
 
 def test_document_file_size_too_large_b64_decoded_content(client):
