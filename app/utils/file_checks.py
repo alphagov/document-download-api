@@ -176,7 +176,7 @@ class UploadedFile:
     @property
     def virus_free(self):
         if not current_app.config["ANTIVIRUS_ENABLED"]:
-            return False
+            return True
         try:
             virus_free = antivirus_client.scan(self.file_data)
         except AntivirusError as e:

@@ -3,7 +3,10 @@ from unittest.mock import call
 from uuid import UUID
 
 import pytest
+from flask import current_app
 from notifications_utils.clients.antivirus.antivirus_client import AntivirusError
+
+from app.config import Test
 
 
 def _file_checks(client, file_content, is_csv=None, filename=None, service_id=None):
@@ -195,3 +198,36 @@ def test_success_response_from_cache(client, mocker):
 
     assert response.status_code == 200
     assert response.json == {"mimetype": "application/pdf"}
+
+
+@pytest.mark.xdist_group(name="modifies_app_context")
+@pytest.mark.parametrize(
+    "scan_results",
+    (
+        # Scan results are ignored
+        True,
+        False,
+    ),
+)
+@pytest.mark.parametrize(
+    "antivirus_enabled",
+    (
+        pytest.param(
+            True,
+            marks=pytest.mark.xfail(reason="Virus scan will be called"),
+        ),
+        False,
+    ),
+)
+def test_file_is_always_virus_free_when_antivirus_disabled(antivirus, client, mocker, scan_results, antivirus_enabled):
+    current_app.config["ANTIVIRUS_ENABLED"] = antivirus_enabled
+    antivirus.scan.return_value = scan_results
+
+    response = _file_checks(client, b"Anything")
+
+    assert response.status_code == 200
+    assert response.json == {"mimetype": "text/plain"}
+    assert antivirus.scan.called is False
+
+    # Reset the app config to avoid affecting other tests
+    current_app.config["ANTIVIRUS_ENABLED"] = Test.ANTIVIRUS_ENABLED
