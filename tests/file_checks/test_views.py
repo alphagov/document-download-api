@@ -1,12 +1,14 @@
 import base64
 from unittest.mock import call
+from uuid import UUID
 
 import pytest
 from notifications_utils.clients.antivirus.antivirus_client import AntivirusError
 
 
-def _file_checks(client, file_content, is_csv=None, filename=None):
-    url = "/antivirus-and-mimetype-check"
+def _file_checks(client, file_content, is_csv=None, filename=None, service_id=None):
+    service_id = service_id or UUID(int=0, version=4)
+    url = f"/services/{service_id}/antivirus-and-mimetype-check"
     data = {
         "document": base64.b64encode(file_content).decode("utf-8"),
     }
@@ -56,7 +58,8 @@ def test_file_checks_virus_scan_error(client, antivirus):
 
 
 def test_file_checks_invalid_encoding(client):
-    response = client.post("/antivirus-and-mimetype-check", json={"document": "foo"})
+    service_id = UUID(int=0, version=4)
+    response = client.post(f"/services/{service_id}/antivirus-and-mimetype-check", json={"document": "foo"})
 
     assert response.status_code == 400
     assert response.json == {"error": "Document is not base64 encoded"}
@@ -106,12 +109,12 @@ def test_virus_check_puts_value_in_cache(
 
     assert mock_redis_set.call_args_list == [
         call(
-            "file-checks-74cc0669d6b61ff7efa2416a51eb1a6ed17b23d5",
+            "file-checks-b923c205dab97514f00194b3ee5cde0546f1aa7c",
             expected_first_cache_value,
             ex=86_400,
         ),
         call(
-            "file-checks-9c8b0f33cd678ce620fced273bbc9950bd3350e7",
+            "file-checks-9e1c0c215d2eaefe915dd2d431a1cf21e777bbae",
             expected_second_cache_value,
             ex=86_400,
         ),
@@ -135,16 +138,35 @@ def test_virus_check_returns_value_from_cache(client, mocker):
         assert response_1.json == response_2.json == {"error": "I’m a teapot"}
 
     assert mock_redis_get.call_args_list == [
-        call("file-checks-74cc0669d6b61ff7efa2416a51eb1a6ed17b23d5"),
-        call("file-checks-da30062e97f8d78fa771dcb8f7b9bae884f0e61e"),
-        call("file-checks-74cc0669d6b61ff7efa2416a51eb1a6ed17b23d5"),
-        call("file-checks-da30062e97f8d78fa771dcb8f7b9bae884f0e61e"),
-        call("file-checks-74cc0669d6b61ff7efa2416a51eb1a6ed17b23d5"),
-        call("file-checks-da30062e97f8d78fa771dcb8f7b9bae884f0e61e"),
+        call("file-checks-b923c205dab97514f00194b3ee5cde0546f1aa7c"),
+        call("file-checks-fcdd443163779531f4fc93f72b34504ad6d14ac8"),
+        call("file-checks-b923c205dab97514f00194b3ee5cde0546f1aa7c"),
+        call("file-checks-fcdd443163779531f4fc93f72b34504ad6d14ac8"),
+        call("file-checks-b923c205dab97514f00194b3ee5cde0546f1aa7c"),
+        call("file-checks-fcdd443163779531f4fc93f72b34504ad6d14ac8"),
     ]
 
 
 def test_different_cache_keys_for_different_filename_and_is_csv(client, mocker):
+    mock_redis_get = mocker.patch(
+        "app.redis_client.get",
+        return_value='{"failure": {"error": "I’m a teapot", "status_code": 418}}'.encode(),
+    )
+
+    file_content = b"%PDF-1.4 file contents"
+
+    _file_checks(client, file_content, service_id=UUID(int=0, version=4))
+    _file_checks(client, file_content, service_id=UUID(int=1, version=4))
+    _file_checks(client, file_content, service_id=UUID(int=1, version=4))
+
+    assert mock_redis_get.call_args_list == [
+        call("file-checks-01ca5a1f80d254b3d6f4dcff59c1d93b4f2ec939"),
+        call("file-checks-dc50228dab1b172ca18465eef02df493d208896b"),
+        call("file-checks-dc50228dab1b172ca18465eef02df493d208896b"),
+    ]
+
+
+def test_different_cache_keys_for_different_service_ids(client, mocker):
     mock_redis_get = mocker.patch(
         "app.redis_client.get",
         return_value='{"failure": {"error": "I’m a teapot", "status_code": 418}}'.encode(),
@@ -157,9 +179,9 @@ def test_different_cache_keys_for_different_filename_and_is_csv(client, mocker):
     _file_checks(client, file_content, filename="foo.pdf", is_csv=True)
 
     assert mock_redis_get.call_args_list == [
-        call("file-checks-74cc0669d6b61ff7efa2416a51eb1a6ed17b23d5"),
-        call("file-checks-3c7955f4f94c940efa494dd4cc9a5c171b8f863a"),
-        call("file-checks-e5734036f6ab95fade9d49a4ff8496489cf03293"),
+        call("file-checks-b923c205dab97514f00194b3ee5cde0546f1aa7c"),
+        call("file-checks-173d5d18c19e3d0e9113dd672a15a31cf41bfb64"),
+        call("file-checks-fc27ee1ffde6ae9c24988896e3d1d1f1d5c7d1f4"),
     ]
 
 

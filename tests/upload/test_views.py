@@ -431,6 +431,6 @@ def test_document_upload_bad_is_csv_value(client):
 )
 def test_get_upload_document_request_data_errors(app, data, expected_error):
     with pytest.raises(AntivirusAndMimeTypeCheckError) as e:
-        UploadedFile.from_request_json(data)
+        UploadedFile.from_request_json(data, service_id="foo")
 
     assert e.value.message == expected_error

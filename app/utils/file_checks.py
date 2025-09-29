@@ -33,15 +33,16 @@ class AntivirusAndMimeTypeCheckError(Exception):
 
 
 class UploadedFile:
-    def __init__(self, file_data, is_csv, confirmation_email, retention_period, filename):
+    def __init__(self, *, file_data, is_csv, confirmation_email, retention_period, filename, service_id):
         self.is_csv = is_csv
         self.filename = filename
         self.confirmation_email = confirmation_email
         self.retention_period = retention_period
+        self.service_id = service_id
         self.file_data = file_data
 
     @classmethod
-    def from_request_json(cls, data):
+    def from_request_json(cls, data, *, service_id):
         if "document" not in data:
             raise AntivirusAndMimeTypeCheckError("No document upload")
 
@@ -59,6 +60,7 @@ class UploadedFile:
             confirmation_email=data.get("confirmation_email"),
             retention_period=data.get("retention_period"),
             filename=data.get("filename", None),
+            service_id=service_id,
         )
 
     @property
@@ -128,6 +130,7 @@ class UploadedFile:
 
         contents += bytes(self.is_csv)
         contents += str(self.filename).encode()
+        contents += str(self.service_id).encode()
 
         return sha1(contents).hexdigest()
 
