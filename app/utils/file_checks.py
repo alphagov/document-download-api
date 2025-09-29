@@ -154,8 +154,8 @@ class UploadedFile:
 
     @property
     def _mimetype(self):
-        if not self.virus_free:
-            return
+        self.do_virus_scan()
+
         if self.filename:
             mimetype = mimetypes.types_map[split_filename(self.filename, dotted=True)[1]]
         else:
@@ -173,14 +173,12 @@ class UploadedFile:
             )
         return mimetype
 
-    @property
-    def virus_free(self):
+    def do_virus_scan(self):
         if not current_app.config["ANTIVIRUS_ENABLED"]:
-            return True
+            return
         try:
             virus_free = antivirus_client.scan(self.file_data)
         except AntivirusError as e:
             raise AntivirusError(message="Antivirus API error", status_code=503) from e
         if not virus_free:
             raise AntivirusError(message="File did not pass the virus scan", status_code=400)
-        return virus_free
