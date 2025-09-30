@@ -150,7 +150,7 @@ def test_virus_check_returns_value_from_cache(client, mocker):
     ]
 
 
-def test_different_cache_keys_for_different_filename_and_is_csv(client, mocker):
+def test_different_cache_keys_for_different_service_ids(client, mocker):
     mock_redis_get = mocker.patch(
         "app.redis_client.get",
         return_value='{"failure": {"error": "I’m a teapot", "status_code": 418}}'.encode(),
@@ -169,7 +169,7 @@ def test_different_cache_keys_for_different_filename_and_is_csv(client, mocker):
     ]
 
 
-def test_different_cache_keys_for_different_service_ids(client, mocker):
+def test_different_cache_keys_for_different_filename_and_is_csv(client, mocker):
     mock_redis_get = mocker.patch(
         "app.redis_client.get",
         return_value='{"failure": {"error": "I’m a teapot", "status_code": 418}}'.encode(),
