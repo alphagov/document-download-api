@@ -43,7 +43,7 @@ flask-redis==0.4.0
     # via notifications-utils
 gds-metrics==0.2.4
     # via -r requirements.in
-govuk-bank-holidays==0.15
+govuk-bank-holidays==0.17
     # via notifications-utils
 greenlet==3.2.2
     # via eventlet
@@ -71,7 +71,7 @@ markupsafe==2.1.3
     #   werkzeug
 mistune==0.8.4
     # via notifications-utils
-notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@bb31f41dd194802ced5ea814f84cc25855467234
+notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@156071828741c0ccee53bb348fdb9a0f0128e726
     # via -r requirements.in
 ordered-set==4.1.0
     # via notifications-utils
