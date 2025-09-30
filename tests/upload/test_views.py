@@ -1,13 +1,12 @@
 import base64
 from pathlib import Path
-from unittest import mock
 
 import pytest
 from notifications_utils.clients.antivirus.antivirus_client import AntivirusError
-from werkzeug.exceptions import BadRequest
 
 import app
-from app.upload.views import _get_upload_document_request_data
+from app.upload.views import UploadedFile
+from app.utils.file_checks import AntivirusAndMimeTypeCheckError
 
 
 @pytest.fixture
@@ -22,7 +21,7 @@ def store(mocker):
 @pytest.fixture
 def antivirus(mocker):
     return mocker.patch(
-        "app.upload.views.antivirus_client",
+        "app.utils.file_checks.antivirus_client",
         # prevent LocalProxy being detected as an async function
         new_callable=mocker.MagicMock,
     )
@@ -161,34 +160,27 @@ def test_document_file_size_just_right_after_b64decode(client, store, antivirus)
     assert response.status_code == 201
 
 
-def test_document_file_size_too_large_werkzeug_content_length(client):
+@pytest.mark.parametrize(
+    "file_size_in_bytes, application_code_call_expected",
+    (
+        # Gets hit by Werkzeug's 3MiB content length limit automatically (before our app logic).
+        ((3 * 1024 * 1024 + 1), False),
+        # Gets through Werkzeug's 3MiB content length limit, but too big for our python ~2MiB check.
+        ((2 * 1024 * 1024 + 1025), True),
+    ),
+)
+def test_document_file_size_too_large(client, mocker, file_size_in_bytes, application_code_call_expected):
+    mock_uploaded_file = mocker.patch(
+        "app.upload.views.UploadedFile.from_request_json", wraps=UploadedFile.from_request_json
+    )
     url = "/services/12345678-1111-1111-1111-123456789012/documents"
 
-    # Gets hit by Werkzeug's 3MiB content length limit automatically (before our app logic).
-    file_content = b"a" * (3 * 1024 * 1024 + 1)
-    with mock.patch(
-        "app.upload.views._get_upload_document_request_data", wraps=_get_upload_document_request_data
-    ) as mock_get_data:
-        response = _document_upload(client, url, file_content)
+    file_content = b"a" * file_size_in_bytes
+    response = _document_upload(client, url, file_content)
 
     assert response.status_code == 413
     assert response.json == {"error": "Uploaded file exceeds file size limit"}
-    assert mock_get_data.call_count == 0
-
-
-def test_document_file_size_too_large_b64_decoded_content(client):
-    url = "/services/12345678-1111-1111-1111-123456789012/documents"
-
-    # Gets through Werkzeug's 3MiB content length limit, but too big for our python ~2MiB check.
-    file_content = b"a" * (2 * 1024 * 1024 + 1025)
-    with mock.patch(
-        "app.upload.views._get_upload_document_request_data", wraps=_get_upload_document_request_data
-    ) as mock_get_data:
-        response = _document_upload(client, url, file_content)
-
-    assert response.status_code == 413
-    assert response.json == {"error": "Uploaded file exceeds file size limit"}
-    assert mock_get_data.call_count == 1
+    assert mock_uploaded_file.called is application_code_call_expected
 
 
 def test_document_upload_no_document(client):
@@ -438,7 +430,7 @@ def test_document_upload_bad_is_csv_value(client):
     ),
 )
 def test_get_upload_document_request_data_errors(app, data, expected_error):
-    with pytest.raises(BadRequest) as e:
-        _get_upload_document_request_data(data)
+    with pytest.raises(AntivirusAndMimeTypeCheckError) as e:
+        UploadedFile.from_request_json(data, service_id="foo")
 
-    assert e.value.description == expected_error
+    assert e.value.message == expected_error

@@ -49,6 +49,7 @@ antivirus_client = LocalProxy(get_antivirus_client)
 
 
 from app.download.views import download_blueprint
+from app.file_checks.views import file_checks_blueprint
 from app.upload.views import upload_blueprint
 
 mimetypes.init()
@@ -74,6 +75,7 @@ def create_app():
 
     application.register_blueprint(download_blueprint)
     application.register_blueprint(upload_blueprint)
+    application.register_blueprint(file_checks_blueprint)
 
     @application.errorhandler(EventletTimeout)
     def eventlet_timeout(error):
