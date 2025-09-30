@@ -148,14 +148,13 @@ class UploadedFile:
         if file_data_hash != self.file_data_hash:
             raise RuntimeError("Wrong hash value passed to cache")
         try:
+            self.do_virus_scan()
             return {"success": {"mimetype": self._mimetype}}
         except (AntivirusError, FiletypeError) as e:
             return {"failure": {"error": e.message, "status_code": e.status_code}}
 
     @property
     def _mimetype(self):
-        self.do_virus_scan()
-
         if self.filename:
             mimetype = mimetypes.types_map[split_filename(self.filename, dotted=True)[1]]
         else:
