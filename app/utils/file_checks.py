@@ -128,8 +128,11 @@ class UploadedFile:
         contents = bytearray(self.file_data.read())
         self.file_data.seek(0)
 
-        contents += bytes(self.is_csv)
-        contents += str(self.file_extension).encode()
+        if self.file_extension:
+            contents += str(self.file_extension).encode()
+        else:
+            contents += bytes(self.is_csv)
+
         contents += str(self.service_id).encode()
 
         return sha1(contents).hexdigest()
