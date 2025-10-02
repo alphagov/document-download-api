@@ -178,7 +178,7 @@ def test_different_cache_keys_for_different_filename_and_is_csv(client, mocker):
     assert mock_redis_get.call_args_list == [
         # No filename
         call("file-checks-78b2a017d57195bd248ea2ac7ca7c676ff082ae9"),
-        # Different filenames but same extention
+        # Different filenames but same extension
         call("file-checks-01de2a8237b9fbdb364a257098787408ae53ab97"),
         call("file-checks-01de2a8237b9fbdb364a257098787408ae53ab97"),
         # Different extention
