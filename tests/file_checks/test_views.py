@@ -181,7 +181,7 @@ def test_different_cache_keys_for_different_filename_and_is_csv(client, mocker):
         # Different filenames but same extension
         call("file-checks-01de2a8237b9fbdb364a257098787408ae53ab97"),
         call("file-checks-01de2a8237b9fbdb364a257098787408ae53ab97"),
-        # Different extention
+        # Different extension
         call("file-checks-1b6950c7d6718aad287c9718771229d7c6321a99"),
         # Same filename but is_csv=True (which is ignored)
         call("file-checks-1b6950c7d6718aad287c9718771229d7c6321a99"),
