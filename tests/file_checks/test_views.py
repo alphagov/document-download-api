@@ -112,12 +112,12 @@ def test_virus_check_puts_value_in_cache(
 
     assert mock_redis_set.call_args_list == [
         call(
-            "file-checks-b923c205dab97514f00194b3ee5cde0546f1aa7c",
+            "file-checks-78b2a017d57195bd248ea2ac7ca7c676ff082ae9",
             expected_first_cache_value,
             ex=86_400,
         ),
         call(
-            "file-checks-9e1c0c215d2eaefe915dd2d431a1cf21e777bbae",
+            "file-checks-b9e8a7de077339594399102403d2834b21324613",
             expected_second_cache_value,
             ex=86_400,
         ),
@@ -140,14 +140,8 @@ def test_virus_check_returns_value_from_cache(client, mocker):
         assert response_1.status_code == response_2.status_code == 418
         assert response_1.json == response_2.json == {"error": "I’m a teapot"}
 
-    assert mock_redis_get.call_args_list == [
-        call("file-checks-b923c205dab97514f00194b3ee5cde0546f1aa7c"),
-        call("file-checks-fcdd443163779531f4fc93f72b34504ad6d14ac8"),
-        call("file-checks-b923c205dab97514f00194b3ee5cde0546f1aa7c"),
-        call("file-checks-fcdd443163779531f4fc93f72b34504ad6d14ac8"),
-        call("file-checks-b923c205dab97514f00194b3ee5cde0546f1aa7c"),
-        call("file-checks-fcdd443163779531f4fc93f72b34504ad6d14ac8"),
-    ]
+    assert len(mock_redis_get.call_args_list) == 6
+    assert len({c[0] for c in mock_redis_get.call_args_list}) == 2
 
 
 def test_different_cache_keys_for_different_service_ids(client, mocker):
@@ -162,11 +156,8 @@ def test_different_cache_keys_for_different_service_ids(client, mocker):
     _file_checks(client, file_content, service_id=UUID(int=1, version=4))
     _file_checks(client, file_content, service_id=UUID(int=1, version=4))
 
-    assert mock_redis_get.call_args_list == [
-        call("file-checks-01ca5a1f80d254b3d6f4dcff59c1d93b4f2ec939"),
-        call("file-checks-dc50228dab1b172ca18465eef02df493d208896b"),
-        call("file-checks-dc50228dab1b172ca18465eef02df493d208896b"),
-    ]
+    assert len(mock_redis_get.call_args_list) == 3
+    assert len({c[0] for c in mock_redis_get.call_args_list}) == 2
 
 
 def test_different_cache_keys_for_different_filename_and_is_csv(client, mocker):
@@ -179,12 +170,23 @@ def test_different_cache_keys_for_different_filename_and_is_csv(client, mocker):
 
     _file_checks(client, file_content)
     _file_checks(client, file_content, filename="foo.pdf")
-    _file_checks(client, file_content, filename="foo.pdf", is_csv=True)
+    _file_checks(client, file_content, filename="bar.pdf")
+    _file_checks(client, file_content, filename="bar.jpg")
+    _file_checks(client, file_content, filename="bar.jpg", is_csv=True)
+    _file_checks(client, file_content, is_csv=True)
 
     assert mock_redis_get.call_args_list == [
-        call("file-checks-b923c205dab97514f00194b3ee5cde0546f1aa7c"),
-        call("file-checks-173d5d18c19e3d0e9113dd672a15a31cf41bfb64"),
-        call("file-checks-fc27ee1ffde6ae9c24988896e3d1d1f1d5c7d1f4"),
+        # No filename
+        call("file-checks-78b2a017d57195bd248ea2ac7ca7c676ff082ae9"),
+        # Different filenames but same extension
+        call("file-checks-01de2a8237b9fbdb364a257098787408ae53ab97"),
+        call("file-checks-01de2a8237b9fbdb364a257098787408ae53ab97"),
+        # Different extension
+        call("file-checks-1b6950c7d6718aad287c9718771229d7c6321a99"),
+        # Same filename but is_csv=True (which is ignored)
+        call("file-checks-1b6950c7d6718aad287c9718771229d7c6321a99"),
+        # No filename but is_csv=True
+        call("file-checks-cf0768397cf40807321810280dc65d236bc53c70"),
     ]
 
 

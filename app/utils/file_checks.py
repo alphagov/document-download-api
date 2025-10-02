@@ -128,11 +128,20 @@ class UploadedFile:
         contents = bytearray(self.file_data.read())
         self.file_data.seek(0)
 
-        contents += bytes(self.is_csv)
-        contents += str(self.filename).encode()
+        if self.file_extension:
+            contents += str(self.file_extension).encode()
+        else:
+            contents += bytes(self.is_csv)
+
         contents += str(self.service_id).encode()
 
         return sha1(contents).hexdigest()
+
+    @property
+    def file_extension(self):
+        if not self.filename:
+            return
+        return split_filename(self.filename, dotted=True)[1]
 
     def mimetype_deserialised(self):
         result = self.mimetype_serialised(self.file_data_hash)
@@ -156,7 +165,7 @@ class UploadedFile:
     @property
     def _mimetype(self):
         if self.filename:
-            mimetype = mimetypes.types_map[split_filename(self.filename, dotted=True)[1]]
+            mimetype = mimetypes.types_map[self.file_extension]
         else:
             mimetype = get_mime_type(self.file_data)
             # Our mimetype auto-detection sometimes resolves CSV content as text/plain, so we use
