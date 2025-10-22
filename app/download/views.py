@@ -46,7 +46,13 @@ def get_redirect_url_if_user_not_authenticated(request, document):
 
     url = get_frontend_download_url(service_id, document_id, base64_to_bytes(request.args["key"]))
 
-    current_app.logger.warning("could not verify cookie for service %s document %s", service_id, document_id)
+    extra = {
+        "service_id": service_id,
+        "document_id": document_id,
+    }
+    current_app.logger.warning(
+        "Could not verify cookie for service %(service_id)s document %(document_id)s", extra, extra=extra
+    )
     return redirect(url)
 
 

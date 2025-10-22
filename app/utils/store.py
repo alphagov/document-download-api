@@ -106,9 +106,11 @@ class DocumentStore:
         if confirmation_email:
             hashed_recipient_email = self._hasher.hash(confirmation_email)
             extra_kwargs["Metadata"]["hashed-recipient-email"] = hashed_recipient_email
+            extra = {"service_id": service_id, "document_id": document_id}
             current_app.logger.info(
                 "Enabling email confirmation flow for %(service_id)s/%(document_id)s",
-                {"service_id": service_id, "document_id": document_id},
+                extra,
+                extra=extra,
             )
 
         tags = {
@@ -118,9 +120,11 @@ class DocumentStore:
 
         if retention_period:
             tags["retention-period"] = retention_period
+            extra = {"service_id": service_id, "document_id": document_id, "retention_period": retention_period}
             current_app.logger.info(
                 "Setting custom retention period for %(service_id)s/%(document_id)s: %(retention_period)s",
-                {"service_id": service_id, "document_id": document_id, "retention_period": retention_period},
+                extra,
+                extra=extra,
             )
 
         extra_kwargs["Tagging"] = urlencode(tags)
