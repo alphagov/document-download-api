@@ -28,10 +28,13 @@ run-flask: ## Run the app locally
 run-flask-with-docker: ## Run flask with docker
 	FLASK_APP=application.py FLASK_DEBUG=1 ./scripts/run_locally_with_docker.sh web-local
 
-.PHONY: test
-test: ## Run all tests
+.PHONY: lint
+lint: ## Run static analysis
 	ruff check .
 	ruff format --check .
+
+.PHONY: test
+test: lint ## Run all tests
 	py.test tests/
 
 .PHONY: test-with-docker
