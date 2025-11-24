@@ -56,3 +56,7 @@ make test
 We added the Python auto-formatter `black` to this project after its inception. This required a bulk re-format of existing files, which generated a large and noisy commit. Git blame can be configured to ignore this commit with the following command:
 
 `git config --local blame.ignoreRevsFile .git-blame-ignore-revs`
+
+## Licence
+
+Unless stated otherwise, the codebase is released under [the MIT License](LICENCE). This covers both the codebase and any sample code in the documentation.
