@@ -59,4 +59,4 @@ We added the Python auto-formatter `black` to this project after its inception. 
 
 ## Licence
 
-Unless stated otherwise, the codebase is released under [the MIT License](LICENSE). This covers both the codebase and any sample code in the documentation.
+Unless stated otherwise, the codebase is released under [the MIT License](LICENCE). This covers both the codebase and any sample code in the documentation.
