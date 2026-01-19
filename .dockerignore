@@ -2,3 +2,6 @@
 **/__pycache__
 
 target/*
+
+# ideally we would exclude all of .git/ but make generate-version-file needs some of it
+**/.git/config
