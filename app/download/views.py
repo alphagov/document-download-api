@@ -1,3 +1,5 @@
+import mimetypes
+
 from flask import (
     Blueprint,
     current_app,
@@ -8,6 +10,7 @@ from flask import (
     send_file,
 )
 from notifications_utils.base64_uuid import base64_to_bytes
+from notifications_utils.file_types import extension_from_mime_type
 from notifications_utils.recipient_validation.errors import InvalidEmailError
 
 from app import document_store, redis_client
@@ -90,10 +93,10 @@ def download_document(service_id, document_id, extension=None):
 
     if filename := document["metadata"].get("filename"):
         extension = split_filename(filename, dotted=False)[1]
-        mimetype = current_app.config["FILE_EXTENSIONS_TO_MIMETYPES"][extension]
+        mimetype = mimetypes.types_map[f".{extension}"]
     else:
         mimetype = document["mimetype"]
-        extension = current_app.config["MIME_TYPES_TO_FILE_EXTENSIONS"][mimetype]
+        extension = extension_from_mime_type(mimetype)
         filename = f"{document_id}.{extension}"
 
     send_file_kwargs = {
@@ -147,7 +150,7 @@ def get_document_metadata(service_id, document_id):
         ),
         "confirm_email": metadata["confirm_email"],
         "size_in_bytes": metadata["size"],
-        "file_extension": current_app.config["MIME_TYPES_TO_FILE_EXTENSIONS"][metadata["mimetype"]],
+        "file_extension": extension_from_mime_type(metadata["mimetype"]),
         "filename": metadata["filename"],
         "available_until": metadata["available_until"],
     }

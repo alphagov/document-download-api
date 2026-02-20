@@ -2,6 +2,7 @@ from urllib.parse import urlencode, urlunsplit
 
 from flask import current_app, url_for
 from notifications_utils.base64_uuid import bytes_to_base64, uuid_to_base64
+from notifications_utils.file_types import extension_from_mime_type
 
 
 def get_direct_file_url(service_id, document_id, key, mimetype):
@@ -10,7 +11,7 @@ def get_direct_file_url(service_id, document_id, key, mimetype):
         service_id=service_id,
         document_id=document_id,
         key=bytes_to_base64(key),
-        extension=current_app.config["MIME_TYPES_TO_FILE_EXTENSIONS"][mimetype],
+        extension=extension_from_mime_type(mimetype),
         _external=False,
     )
 

@@ -6,6 +6,7 @@ from io import BytesIO
 from flask import abort, current_app
 from notifications_utils.clients.antivirus.antivirus_client import AntivirusError
 from notifications_utils.clients.redis import RequestCache
+from notifications_utils.file_types import EXTENSIONS, is_allowed_mime_type
 from notifications_utils.recipient_validation.errors import InvalidEmailError
 
 from app import antivirus_client, redis_client
@@ -172,10 +173,8 @@ class UploadedFile:
             # an explicit POST body parameter `is_csv` from the caller to resolve it as text/csv
             if self.is_csv and mimetype == "text/plain":
                 mimetype = "text/csv"
-        if mimetype not in current_app.config["MIME_TYPES_TO_FILE_EXTENSIONS"]:
-            allowed_file_types = ", ".join(
-                sorted({f"'.{x}'" for x in current_app.config["FILE_EXTENSIONS_TO_MIMETYPES"].keys()})
-            )
+        if not is_allowed_mime_type(mimetype):
+            allowed_file_types = ", ".join(sorted({f"'.{x}'" for x in EXTENSIONS}))
             raise FiletypeError(
                 message=f"Unsupported file type '{mimetype}'. Supported types are: {allowed_file_types}"
             )
