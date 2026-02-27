@@ -12,7 +12,7 @@ awscrt==0.31.2
     # via
     #   -r requirements.txt
     #   botocore
-beautifulsoup4==4.12.3
+beautifulsoup4==4.14.3
     # via -r requirements_for_test_common.in
 blinker==1.9.0
     # via
@@ -71,7 +71,7 @@ flask-redis==0.4.0
     # via
     #   -r requirements.txt
     #   notifications-utils
-freezegun==1.5.1
+freezegun==1.5.5
     # via -r requirements_for_test_common.in
 gds-metrics==0.2.4
     # via -r requirements.txt
@@ -149,24 +149,26 @@ pycparser==3.0
     # via
     #   -r requirements.txt
     #   cffi
+pygments==2.19.2
+    # via pytest
 pypdf==6.7.3
     # via
     #   -r requirements.txt
     #   notifications-utils
-pytest==8.3.4
+pytest==9.0.2
     # via
     #   -r requirements_for_test_common.in
     #   pytest-env
     #   pytest-mock
     #   pytest-testmon
     #   pytest-xdist
-pytest-env==1.1.5
+pytest-env==1.5.0
     # via -r requirements_for_test_common.in
-pytest-mock==3.14.0
+pytest-mock==3.15.1
     # via -r requirements_for_test_common.in
-pytest-testmon==2.1.1
+pytest-testmon==2.2.0
     # via -r requirements_for_test_common.in
-pytest-xdist==3.6.1
+pytest-xdist==3.8.0
     # via -r requirements_for_test_common.in
 python-dateutil==2.9.0.post0
     # via
@@ -174,6 +176,8 @@ python-dateutil==2.9.0.post0
     #   botocore
     #   freezegun
     #   notifications-utils
+python-dotenv==1.2.1
+    # via pytest-env
 python-json-logger==4.0.0
     # via
     #   -r requirements.txt
@@ -226,6 +230,8 @@ statsd==4.0.1
     # via
     #   -r requirements.txt
     #   notifications-utils
+typing-extensions==4.15.0
+    # via beautifulsoup4
 urllib3==2.6.3
     # via
     #   -r requirements.txt
