@@ -85,7 +85,7 @@ pyasn1==0.6.2
     # via rsa
 pycparser==3.0
     # via cffi
-pypdf==6.7.3
+pypdf==6.7.5
     # via notifications-utils
 python-dateutil==2.9.0.post0
     # via
