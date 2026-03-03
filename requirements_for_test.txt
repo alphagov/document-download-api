@@ -151,7 +151,7 @@ pycparser==3.0
     #   cffi
 pygments==2.19.2
     # via pytest
-pypdf==6.7.3
+pypdf==6.7.5
     # via
     #   -r requirements.txt
     #   notifications-utils
