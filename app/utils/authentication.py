@@ -28,6 +28,8 @@ def get_allowed_tokens(config):
 
 
 def get_token_from_headers():
+    # If other headers are required (or this one no is longer needed) update the docs:
+    # https://github.com/alphagov/notifications-manuals/wiki/Request-headers-used
     auth_header = request.headers.get("Authorization", "")
     if auth_header[:7] != "Bearer ":
         return None
