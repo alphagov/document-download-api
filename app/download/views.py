@@ -86,7 +86,7 @@ def download_document(service_id, document_id, extension=None):
                 "document_id": document_id,
             },
         )
-        return jsonify(error=str(e)), e.suggested_status_code
+        return jsonify(error="Failed to download document"), e.suggested_status_code
 
     if redirect := get_redirect_url_if_user_not_authenticated(request, document):
         return redirect
@@ -139,7 +139,7 @@ def get_document_metadata(service_id, document_id):
                 "document_id": document_id,
             },
         )
-        return jsonify(error=str(e)), e.suggested_status_code
+        return jsonify(error="Failed to download document"), e.suggested_status_code
 
     document = {
         "direct_file_url": get_direct_file_url(

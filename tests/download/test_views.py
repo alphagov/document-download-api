@@ -220,7 +220,7 @@ def test_download_document_document_store_error(client, store):
     )
 
     assert response.status_code == 400
-    assert response.json == {"error": "something went wrong"}
+    assert response.json == {"error": "Failed to download document"}
 
 
 def test_download_document_redirects_if_user_not_authenticated(client, store, mocker):
@@ -282,7 +282,7 @@ def test_get_document_metadata_document_store_error(client, store):
     )
 
     assert response.status_code == 400
-    assert response.json == {"error": "something went wrong"}
+    assert response.json == {"error": "Failed to download document"}
 
 
 @pytest.mark.parametrize(
@@ -343,7 +343,7 @@ def test_get_document_metadata_when_document_is_not_in_s3(client, store):
     )
 
     assert response.status_code == 404
-    assert response.json == {"error": "no such document"}
+    assert response.json == {"error": "Failed to download document"}
 
 
 class TestAuthenticateDocument:
