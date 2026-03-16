@@ -167,6 +167,13 @@ class UploadedFile:
     def _mimetype(self):
         if self.filename:
             mimetype = mimetypes.types_map[self.file_extension]
+            detected_mimetype = get_mime_type(self.file_data)
+            if detected_mimetype != mimetype:
+                current_app.logger.warning(
+                    "Mimetypes don't match give filename derived mimetype  %s and detected mimetype %s",
+                    mimetype,
+                    detected_mimetype,
+                )
         else:
             mimetype = get_mime_type(self.file_data)
             # Our mimetype auto-detection sometimes resolves CSV content as text/plain, so we use
