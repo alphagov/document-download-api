@@ -11,9 +11,9 @@ blinker==1.9.0
     #   flask
     #   gds-metrics
     #   sentry-sdk
-boto3==1.42.59
+boto3[crt]==1.42.59
     # via notifications-utils
-botocore==1.42.59
+botocore[crt]==1.42.59
     # via
     #   boto3
     #   s3transfer
@@ -47,7 +47,7 @@ govuk-bank-holidays==0.19
     # via notifications-utils
 greenlet==3.3.2
     # via eventlet
-gunicorn==25.1.0
+gunicorn[eventlet]==25.1.0
     # via notifications-utils
 idna==3.11
     # via requests
@@ -71,7 +71,7 @@ markupsafe==3.0.3
     #   werkzeug
 mistune==0.8.4
     # via notifications-utils
-notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@e4fd0f03f2475329250dac85d1fb778a4fc053b4
+notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@110.0.0
     # via -r requirements.in
 ordered-set==4.1.0
     # via notifications-utils
@@ -81,7 +81,7 @@ phonenumbers==9.0.25
     # via notifications-utils
 prometheus-client==0.24.1
     # via gds-metrics
-pyasn1==0.6.2
+pyasn1==0.6.3
     # via rsa
 pycparser==3.0
     # via cffi
@@ -109,7 +109,7 @@ s3transfer==0.16.0
     # via boto3
 segno==1.6.6
     # via notifications-utils
-sentry-sdk==1.45.1
+sentry-sdk[flask]==1.45.1
     # via -r requirements.in
 six==1.17.0
     # via python-dateutil
