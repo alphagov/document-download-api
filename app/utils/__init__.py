@@ -2,8 +2,10 @@ from io import BytesIO
 from zipfile import BadZipFile, ZipFile
 
 import magic
+import sentry_sdk
 
 
+@sentry_sdk.trace
 def get_mime_type(document_stream):
     data = document_stream.read()
     document_stream.seek(0)
