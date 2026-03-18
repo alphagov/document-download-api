@@ -8,6 +8,8 @@ import boto3
 from botocore.exceptions import ClientError as BotoClientError
 from dateutil import parser
 from flask import current_app
+from notifications_utils.eventlet import EventletTimeout
+from notifications_utils.exception_handling import extract_reraise_chained_exception
 
 from app.utils.hasher import Hasher
 
@@ -46,6 +48,7 @@ class DocumentStore:
     def init_app(self, app):
         self.bucket = app.config["DOCUMENTS_BUCKET"]
 
+    @extract_reraise_chained_exception(EventletTimeout)
     def _get_document_tags(self, service_id, document_id):
         try:
             return {
@@ -89,6 +92,7 @@ class DocumentStore:
         if effective_expiry_date < date.today():
             raise DocumentExpired("The document is no longer available")
 
+    @extract_reraise_chained_exception(EventletTimeout)
     def put(
         self, service_id, document_stream, *, mimetype, confirmation_email=None, retention_period=None, filename=None
     ):
@@ -164,12 +168,13 @@ class DocumentStore:
         try:
             tags = self._get_document_tags(service_id, document_id)
             self.check_for_blocked_document(tags)
-            s3_response = self.s3.get_object(
-                Bucket=self.bucket,
-                Key=self.get_document_key(service_id, document_id),
-                SSECustomerKey=decryption_key,
-                SSECustomerAlgorithm="AES256",
-            )
+            with extract_reraise_chained_exception(EventletTimeout):
+                s3_response = self.s3.get_object(
+                    Bucket=self.bucket,
+                    Key=self.get_document_key(service_id, document_id),
+                    SSECustomerKey=decryption_key,
+                    SSECustomerAlgorithm="AES256",
+                )
             self.check_for_expired_document(s3_response, tags)
 
         except BotoClientError as e:
@@ -193,12 +198,13 @@ class DocumentStore:
         try:
             tags = self._get_document_tags(service_id, document_id)
             self.check_for_blocked_document(tags)
-            s3_response = self.s3.head_object(
-                Bucket=self.bucket,
-                Key=self.get_document_key(service_id, document_id),
-                SSECustomerKey=decryption_key,
-                SSECustomerAlgorithm="AES256",
-            )
+            with extract_reraise_chained_exception(EventletTimeout):
+                s3_response = self.s3.head_object(
+                    Bucket=self.bucket,
+                    Key=self.get_document_key(service_id, document_id),
+                    SSECustomerKey=decryption_key,
+                    SSECustomerAlgorithm="AES256",
+                )
             self.check_for_expired_document(s3_response, tags)
 
             available_until = self._get_effective_expiry_date(s3_response, tags)
@@ -293,12 +299,13 @@ class DocumentStore:
         try:
             tags = self._get_document_tags(service_id, document_id)
             self.check_for_blocked_document(tags)
-            s3_response = self.s3.head_object(
-                Bucket=self.bucket,
-                Key=self.get_document_key(service_id, document_id),
-                SSECustomerKey=decryption_key,
-                SSECustomerAlgorithm="AES256",
-            )
+            with extract_reraise_chained_exception(EventletTimeout):
+                s3_response = self.s3.head_object(
+                    Bucket=self.bucket,
+                    Key=self.get_document_key(service_id, document_id),
+                    SSECustomerKey=decryption_key,
+                    SSECustomerAlgorithm="AES256",
+                )
             self.check_for_expired_document(s3_response, tags)
         except (DocumentBlocked, DocumentExpired):
             return False
