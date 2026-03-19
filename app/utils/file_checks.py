@@ -3,6 +3,7 @@ from base64 import b64decode, binascii
 from hashlib import sha1
 from io import BytesIO
 
+import sentry_sdk
 from flask import abort, current_app
 from notifications_utils.clients.antivirus.antivirus_client import AntivirusError
 from notifications_utils.clients.redis import RequestCache
@@ -153,6 +154,7 @@ class UploadedFile:
             )
         return result["success"]["mimetype"]
 
+    @sentry_sdk.trace
     @cache.set("file-checks-{file_data_hash}", ttl_in_seconds=86_400)
     def mimetype_serialised(self, file_data_hash):
         if file_data_hash != self.file_data_hash:
@@ -180,6 +182,7 @@ class UploadedFile:
             )
         return mimetype
 
+    @sentry_sdk.trace
     def do_virus_scan(self):
         if not current_app.config["ANTIVIRUS_ENABLED"]:
             return

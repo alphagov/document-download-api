@@ -5,6 +5,7 @@ from datetime import UTC, date, datetime, timedelta
 from urllib.parse import urlencode
 
 import boto3
+import sentry_sdk
 from botocore.exceptions import ClientError as BotoClientError
 from dateutil import parser
 from flask import current_app
@@ -89,6 +90,7 @@ class DocumentStore:
         if effective_expiry_date < date.today():
             raise DocumentExpired("The document is no longer available")
 
+    @sentry_sdk.trace
     def put(
         self, service_id, document_stream, *, mimetype, confirmation_email=None, retention_period=None, filename=None
     ):
