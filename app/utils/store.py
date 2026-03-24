@@ -96,7 +96,16 @@ class DocumentStore:
     @extract_reraise_chained_exception(EventletTimeout)
     @sentry_sdk.trace
     def put(
-        self, service_id, document_stream, *, mimetype, confirmation_email=None, retention_period=None, filename=None
+        self,
+        service_id,
+        document_stream,
+        *,
+        mimetype,
+        confirmation_email=None,
+        retention_period=None,
+        filename=None,
+        from_job=None,
+        recipients_csv_link=None,
     ):
         """
         confirmation_email and retention_period need to already be in a validated and known-good format
@@ -138,6 +147,10 @@ class DocumentStore:
         if filename:
             # Convert utf-8 filenames to ASCII suitable for storing in AWS S3 Metadata.
             extra_kwargs["Metadata"]["filename"] = filename.encode("unicode_escape").decode("ascii")
+
+        if from_job:
+            extra_kwargs["Metadata"]["from_job"] = from_job
+            extra_kwargs["Metadata"]["recipients_csv_link"] = recipients_csv_link
 
         self.s3.put_object(
             Bucket=self.bucket,
