@@ -1,3 +1,30 @@
+## We don’t allow committing certain file types that risk containing users’ personal information
+## If you are sure that a file is OK, you can explicitly add it to the list of allowed files
+*.pdf
+*.PDF
+*.csv
+*.CSV
+*.doc
+*.DOC
+*.docx
+*.DOCX
+*.xls
+*.XLS
+*.xlsx
+*.XLSX
+*.zip
+*.ZIP
+
+## Non user files allowed to be commited
+!tests/sample_files/corrupted.zip
+!tests/sample_files/test_longer.csv
+!tests/sample_files/test.csv
+!tests/sample_files/test.doc
+!tests/sample_files/test.docx
+!tests/sample_files/test.pdf
+!tests/sample_files/test.xlsx
+!tests/sample_files/test.zip
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
