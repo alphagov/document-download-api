@@ -6,6 +6,8 @@ APP_VERSION_FILE = app/version.py
 GIT_BRANCH ?= $(shell git symbolic-ref --short HEAD 2> /dev/null || echo "detached")
 GIT_COMMIT ?= $(shell git rev-parse HEAD)
 
+EXCLUDE_REQUIREMENTS_NEWER_THAN_DAYS ?= 30
+
 ## DEVELOPMENT
 
 .PHONY: help
@@ -43,11 +45,15 @@ test-with-docker: ## Run tests in Docker container
 
 .PHONY: freeze-requirements
 freeze-requirements: ## create static requirements.txt
-	uv pip compile requirements.in -o requirements.txt
+	uv pip compile requirements.in -o requirements.txt $(EXTRA_UV_PIP_COMPILE_FLAGS)
 	uv pip sync requirements.txt
 	python -c "from notifications_utils.version_tools import copy_config; copy_config()"
-	uv pip compile requirements_for_test.in -o requirements_for_test.txt
+	uv pip compile requirements_for_test.in -o requirements_for_test.txt $(EXTRA_UV_PIP_COMPILE_FLAGS)
 	uv pip sync requirements_for_test.txt
+
+.PHONY: refreeze-requirements
+refreeze-requirements: ## Upgrade unpinned requirements
+	EXTRA_UV_PIP_COMPILE_FLAGS="--upgrade --exclude-newer $(EXCLUDE_REQUIREMENTS_NEWER_THAN_DAYS)d" make freeze-requirements
 
 .PHONY: bump-utils
 bump-utils:  # Bump notifications-utils package to latest version
