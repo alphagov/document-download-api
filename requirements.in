@@ -2,7 +2,6 @@
 # with package version changes made in requirements.in
 
 python-magic~=0.4
-rsa~=4.3
 
 gds-metrics==0.2.4
 
