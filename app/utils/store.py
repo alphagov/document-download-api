@@ -104,7 +104,6 @@ class DocumentStore:
         confirmation_email=None,
         retention_period=None,
         filename=None,
-        from_job=None,
         recipients_csv_link=None,
     ):
         """
@@ -148,9 +147,8 @@ class DocumentStore:
             # Convert utf-8 filenames to ASCII suitable for storing in AWS S3 Metadata.
             extra_kwargs["Metadata"]["filename"] = filename.encode("unicode_escape").decode("ascii")
 
-        if from_job:
-            extra_kwargs["Metadata"]["from_job"] = from_job
-            extra_kwargs["Metadata"]["recipients_csv_link"] = recipients_csv_link
+        if recipients_csv_link:
+            extra_kwargs["Metadata"]["recipients-csv-link"] = recipients_csv_link
 
         self.s3.put_object(
             Bucket=self.bucket,
@@ -328,14 +326,34 @@ class DocumentStore:
             if e.response["Error"]["Code"] == "404":
                 return False
             raise DocumentStoreError(e.response["Error"]) from e
+        if recipients_csv_link := self.get_recipients_csv_link(s3_response):
+            return self.is_email_address_in_list_of_recipients(self, email_address, recipients_csv_link)
+        else:
+            hashed_email = self.get_email_hash(s3_response)
 
-        hashed_email = self.get_email_hash(s3_response)
+            if not hashed_email:
+                return False
 
-        if not hashed_email:
-            return False
-
-        return self._hasher.verify(value=email_address, hash_to_verify=hashed_email)
+            return self._hasher.verify(value=email_address, hash_to_verify=hashed_email)
 
     @staticmethod
-    def get_email_hash(boto_response):
-        return boto_response.get("Metadata", {}).get("hashed-recipient-email", None)
+    def get_email_hash(s3_response):
+        return s3_response.get("Metadata", {}).get("hashed-recipient-email", None)
+
+    @staticmethod
+    def get_recipients_csv_link(s3_response):
+        return s3_response.get("Metadata", {}).get("recipients-csv-link", None)
+
+    def is_email_address_in_list_of_recipients(self, email_address, recipients_csv_link):
+        recipients_csv = self.get_recipients_csv_from_s3(recipients_csv_link)
+        import csv
+
+        recipients_emails = csv.DictReader(recipients_csv)
+
+        return email_address in recipients_emails
+
+    @staticmethod
+    def get_recipients_csv_from_s3(recipients_csv_link):
+        # TODO: implement this - call self.get(self, service_id, document_id, decryption_key)
+        # get required args from the link
+        pass

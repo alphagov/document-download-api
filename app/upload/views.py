@@ -23,7 +23,6 @@ def upload_document(service_id):
         confirmation_email=uploaded_file.confirmation_email,
         retention_period=uploaded_file.retention_period,
         filename=uploaded_file.filename,
-        from_job=uploaded_file.from_job,
         recipients_csv_link=get_link_to_recipients_csv(uploaded_file.recipients_csv),
     )
 
