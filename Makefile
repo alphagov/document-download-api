@@ -55,6 +55,10 @@ freeze-requirements: ## create static requirements.txt
 refreeze-requirements: ## Upgrade unpinned requirements
 	EXTRA_UV_PIP_COMPILE_FLAGS="--upgrade --exclude-newer $(EXCLUDE_REQUIREMENTS_NEWER_THAN_DAYS)d" make freeze-requirements
 
+.PHONY: show-outdated-requirements
+show-outdated-requirements: ## Audit requirements.in
+	python -c "from notifications_utils.version_tools import show_outdated_requirements; show_outdated_requirements()"
+
 .PHONY: bump-utils
 bump-utils:  # Bump notifications-utils package to latest version
 	python -c "from notifications_utils.version_tools import upgrade_version; upgrade_version()"
