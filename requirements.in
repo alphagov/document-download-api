@@ -5,7 +5,7 @@ python-magic~=0.4
 
 gds-metrics==0.2.4
 
-argon2-cffi~=21.3
+argon2-cffi~=25.1
 
 # Run `make bump-utils` to update to the latest version
 notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@113.6.1
