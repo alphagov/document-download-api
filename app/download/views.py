@@ -92,7 +92,7 @@ def download_document(service_id, document_id, extension=None):
         return redirect
 
     if filename := document["metadata"].get("filename"):
-        extension = split_filename(filename, dotted=False)[1]
+        extension = split_filename(filename, dotted=False)[1].lower()
         mimetype = mimetypes.types_map[f".{extension}"]
     else:
         mimetype = document["mimetype"]

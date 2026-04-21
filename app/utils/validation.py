@@ -46,7 +46,7 @@ def validate_filename(filename):
     if "." not in filename:
         raise ValueError("`filename` must end with a file extension. For example, filename.csv")
 
-    extension = split_filename(filename, dotted=False)[1]
+    extension = split_filename(filename, dotted=False)[1].lower()
     if not is_allowed_file_extension(extension):
         allowed_file_types = ", ".join(sorted({f"'.{x}'" for x in EXTENSIONS}))
         raise ValueError(f"Unsupported file type '.{extension}'. Supported types are: {allowed_file_types}")
