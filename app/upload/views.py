@@ -23,6 +23,7 @@ def upload_document(service_id):
         confirmation_email=uploaded_file.confirmation_email,
         retention_period=uploaded_file.retention_period,
         filename=uploaded_file.filename,
+        recipients_csv_link=get_link_to_recipients_csv(uploaded_file.recipients_csv),
     )
 
     return (
@@ -45,4 +46,21 @@ def upload_document(service_id):
             },
         ),
         201,
+    )
+
+
+def get_link_to_recipients_csv(uploaded_file):
+    recipient_csv_upload = document_store.put(
+        uploaded_file.service_id,
+        uploaded_file.recipients_csv,
+        mimetype="text/csv",
+        confirmation_email=None,
+        retention_period=uploaded_file.retention_period,
+    )
+
+    return get_direct_file_url(
+        service_id=uploaded_file.service_id,
+        document_id=recipient_csv_upload["id"],
+        key=recipient_csv_upload["encryption_key"],
+        mimetype="text/csv",
     )
