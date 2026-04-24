@@ -20,12 +20,13 @@ def store(mocker):
     )
 
 
-def test_download_document(client, store):
+@pytest.mark.parametrize("filename", [None, "example.pdf", "example.PDF", "example.Pdf"])
+def test_download_document(client, store, filename):
     store.get.return_value = {
         "body": io.BytesIO(b"PDF document contents"),
         "mimetype": "application/pdf",
         "size": 100,
-        "metadata": {},
+        "metadata": {"filename": filename} if filename else {},
     }
 
     response = client.get(
@@ -44,7 +45,9 @@ def test_download_document(client, store):
         "Date": mock.ANY,
         "Content-Length": "100",
         "Content-Type": "application/pdf",
-        "Content-Disposition": "inline; filename=ffffffff-ffff-ffff-ffff-ffffffffffff.pdf",
+        "Content-Disposition": f"inline; filename={filename}"
+        if filename
+        else "inline; filename=ffffffff-ffff-ffff-ffff-ffffffffffff.pdf",
         "Referrer-Policy": "no-referrer",
         "X-B3-SpanId": mock.ANY,
         "X-B3-TraceId": mock.ANY,

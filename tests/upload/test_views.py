@@ -337,20 +337,22 @@ def test_document_upload_csv_handling(
 
 
 @pytest.mark.parametrize(
-    "extension, expected_mimetype",
+    "filename, extension, expected_mimetype",
     (
-        ("pdf", "application/pdf"),
-        ("csv", "text/csv"),
-        ("txt", "text/plain"),
-        ("json", "application/json"),
-        ("doc", "application/msword"),
-        ("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
-        ("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
-        ("odt", "application/vnd.oasis.opendocument.text"),
-        ("rtf", "application/rtf"),
-        ("jpg", "image/jpeg"),
-        ("jpeg", "image/jpeg"),
-        ("png", "image/png"),
+        ("test.pdf", "pdf", "application/pdf"),
+        ("test_capitalised_initial_character_extension.Pdf", "Pdf", "application/pdf"),
+        ("test_capitalise_extension.PDF", "PDF", "application/pdf"),
+        ("test.csv", "csv", "text/csv"),
+        ("test.txt", "txt", "text/plain"),
+        ("test.json", "json", "application/json"),
+        ("test.doc", "doc", "application/msword"),
+        ("test.docx", "docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
+        ("test.xlsx", "xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+        ("test.odt", "odt", "application/vnd.oasis.opendocument.text"),
+        ("test.rtf", "rtf", "application/rtf"),
+        ("test.jpg", "jpg", "image/jpeg"),
+        ("test.jpeg", "jpeg", "image/jpeg"),
+        ("test.png", "png", "image/png"),
     ),
 )
 @pytest.mark.parametrize("is_csv", (True, False))  # `is_csv` should just be ignored when `filename` is provided
@@ -360,6 +362,7 @@ def test_document_upload_filename_handling(
     store,
     antivirus,
     expected_mimetype,
+    filename,
     extension,
     is_csv,
 ):
@@ -371,7 +374,7 @@ def test_document_upload_filename_handling(
     antivirus.scan.return_value = True
 
     file_name = f"test-file.{extension}"
-    with open(Path(__file__).parent.parent / "sample_files" / f"test.{extension}", "rb") as f:
+    with open(Path(__file__).parent.parent / "sample_files" / filename, "rb") as f:
         response = client.post(
             "/services/00000000-0000-0000-0000-000000000000/documents",
             json={
@@ -402,7 +405,7 @@ def test_document_upload_filename_handling(
                     "http://download.document-download-frontend-test",
                     "/services/00000000-0000-0000-0000-000000000000",
                     "/documents/ffffffff-ffff-ffff-ffff-ffffffffffff",
-                    f".{extension}",
+                    f".{extension}".lower(),
                     "?key=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
                 ]
             ),

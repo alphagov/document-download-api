@@ -143,7 +143,7 @@ class UploadedFile:
     def file_extension(self):
         if not self.filename:
             return
-        return split_filename(self.filename, dotted=True)[1]
+        return split_filename(self.filename, dotted=True)[1].lower()
 
     def mimetype_deserialised(self):
         result = self.mimetype_serialised(self.file_data_hash)

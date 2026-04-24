@@ -24,6 +24,8 @@
 !tests/sample_files/test.pdf
 !tests/sample_files/test.xlsx
 !tests/sample_files/test.zip
+!tests/sample_files/test_capitalise_extension.PDF
+!tests/sample_files/test_capitalised_initial_character_extension.Pdf
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
