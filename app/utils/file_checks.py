@@ -53,11 +53,8 @@ class UploadedFile:
         except (binascii.Error, ValueError) as e:
             raise AntivirusAndMimeTypeCheckError("Document is not base64 encoded") from e
 
-        if len(raw_content) > current_app.config["MAX_DECODED_FILE_SIZE"]:
-            abort(413)
-
         return cls(
-            file_data=BytesIO(raw_content),
+            file_data=raw_content,
             is_csv=data.get("is_csv"),
             confirmation_email=data.get("confirmation_email"),
             retention_period=data.get("retention_period"),
@@ -118,10 +115,13 @@ class UploadedFile:
 
     @property
     def file_data(self):
-        return self._file_data
+        return BytesIO(self._file_data)
 
     @file_data.setter
     def file_data(self, value):
+        if len(value) > current_app.config["MAX_DECODED_FILE_SIZE"]:
+            abort(413)
+
         self._file_data = value
         self.mimetype = self.mimetype_deserialised()
 
