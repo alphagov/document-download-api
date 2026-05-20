@@ -142,7 +142,7 @@ class UploadedFile:
     def file_extension(self):
         if not self.filename:
             return
-        return split_filename(self.filename, dotted=True)[1].lower()
+        return split_filename(self.filename, dotted=False)[1].lower()
 
     def mimetype_deserialised(self):
         result = self.mimetype_serialised(self.file_data_hash)
@@ -167,7 +167,7 @@ class UploadedFile:
     @property
     def _mimetype(self):
         if self.filename:
-            mimetype = mime_type_from_extension(self.file_extension[1:])
+            mimetype = mime_type_from_extension(self.file_extension)
             detected_mimetype = get_mime_type(self.file_data)
             if detected_mimetype != mimetype:
                 current_app.logger.warning(
