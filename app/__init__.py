@@ -1,4 +1,3 @@
-import mimetypes
 import os
 from collections.abc import Callable
 from contextvars import ContextVar
@@ -51,8 +50,6 @@ antivirus_client = LocalProxy(get_antivirus_client)
 from app.download.views import download_blueprint
 from app.file_checks.views import file_checks_blueprint
 from app.upload.views import upload_blueprint
-
-mimetypes.init()
 
 
 def create_app():
