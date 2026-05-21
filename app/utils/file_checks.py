@@ -1,4 +1,3 @@
-import mimetypes
 from base64 import b64decode, binascii
 from hashlib import sha1
 from io import BytesIO
@@ -7,7 +6,7 @@ import sentry_sdk
 from flask import abort, current_app
 from notifications_utils.clients.antivirus.antivirus_client import AntivirusError
 from notifications_utils.clients.redis import RequestCache
-from notifications_utils.file_types import EXTENSIONS, is_allowed_mime_type
+from notifications_utils.file_types import EXTENSIONS, is_allowed_mime_type, mime_type_from_extension
 from notifications_utils.recipient_validation.errors import InvalidEmailError
 
 from app import antivirus_client, redis_client
@@ -143,7 +142,7 @@ class UploadedFile:
     def file_extension(self):
         if not self.filename:
             return
-        return split_filename(self.filename, dotted=True)[1].lower()
+        return split_filename(self.filename, dotted=False)[1].lower()
 
     def mimetype_deserialised(self):
         result = self.mimetype_serialised(self.file_data_hash)
@@ -168,7 +167,7 @@ class UploadedFile:
     @property
     def _mimetype(self):
         if self.filename:
-            mimetype = mimetypes.types_map[self.file_extension]
+            mimetype = mime_type_from_extension(self.file_extension)
             detected_mimetype = get_mime_type(self.file_data)
             if detected_mimetype != mimetype:
                 current_app.logger.warning(
