@@ -737,7 +737,7 @@ mistune==0.8.4 \
     # via
     #   -r requirements.txt
     #   notifications-utils
-notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@be88b9badd025dafe99d256f7661c45a68125c77
+notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@c835456a288c7a4bd42857060c2cab02d851980d
     # via -r requirements.txt
 opentelemetry-api==1.41.0 \
     --hash=sha256:0e77c806e6a89c9e4f8d372034622f3e1418a11bdbe1c80a50b3d3397ad0fa4f \
