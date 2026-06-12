@@ -167,6 +167,13 @@ class UploadedFile:
         except (AntivirusError, FiletypeError) as e:
             return {"failure": {"error": e.message, "status_code": e.status_code}}
 
+    def check_mimetype_allowed(self, mimetype):
+        if not is_allowed_mime_type(mimetype):
+            allowed_file_types = ", ".join(sorted({f"'.{x}'" for x in EXTENSIONS}))
+            raise FiletypeError(
+                message=f"Unsupported file type '{mimetype}'. Supported types are: {allowed_file_types}"
+            )
+
     @property
     def _mimetype(self):
         if self.filename:
@@ -178,17 +185,15 @@ class UploadedFile:
                     mimetype,
                     detected_mimetype,
                 )
+                self.check_mimetype_allowed(detected_mimetype)
         else:
             mimetype = get_mime_type(self.file_data)
             # Our mimetype auto-detection sometimes resolves CSV content as text/plain, so we use
             # an explicit POST body parameter `is_csv` from the caller to resolve it as text/csv
             if self.is_csv and mimetype == "text/plain":
                 mimetype = "text/csv"
-        if not is_allowed_mime_type(mimetype):
-            allowed_file_types = ", ".join(sorted({f"'.{x}'" for x in EXTENSIONS}))
-            raise FiletypeError(
-                message=f"Unsupported file type '{mimetype}'. Supported types are: {allowed_file_types}"
-            )
+
+        self.check_mimetype_allowed(mimetype)
         return mimetype
 
     @sentry_sdk.trace

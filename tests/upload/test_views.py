@@ -26,7 +26,7 @@ def antivirus(mocker):
     )
 
 
-def _document_upload(client, url, file_content, confirmation_email=None, retention_period=None):
+def _document_upload(client, url, file_content, confirmation_email=None, retention_period=None, filename=None):
     data = {
         "document": base64.b64encode(file_content).decode("utf-8"),
     }
@@ -35,9 +35,25 @@ def _document_upload(client, url, file_content, confirmation_email=None, retenti
         data["confirmation_email"] = confirmation_email
     if retention_period:
         data["retention_period"] = retention_period
+    if filename:
+        data["filename"] = filename
 
     response = client.post(url, json=data)
     return response
+
+
+def test_document_upload_magic_type_not_supported(client, antivirus):
+    url = "/services/12345678-1111-1111-1111-123456789012/documents"
+    file_content = b"\x00binary file contents\n"
+
+    response = _document_upload(client, url, file_content, filename="innocuous.txt")
+
+    assert response.status_code == 400
+    assert response.json["error"] == (
+        "Unsupported file type 'application/octet-stream'. "
+        "Supported types are: '.csv', '.doc', '.docx', '.jpeg', '.jpg', '.json', '.odt', '.pdf', '.png', '.rtf', "
+        "'.txt', '.xlsx'"
+    )
 
 
 def test_document_upload_returns_link_to_frontend(client, store, antivirus):
