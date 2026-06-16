@@ -121,6 +121,9 @@ class UploadedFile:
         if len(value) > current_app.config["MAX_DECODED_FILE_SIZE"]:
             abort(413)
 
+        if not value:
+            raise AntivirusAndMimeTypeCheckError("Document must not be empty")
+
         self._file_data = value
         self.mimetype = self.mimetype_deserialised()
 

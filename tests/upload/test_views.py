@@ -414,6 +414,37 @@ def test_document_upload_filename_handling(
     }
 
 
+@pytest.mark.parametrize(
+    "extra_args",
+    (
+        {},
+        {"filename": "example.csv"},
+        {"filename": "example.pdf"},
+        {"is_csv": True},
+        {"is_csv": False},
+        {"is_csv": True, "filename": "example.csv"},
+        {"is_csv": False, "filename": "example.pdf"},
+    ),
+)
+def test_document_upload_empty_file(
+    app,
+    client,
+    store,
+    antivirus,
+    extra_args,
+):
+    response = client.post(
+        "/services/00000000-0000-0000-0000-000000000000/documents",
+        json={
+            "document": base64.b64encode(b"").decode("utf-8"),
+        }
+        | extra_args,
+    )
+
+    assert response.status_code == 400
+    assert response.json == {"error": "Document must not be empty"}
+
+
 def test_document_upload_bad_is_csv_value(client):
     with open(Path(__file__).parent.parent / "sample_files" / "test.csv", "rb") as f:
         response = client.post(
