@@ -34,13 +34,26 @@ class AntivirusAndMimeTypeCheckError(Exception):
 
 
 class UploadedFile:
-    def __init__(self, *, file_data, is_csv, confirmation_email, retention_period, filename, service_id):
+    def __init__(
+        self,
+        *,
+        file_data,
+        is_csv,
+        confirmation_email,
+        retention_period,
+        filename,
+        service_id,
+        from_job=None,
+        recipients_csv=None,
+    ):
         self.is_csv = is_csv
         self.filename = filename
         self.confirmation_email = confirmation_email
         self.retention_period = retention_period
         self.service_id = service_id
-        self.file_data = file_data
+        self.file_data = (file_data,)
+        from_job = (from_job,)
+        recipients_csv = (recipients_csv,)
 
     @classmethod
     def from_request_json(cls, data, *, service_id):
@@ -59,6 +72,8 @@ class UploadedFile:
             retention_period=data.get("retention_period"),
             filename=data.get("filename", None),
             service_id=service_id,
+            from_job=data.get("from_job"),
+            recipients_csv=data.get("recipients_csv"),
         )
 
     @property
@@ -126,6 +141,14 @@ class UploadedFile:
 
         self._file_data = value
         self.mimetype = self.mimetype_deserialised()
+
+    @property
+    def recipients_csv(self):
+        return self._csv_from_list(self.recipients_csv)
+
+    @property
+    def from_job(self):
+        return self.from_job
 
     @property
     def file_data_hash(self):
