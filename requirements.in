@@ -10,4 +10,4 @@ argon2-cffi~=25.1
 # Run `make bump-utils` to update to the latest version
 notifications-utils @ git+https://github.com/alphagov/notifications-utils.git@117.0.2
 
-sentry-sdk[flask]~=1.45
+sentry-sdk[flask]~=2.63
