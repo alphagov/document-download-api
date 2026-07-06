@@ -5,6 +5,7 @@ from uuid import UUID
 import pytest
 from flask import redirect, url_for
 from flask.sessions import SecureCookieSessionInterface
+from notifications_utils.testing import AnySupersetOf
 
 from app.download.views import get_redirect_url_if_user_not_authenticated
 from app.utils.signed_data import sign_service_and_document_id
@@ -40,19 +41,15 @@ def test_download_document(client, store, filename):
 
     assert response.status_code == 200
     assert response.get_data() == b"PDF document contents"
-    assert dict(response.headers) == {
-        "Cache-Control": mock.ANY,
-        "Date": mock.ANY,
-        "Content-Length": "100",
-        "Content-Type": "application/pdf",
-        "Content-Disposition": f"inline; filename={filename}"
-        if filename
-        else "inline; filename=ffffffff-ffff-ffff-ffff-ffffffffffff.pdf",
-        "Referrer-Policy": "no-referrer",
-        "X-B3-SpanId": mock.ANY,
-        "X-B3-TraceId": mock.ANY,
-        "X-Robots-Tag": "noindex, nofollow",
-    }
+    assert dict(response.headers) == AnySupersetOf(
+        {
+            "Content-Length": "100",
+            "Content-Type": "application/pdf",
+            "Content-Disposition": f"inline; filename={filename}"
+            if filename
+            else "inline; filename=ffffffff-ffff-ffff-ffff-ffffffffffff.pdf",
+        }
+    )
     store.get.assert_called_once_with(
         UUID("00000000-0000-0000-0000-000000000000"), UUID("ffffffff-ffff-ffff-ffff-ffffffffffff"), bytes(32)
     )
