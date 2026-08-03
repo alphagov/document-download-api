@@ -6,8 +6,6 @@ APP_VERSION_FILE = app/version.py
 GIT_BRANCH ?= $(shell git symbolic-ref --short HEAD 2> /dev/null || echo "detached")
 GIT_COMMIT ?= $(shell git rev-parse HEAD)
 
-EXCLUDE_REQUIREMENTS_NEWER_THAN_DAYS ?= 7
-
 ## DEVELOPMENT
 
 .PHONY: help
@@ -45,15 +43,15 @@ test-with-docker: ## Run tests in Docker container
 
 .PHONY: freeze-requirements
 freeze-requirements: ## create static requirements.txt
-	uv pip compile requirements.in -o requirements.txt $(EXTRA_UV_PIP_COMPILE_FLAGS)
-	uv pip sync requirements.txt
+	uv pip install "`cat requirements.in | grep 'notifications-utils @'`"
 	python -c "from notifications_utils.version_tools import copy_config; copy_config()"
-	uv pip compile requirements_for_test.in -o requirements_for_test.txt $(EXTRA_UV_PIP_COMPILE_FLAGS)
+	uv pip compile --quiet requirements.in -o requirements.txt $(EXTRA_UV_PIP_COMPILE_FLAGS)
+	uv pip compile --quiet requirements_for_test.in -o requirements_for_test.txt $(EXTRA_UV_PIP_COMPILE_FLAGS)
 	uv pip sync requirements_for_test.txt
 
 .PHONY: refreeze-requirements
 refreeze-requirements: ## Upgrade unpinned requirements
-	EXTRA_UV_PIP_COMPILE_FLAGS="--upgrade --exclude-newer $(EXCLUDE_REQUIREMENTS_NEWER_THAN_DAYS)d" make freeze-requirements
+	EXTRA_UV_PIP_COMPILE_FLAGS="--upgrade" make freeze-requirements
 
 .PHONY: show-outdated-requirements
 show-outdated-requirements: ## Audit requirements.in
