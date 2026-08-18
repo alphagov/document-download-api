@@ -41,6 +41,7 @@ def test_download_document(client, store, filename):
     assert response.status_code == 200
     assert response.get_data() == b"PDF document contents"
     assert dict(response.headers) == {
+        "Accept-Ranges": mock.ANY,
         "Cache-Control": mock.ANY,
         "Date": mock.ANY,
         "Content-Length": "100",
@@ -172,6 +173,7 @@ def test_download_document_with_extension(client, store):
     assert response.status_code == 200
     assert response.get_data() == b"a,b,c"
     assert dict(response.headers) == {
+        "Accept-Ranges": mock.ANY,
         "Cache-Control": mock.ANY,
         "Date": mock.ANY,
         "Content-Length": "100",
