@@ -32,6 +32,7 @@ run-flask-with-docker: ## Run flask with docker
 lint: ## Run static analysis
 	ruff check .
 	ruff format --check .
+	grep '^\*\*/\.git/config$$' ./.dockerignore > /dev/null
 
 .PHONY: test
 test: lint ## Run all tests
