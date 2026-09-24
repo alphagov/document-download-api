@@ -68,3 +68,4 @@ generate-version-file: ## Generates the app version file
 
 ## bla
 ## bla
+## bla
