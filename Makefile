@@ -66,3 +66,4 @@ bump-utils:  # Bump notifications-utils package to latest version
 generate-version-file: ## Generates the app version file
 	@echo -e "__git_commit__ = \"${GIT_COMMIT}\"\n__time__ = \"${DATE}\"" > ${APP_VERSION_FILE}
 
+## bla
