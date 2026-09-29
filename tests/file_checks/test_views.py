@@ -115,11 +115,13 @@ def test_virus_check_puts_value_in_cache(
             "file-checks-78b2a017d57195bd248ea2ac7ca7c676ff082ae9",
             expected_first_cache_value,
             ex=86_400,
+            skippable=True,
         ),
         call(
             "file-checks-b9e8a7de077339594399102403d2834b21324613",
             expected_second_cache_value,
             ex=86_400,
+            skippable=True,
         ),
     ]
 
@@ -177,16 +179,16 @@ def test_different_cache_keys_for_different_filename_and_is_csv(client, mocker):
 
     assert mock_redis_get.call_args_list == [
         # No filename
-        call("file-checks-78b2a017d57195bd248ea2ac7ca7c676ff082ae9"),
+        call("file-checks-78b2a017d57195bd248ea2ac7ca7c676ff082ae9", skippable=True),
         # Different filenames but same extension
-        call("file-checks-794ba67193b0e175b8254cf8fd6fb88c53585ce9"),
-        call("file-checks-794ba67193b0e175b8254cf8fd6fb88c53585ce9"),
+        call("file-checks-794ba67193b0e175b8254cf8fd6fb88c53585ce9", skippable=True),
+        call("file-checks-794ba67193b0e175b8254cf8fd6fb88c53585ce9", skippable=True),
         # Different extension
-        call("file-checks-74f8ee5eb1e75d4c899ab79e23b2a67fc1f59e0b"),
+        call("file-checks-74f8ee5eb1e75d4c899ab79e23b2a67fc1f59e0b", skippable=True),
         # Same filename but is_csv=True (which is ignored)
-        call("file-checks-74f8ee5eb1e75d4c899ab79e23b2a67fc1f59e0b"),
+        call("file-checks-74f8ee5eb1e75d4c899ab79e23b2a67fc1f59e0b", skippable=True),
         # No filename but is_csv=True
-        call("file-checks-cf0768397cf40807321810280dc65d236bc53c70"),
+        call("file-checks-cf0768397cf40807321810280dc65d236bc53c70", skippable=True),
     ]
 
 
