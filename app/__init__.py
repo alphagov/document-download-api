@@ -3,7 +3,6 @@ from collections.abc import Callable
 from contextvars import ContextVar
 
 from flask import Flask, current_app, jsonify
-from gds_metrics import GDSMetrics
 from notifications_utils import request_helper
 from notifications_utils.clients.antivirus.antivirus_client import AntivirusClient
 from notifications_utils.clients.redis.redis_client import RedisClient
@@ -18,7 +17,6 @@ from app.utils.store import DocumentStore
 # must be declared before rest of app is imported to satisfy circular import
 # ruff: noqa: E402
 
-metrics = GDSMetrics()
 redis_client = RedisClient()
 
 memo_resetters: list[Callable] = []
@@ -64,7 +62,6 @@ def create_app():
     request_helper.init_app(application)
     utils_logging.init_app(application)
 
-    metrics.init_app(application)
     redis_client.init_app(application)
 
     # make sure we handle unicode correctly
