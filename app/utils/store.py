@@ -9,8 +9,8 @@ import sentry_sdk
 from botocore.exceptions import ClientError as BotoClientError
 from dateutil import parser
 from flask import current_app
-from notifications_utils.eventlet import EventletTimeout
 from notifications_utils.exception_handling import extract_reraise_chained_exception
+from notifications_utils.greenlet import RequestHandlingTimeout
 
 from app.utils.hasher import Hasher
 
@@ -49,7 +49,7 @@ class DocumentStore:
     def init_app(self, app):
         self.bucket = app.config["DOCUMENTS_BUCKET"]
 
-    @extract_reraise_chained_exception(EventletTimeout)
+    @extract_reraise_chained_exception(RequestHandlingTimeout)
     def _get_document_tags(self, service_id, document_id):
         try:
             return {
@@ -93,7 +93,7 @@ class DocumentStore:
         if effective_expiry_date < date.today():
             raise DocumentExpired("The document is no longer available")
 
-    @extract_reraise_chained_exception(EventletTimeout)
+    @extract_reraise_chained_exception(RequestHandlingTimeout)
     @sentry_sdk.trace
     def put(
         self, service_id, document_stream, *, mimetype, confirmation_email=None, retention_period=None, filename=None
@@ -170,7 +170,7 @@ class DocumentStore:
         try:
             tags = self._get_document_tags(service_id, document_id)
             self.check_for_blocked_document(tags)
-            with extract_reraise_chained_exception(EventletTimeout):
+            with extract_reraise_chained_exception(RequestHandlingTimeout):
                 s3_response = self.s3.get_object(
                     Bucket=self.bucket,
                     Key=self.get_document_key(service_id, document_id),
@@ -200,7 +200,7 @@ class DocumentStore:
         try:
             tags = self._get_document_tags(service_id, document_id)
             self.check_for_blocked_document(tags)
-            with extract_reraise_chained_exception(EventletTimeout):
+            with extract_reraise_chained_exception(RequestHandlingTimeout):
                 s3_response = self.s3.head_object(
                     Bucket=self.bucket,
                     Key=self.get_document_key(service_id, document_id),
@@ -301,7 +301,7 @@ class DocumentStore:
         try:
             tags = self._get_document_tags(service_id, document_id)
             self.check_for_blocked_document(tags)
-            with extract_reraise_chained_exception(EventletTimeout):
+            with extract_reraise_chained_exception(RequestHandlingTimeout):
                 s3_response = self.s3.head_object(
                     Bucket=self.bucket,
                     Key=self.get_document_key(service_id, document_id),
