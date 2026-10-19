@@ -7,12 +7,12 @@ init_performance_monitoring()
 
 from app import create_app  # noqa
 
-from notifications_utils.eventlet import EventletTimeoutMiddleware, using_eventlet  # noqa
+from notifications_utils.greenlet import RequestHandlingTimeoutMiddleware, using_eventlet  # noqa
 
 application = create_app()
 
 if using_eventlet:
-    application.wsgi_app = EventletTimeoutMiddleware(
+    application.wsgi_app = RequestHandlingTimeoutMiddleware(
         application.wsgi_app,
         timeout_seconds=int(os.getenv("HTTP_SERVE_TIMEOUT_SECONDS", 30)),
     )
